@@ -137,11 +137,9 @@ body {
   font-weight: 700;
 }
 .brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--accent-amber);
-  transform: rotate(45deg);
+  width: 20px;
+  height: 20px;
+  background: url('/Glank_icon.png') center / contain no-repeat;
 }
 .brand span {
   font-weight: 700;
