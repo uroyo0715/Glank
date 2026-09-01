@@ -11,16 +11,32 @@ function fmt(s) {
 // 微妙なズレでシークが起きてカクつくことがあるため）。
 const SEEK_EPSILON_SECONDS = 0.05
 
-export default function VideoPlayer({ videoUrl, duration, elapsed, setElapsed, playing, setPlaying }) {
+export default function VideoPlayer({ videoUrl, duration: fallbackDuration, elapsed, setElapsed, playing, setPlaying }) {
   const scrubRef = useRef(null)
   const videoRef = useRef(null)
   const [dragging, setDragging] = useState(false)
   const resumeAfterDragRef = useRef(false)
+
+  // 動画の実際の長さ。durationFrames/fps（入力ログの記録時間）は録画バッファの秒数に
+  // 過ぎず、実際に添付された動画ファイルの長さとは一致しないことがある
+  // （例: 入力ログは直近10秒分だけ保持する設定でも、動画自体はOS側の録画機能で
+  // もっと長く残っている場合）。<video>要素が実際に読み込んだ長さが分かるまでは
+  // fallbackDuration（durationFrames/fps）で暫定表示し、判明し次第そちらを使う。
+  const [videoDuration, setVideoDuration] = useState(0)
+  const duration = videoDuration > 0 ? videoDuration : fallbackDuration
   const stateRef = useRef({ elapsed, duration })
 
   useEffect(() => {
     stateRef.current = { elapsed, duration }
   }, [elapsed, duration])
+
+  // 一部のスクリーン録画ツール（Xbox Game Bar等）が書き出すmp4は、長さのメタデータが
+  // 不正確な場合があり、ブラウザ側がInfinityや誤った値を最初に返すことがある。
+  // durationchangeで実際の値に更新されたら追従する。
+  function handleDurationChange() {
+    const d = videoRef.current?.duration
+    if (Number.isFinite(d) && d > 0) setVideoDuration(d)
+  }
 
   // elapsed（外部からのシーク・入力ログクリックでの移動を含む）を実際の動画のcurrentTimeへ反映する。
   useEffect(() => {
@@ -117,6 +133,7 @@ export default function VideoPlayer({ videoUrl, duration, elapsed, setElapsed, p
           className="video-element"
           src={videoUrl}
           onTimeUpdate={handleTimeUpdate}
+          onDurationChange={handleDurationChange}
           onEnded={handleEnded}
           playsInline
         />

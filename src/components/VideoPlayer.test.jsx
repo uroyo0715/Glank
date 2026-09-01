@@ -107,4 +107,25 @@ describe('VideoPlayer', () => {
     fireEvent.keyDown(window, { code: 'Space' })
     expect(setPlaying).toHaveBeenCalled()
   })
+
+  it('switches the displayed duration to the video element’s real duration once known', () => {
+    // durationFrames/fpsは入力ログの記録時間に過ぎず、実際の動画ファイルの長さと
+    // 一致しないことがある（例: Xbox Game Bar等の録画が入力ログの記録より長い場合）。
+    // <video>が実際の長さを報告してきたら、そちらを表示に使う。
+    const video = renderPlayer({ duration: 10 })
+    expect(screen.getByText('0:00 / 0:10')).toBeInTheDocument()
+
+    Object.defineProperty(video, 'duration', { value: 23, configurable: true })
+    fireEvent.durationChange(video)
+
+    expect(screen.getByText('0:00 / 0:23')).toBeInTheDocument()
+  })
+
+  it('ignores a non-finite (Infinity) duration reported by the video element and keeps the fallback', () => {
+    const video = renderPlayer({ duration: 10 })
+    Object.defineProperty(video, 'duration', { value: Infinity, configurable: true })
+    fireEvent.durationChange(video)
+
+    expect(screen.getByText('0:00 / 0:10')).toBeInTheDocument()
+  })
 })
