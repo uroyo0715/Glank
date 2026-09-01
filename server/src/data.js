@@ -72,6 +72,7 @@ async function rowToFullBug(client, row) {
     videoUrl: row.videoUrl,
     fps: Number(row.fps),
     durationFrames: Number(row.durationFrames),
+    inputLogVideoSynced: Boolean(row.inputLogVideoSynced ?? 1),
     inputs: await loadInputs(client, row.id),
   }
 }
@@ -288,6 +289,7 @@ export async function createBug(client, {
   videoBytes,
   fps,
   durationFrames,
+  inputLogVideoSynced,
   inputs,
 }) {
   // idはコントロールプレーン（db）側で採番する。bugs.idはプロジェクトごとに別DBへ分散し得る
@@ -302,8 +304,8 @@ export async function createBug(client, {
   try {
     await tx.execute({
       sql: `INSERT INTO bugs
-          (id, projectId, title, tags, status, description, who, build, platform, priority, videoUrl, videoBytes, fps, durationFrames)
-         VALUES (?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, projectId, title, tags, status, description, who, build, platform, priority, videoUrl, videoBytes, fps, durationFrames, inputLogVideoSynced)
+         VALUES (?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         bugId,
         projectId,
@@ -318,6 +320,7 @@ export async function createBug(client, {
         videoBytes ?? 0,
         fps,
         durationFrames,
+        inputLogVideoSynced === false ? 0 : 1,
       ],
     })
 

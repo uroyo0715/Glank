@@ -378,6 +378,9 @@ router.post(
       videoBytes: bytes,
       fps: metadata.fps,
       durationFrames: metadata.durationFrames,
+      // 省略時（古いバージョンのSDK等）は、これまで通り「動画と入力ログは対応している」
+      // 前提のtrueにする。
+      inputLogVideoSynced: metadata.inputLogVideoSynced !== false,
       inputs: Array.isArray(metadata.inputs) ? metadata.inputs : [],
     })
     res.status(201).json(bug)

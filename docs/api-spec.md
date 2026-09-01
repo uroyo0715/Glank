@@ -38,6 +38,12 @@ interface Bug {
   videoUrl: string       // アップロード済み動画のURL（現状はAPIサーバーの/uploads配下。保存先はserver/src/storage.jsで抽象化）
   fps: number            // 録画時のフレームレート（例: 60）
   durationFrames: number // 動画の総フレーム数
+  // 添付動画と入力ログのタイミングが実際に対応しているか。Unity SDKがInstantReplayVideoRecorder
+  // （ホットキーと同じタイミングで動画を書き出す方式）を使った場合はtrue、ReplayFolderWatcher
+  // （OS側で独立に録画されたファイルを検出するだけの方式）を使った場合はfalse。falseの間、
+  // Web UIはタイムライン表示やクリックでの動画シークを行わない（正確に対応しない位置へ
+  // 誘導してしまうため）。省略時（古いSDK・Web UIからの手動作成等）はtrue扱い。
+  inputLogVideoSynced: boolean
   inputs: InputLogEntry[]
 }
 
@@ -310,6 +316,7 @@ interface ReportMetadata {
   priority?: PriorityLevel // 省略時は 'medium' 扱い
   fps: number
   durationFrames: number
+  inputLogVideoSynced?: boolean // 省略時（false以外）はtrue扱い
   inputs: InputLogEntry[]
 }
 ```

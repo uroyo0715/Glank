@@ -36,9 +36,13 @@ function toExportJson(bug) {
   )
 }
 
-export default function InputLogStrip({ bug, elapsed, onSelectFrame }) {
+export default function InputLogStrip({ bug, elapsed, onSelectFrame, videoSynced = true }) {
   const [open, setOpen] = useState(true)
   const [view, setView] = useState('timeline') // 'timeline' | 'text'
+  // 動画がOS側の録画機能（ReplayFolderWatcher）由来で入力ログと対応していない場合、
+  // タイムライン表示（動画位置との対応を前提にしている）とクリックでのシークは
+  // 誤った位置に誘導してしまうため無効化し、テキスト一覧だけを出す。
+  const effectiveView = videoSynced ? view : 'text'
   const [copyState, setCopyState] = useState('idle') // 'idle' | 'copied' | 'error'
   const [pxPerFrame, setPxPerFrame] = useState(DEFAULT_PX_PER_FRAME)
   const [railWidth, setRailWidth] = useState(640)
@@ -184,17 +188,28 @@ export default function InputLogStrip({ bug, elapsed, onSelectFrame }) {
         <div className="log-strip" ref={logStripRef}>
           <div className="log-strip-head">
             <div className="strip-label">Input Log</div>
-            <SegmentedToggle
-              value={view}
-              onChange={setView}
-              options={[
-                { value: 'timeline', label: 'タイムライン' },
-                { value: 'text', label: 'テキスト' },
-              ]}
-            />
+            {videoSynced ? (
+              <SegmentedToggle
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'timeline', label: 'タイムライン' },
+                  { value: 'text', label: 'テキスト' },
+                ]}
+              />
+            ) : (
+              <span className="strip-view-fixed">テキスト</span>
+            )}
           </div>
 
-          {view === 'timeline' ? (
+          {!videoSynced && (
+            <div className="log-sync-notice">
+              この動画はOS側の録画機能で取得されたもので、入力ログとタイミングが正確に対応していません。
+              そのためタイムライン表示と動画へのジャンプは無効になっています。
+            </div>
+          )}
+
+          {effectiveView === 'timeline' ? (
             <>
               <div
                 className={`frame-rail ${draggingRail ? 'dragging' : ''}`}
@@ -272,14 +287,14 @@ export default function InputLogStrip({ bug, elapsed, onSelectFrame }) {
                     <div className="log-text-empty">入力ログはありません</div>
                   ) : (
                     bug.inputs.map((inp, i) => {
-                      const isHit = Math.abs(inp.frame - elapsedFrame) < TOLERANCE_FRAMES
+                      const isHit = videoSynced && Math.abs(inp.frame - elapsedFrame) < TOLERANCE_FRAMES
                       const holdFrames = inp.holdFrames || 0
                       return (
                         <div
                           key={i}
-                          className={`log-text-row ${isHit ? 'hit' : ''}`}
-                          onClick={() => selectFrame(inp.frame)}
-                          title="クリックでこの位置へ移動"
+                          className={`log-text-row ${isHit ? 'hit' : ''} ${videoSynced ? '' : 'no-seek'}`}
+                          onClick={videoSynced ? () => selectFrame(inp.frame) : undefined}
+                          title={videoSynced ? 'クリックでこの位置へ移動' : undefined}
                         >
                           <span className="col-frame mono">{inp.frame}</span>
                           <span className="col-time mono">{formatTime(inp.frame, bug.fps)}</span>

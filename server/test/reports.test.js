@@ -23,7 +23,13 @@ after(async () => {
   }
 })
 
-function postReportForm({ projectId = project.id, tags = ['crash'], priority, includeVideo = true } = {}) {
+function postReportForm({
+  projectId = project.id,
+  tags = ['crash'],
+  priority,
+  includeVideo = true,
+  inputLogVideoSynced,
+} = {}) {
   const metadata = {
     projectId,
     title: 'テスト報告',
@@ -37,6 +43,7 @@ function postReportForm({ projectId = project.id, tags = ['crash'], priority, in
     inputs: [{ frame: 0, key: 'A', label: 'test' }],
   }
   if (priority !== undefined) metadata.priority = priority
+  if (inputLogVideoSynced !== undefined) metadata.inputLogVideoSynced = inputLogVideoSynced
 
   const form = new FormData()
   form.set('metadata', JSON.stringify(metadata))
@@ -153,7 +160,20 @@ test('POST /reports creates a bug with valid data (no API key configured)', asyn
   assert.equal(bug.projectId, project.id)
   assert.equal(bug.status, 'todo')
   assert.equal(bug.priority, 'medium') // 省略時のデフォルト
+  assert.equal(bug.inputLogVideoSynced, true) // 省略時はこれまで通りtrue扱い
   uploadedFiles.push(bug.videoUrl)
+})
+
+test('POST /reports honors an explicit inputLogVideoSynced: false (ReplayFolderWatcher由来の動画)', async () => {
+  const res = await postReportForm({ inputLogVideoSynced: false })
+  assert.equal(res.status, 201)
+  const bug = await res.json()
+  assert.equal(bug.inputLogVideoSynced, false)
+  uploadedFiles.push(bug.videoUrl)
+
+  const { cookie } = await createAuthCookie({ email: PROJECT_OWNER_EMAIL })
+  const getRes = await fetch(`${getBaseUrl()}/reports/${bug.id}`, { headers: { Cookie: cookie } })
+  assert.equal((await getRes.json()).inputLogVideoSynced, false)
 })
 
 test('POST /reports rejects unknown projectId', async () => {

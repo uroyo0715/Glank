@@ -184,10 +184,23 @@ namespace Glank
                     yield break;
                 }
                 videoPath = task.Result;
+                // GetLatestClipPathAsyncはトリガーと同じタイミングで動画を書き出す方式
+                // （InstantReplayVideoRecorder等）を想定しているため、入力ログと対応している。
+                metadata.inputLogVideoSynced = true;
+            }
+            else if (GetLatestClipPath != null)
+            {
+                videoPath = GetLatestClipPath.Invoke();
+                metadata.inputLogVideoSynced = true;
             }
             else
             {
-                videoPath = GetLatestClipPath != null ? GetLatestClipPath.Invoke() : replayWatcher.FindLatestClip();
+                // ReplayFolderWatcherはOS側で独立に録画されたファイルを検出するだけなので、
+                // 動画の終端（OSの録画停止タイミング）と入力ログの終端（ホットキーを押した
+                // タイミング）が別々に決まる。フレーム単位で対応しているとは限らないため、
+                // Web UI側にその旨を伝える。
+                videoPath = replayWatcher.FindLatestClip();
+                metadata.inputLogVideoSynced = false;
             }
 
             if (string.IsNullOrEmpty(videoPath))

@@ -33,26 +33,32 @@ namespace Glank
         [Tooltip("何秒分の入力履歴を保持するか")]
         [SerializeField] private float bufferSeconds = 10f;
 
+        // frame/holdFramesはどちらもTime.frameCount（実際のフレームレート）ではなく
+        // Time.unscaledTime（実経過時間）× fps から逆算する。理由は2つ:
+        //   1. 保持期間の判定にTime.frameCountを使うと、実際のフレームレートが設定上のfpsと
+        //      かけ離れている環境（Unity Editor等）では、バッファがほぼ即座に空になってしまう
+        //      （実際に発生したバグ）。
+        //   2. 保持期間だけ実時間ベースにして、出力するframe番号だけTime.frameCountのままだと、
+        //      今度はframe/fpsで逆算される秒数が実態と食い違い、負の値や範囲外の値になる。
+        // そのため、記録・出力のどちらも一貫してTime.unscaledTime基準にする。
         private class RecordedInput
         {
-            public int frame;
+            public float capturedAt; // Time.unscaledTime
+            public float releasedAt; // Time.unscaledTime（released==falseの間は未使用）
             public string key;
             public string label;
-            public int holdFrames;
             public bool released;
         }
 
         private readonly List<RecordedInput> _buffer = new List<RecordedInput>();
         private readonly Dictionary<Key, RecordedInput> _pressed = new Dictionary<Key, RecordedInput>();
 
-        private int BufferFrames => Mathf.Max(1, Mathf.RoundToInt(fps * bufferSeconds));
-
         private void Update()
         {
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            int frame = Time.frameCount;
+            float now = Time.unscaledTime;
 
             for (int i = 0; i < watchedKeys.Count; i++)
             {
@@ -63,10 +69,9 @@ namespace Glank
                 {
                     var entry = new RecordedInput
                     {
-                        frame = frame,
+                        capturedAt = now,
                         key = wk.glyph,
                         label = wk.label,
-                        holdFrames = 0,
                         released = false,
                     };
                     _buffer.Add(entry);
@@ -74,33 +79,36 @@ namespace Glank
                 }
                 else if (control.wasReleasedThisFrame && _pressed.TryGetValue(wk.key, out var pressedEntry))
                 {
-                    pressedEntry.holdFrames = frame - pressedEntry.frame;
+                    pressedEntry.releasedAt = now;
                     pressedEntry.released = true;
                     _pressed.Remove(wk.key);
                 }
             }
 
-            int windowStart = frame - BufferFrames + 1;
-            _buffer.RemoveAll(e => e.frame < windowStart);
+            _buffer.RemoveAll(e => now - e.capturedAt > bufferSeconds);
         }
 
         /// <summary>
         /// 現時点までの入力ログを、クリップ先頭を0とした相対フレーム番号に変換して返す。
-        /// 押しっぱなしで未リリースのキーは、現在フレームまでの holdFrames を都度計算する。
+        /// 押しっぱなしで未リリースのキーは、現在時刻までの holdFrames を都度計算する。
         /// </summary>
         public InputLogSnapshot Capture()
         {
-            int currentFrame = Time.frameCount;
-            int windowStart = Mathf.Max(0, currentFrame - BufferFrames + 1);
+            float now = Time.unscaledTime;
+            int durationFrames = Mathf.Max(1, Mathf.RoundToInt(bufferSeconds * fps));
 
             var inputs = new InputLogEntryDto[_buffer.Count];
             for (int i = 0; i < _buffer.Count; i++)
             {
                 var e = _buffer[i];
-                int holdFrames = e.released ? e.holdFrames : currentFrame - e.frame;
+                float ageSeconds = now - e.capturedAt; // 何秒前に押されたか
+                int frame = Mathf.Clamp(durationFrames - Mathf.RoundToInt(ageSeconds * fps), 0, durationFrames);
+                float heldSeconds = (e.released ? e.releasedAt : now) - e.capturedAt;
+                int holdFrames = Mathf.Max(0, Mathf.RoundToInt(heldSeconds * fps));
+
                 inputs[i] = new InputLogEntryDto
                 {
-                    frame = e.frame - windowStart,
+                    frame = frame,
                     key = e.key,
                     label = e.label,
                     holdFrames = holdFrames,
@@ -110,7 +118,7 @@ namespace Glank
             return new InputLogSnapshot
             {
                 fps = fps,
-                durationFrames = currentFrame - windowStart + 1,
+                durationFrames = durationFrames,
                 inputs = inputs,
             };
         }

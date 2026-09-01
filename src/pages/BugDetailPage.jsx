@@ -59,6 +59,8 @@ export default function BugDetailPage({
   const resizeDragRef = useRef(null) // { startX, startWidth }
   const hasVideo = Boolean(bug.videoUrl)
   const duration = hasVideo ? bug.durationFrames / bug.fps : 0
+  // 省略時（古いSDK・手動作成等）は、これまで通り「動画と入力ログは対応している」前提でtrue扱い。
+  const inputLogVideoSynced = bug.inputLogVideoSynced !== false
 
   // reset playback state when switching to a different bug
   useEffect(() => {
@@ -284,7 +286,12 @@ export default function BugDetailPage({
                 />
               </div>
               <div className="detail-col-log">
-                <InputLogStrip bug={bug} elapsed={elapsed} onSelectFrame={handleSelectFrame} />
+                <InputLogStrip
+                  bug={bug}
+                  elapsed={elapsed}
+                  onSelectFrame={handleSelectFrame}
+                  videoSynced={inputLogVideoSynced}
+                />
               </div>
             </div>
           </>

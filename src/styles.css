@@ -2020,6 +2020,23 @@ body {
   color: var(--text-faint);
   font-weight: 600;
 }
+.strip-view-fixed {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.log-sync-notice {
+  font-size: 12px;
+  color: var(--accent-amber);
+  background: rgba(217, 154, 79, 0.1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
 .frame-rail {
   position: relative;
   width: 100%;
@@ -2166,6 +2183,12 @@ body {
 .log-text-row.hit {
   background: rgba(217, 154, 79, 0.12);
   color: var(--text);
+}
+.log-text-row.no-seek {
+  cursor: default;
+}
+.log-text-row.no-seek:hover {
+  background: transparent;
 }
 .log-text-empty {
   padding: 14px 10px;

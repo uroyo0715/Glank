@@ -45,7 +45,14 @@ export const BUG_TABLES_SCHEMA = `
     videoUrl TEXT NOT NULL,
     videoBytes INTEGER NOT NULL DEFAULT 0,
     fps INTEGER NOT NULL,
-    durationFrames INTEGER NOT NULL
+    durationFrames INTEGER NOT NULL,
+    -- inputLogVideoSynced: 添付動画と入力ログのタイミングが実際に対応しているか。
+    -- Unity SDKがInstantReplayVideoRecorder（トリガーと同時に動画を書き出す方式）を使った場合は
+    -- true、ReplayFolderWatcher（OS側で独立に録画されたファイルを検出するだけの方式）を使った
+    -- 場合はfalseになる（動画の終端と入力ログの終端が別々のタイミングで決まるため、
+    -- フレーム単位でのズレが起きうる）。falseの間、Web UIはタイムライン表示や
+    -- クリックでの動画シークを提供しない（正確に対応しない位置へ誘導してしまうため）。
+    inputLogVideoSynced INTEGER NOT NULL DEFAULT 1
   );
 
   CREATE TABLE IF NOT EXISTS bugInputs (
@@ -372,8 +379,18 @@ export async function migrateAddParentCommentIdIfNeeded(client) {
   await client.execute('ALTER TABLE bugComments ADD COLUMN parentCommentId INTEGER REFERENCES bugComments(id)')
 }
 
+// マイグレーション: inputLogVideoSynced導入前に作られたbugsには存在しないため追加する。
+// 既存データは「動画と入力ログが対応している」という従来通りの前提でtrueにしておく。
+export async function migrateAddInputLogVideoSyncedIfNeeded(client) {
+  const { rows: columns } = await client.execute('PRAGMA table_info(bugs)')
+  const hasColumn = columns.some((c) => c.name === 'inputLogVideoSynced')
+  if (hasColumn) return
+  await client.execute('ALTER TABLE bugs ADD COLUMN inputLogVideoSynced INTEGER NOT NULL DEFAULT 1')
+}
+
 await migrateAddAssigneeIfNeeded(db)
 await migrateAddParentCommentIdIfNeeded(db)
+await migrateAddInputLogVideoSyncedIfNeeded(db)
 
 // マイグレーション: プロジェクト機能導入前に作られたDBには bugs.projectId が存在しない。
 // 既存データを失わないよう、ALTER TABLEで列を追加し、初期プロジェクトへ割り当てる。
