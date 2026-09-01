@@ -80,6 +80,16 @@ export function resolveProjectStorageConfig(project) {
   return { ready: true, mode: 'r2', config: decryptJson(project.r2ConfigEnc), managed: false }
 }
 
+/**
+ * プロジェクトに紐付かないアップロード（アカウントアイコン等）用。Glankの共有R2（未設定なら
+ * ローカルディスクにフォールバック）を常に使う。プロジェクトのstorageMode設定とは無関係。
+ * @returns {{ mode: 'r2', config: object } | { mode: 'local' }}
+ */
+export function resolveManagedStorageTarget() {
+  if (MANAGED_R2_CONFIGURED) return { mode: 'r2', config: MANAGED_R2, managed: true }
+  return { mode: 'local' }
+}
+
 /** managedプランの使用量を加算し、上限を超えていないか返す（超えていてもアップロード自体は妨げない。将来のUI表示・警告用）。 */
 export async function addManagedStorageUsage(projectId, deltaBytes) {
   await db.execute({

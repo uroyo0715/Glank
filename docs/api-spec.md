@@ -102,8 +102,14 @@ Google OAuth 2.0（Authorization Code）でログインする。パスワード�
   検証（`google-auth-library`の`verifyIdToken`）。初回ログインならユーザーを自動作成し、
   `FRONTEND_URL`へリダイレクトしてセッションCookieを発行する。
 - `POST /auth/logout` — Cookieを失効させる。`204`。
-- `GET /auth/me` — ログイン中なら`{ email, displayName }`を返す。未ログインは`401`。
+- `GET /auth/me` — ログイン中なら`{ email, displayName, imageUrl }`を返す。未ログインは`401`。
+  `imageUrl`は未設定なら`null`（初回ログイン時、Googleプロフィール画像が初期値として自動で入る）。
 - `PATCH /auth/me` — body: `{ displayName }`。表示名をいつでも変更できる。要ログイン。
+- `PATCH /auth/me/avatar` — `multipart/form-data`、フィールド`image`（画像ファイル）。
+  アカウントアイコンを差し替える。プロジェクトには紐付かないため、常にGlankの共有ストレージ
+  （`resolveManagedStorageTarget()`、R2未設定ならローカルディスクにフォールバック）を使う
+  （プロジェクト側のstorageMode設定とは無関係）。要ログイン。
+- `DELETE /auth/me/avatar` — アカウントアイコンを削除し`imageUrl`を`null`に戻す。要ログイン。
 
 必要な環境変数（`server/.env`、`server/.env.example`参照）: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` /
 `GOOGLE_REDIRECT_URI` / `FRONTEND_URL`。Google Cloud ConsoleでのOAuthクライアント発行はチームの

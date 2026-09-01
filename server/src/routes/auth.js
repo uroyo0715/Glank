@@ -1,5 +1,6 @@
 import express from 'express'
 import crypto from 'node:crypto'
+import multer from 'multer'
 import {
   googleClient,
   GOOGLE_CLIENT_ID,
@@ -17,10 +18,13 @@ import {
   requireAuth,
   toPublicUser,
 } from '../auth.js'
-import { findOrCreateUser, updateDisplayName } from '../data.js'
+import { findOrCreateUser, updateDisplayName, updateUserImage } from '../data.js'
 import { asyncHandler } from '../asyncHandler.js'
+import { saveImage, deleteFile } from '../storage.js'
+import { resolveManagedStorageTarget } from '../projectDataAccess.js'
 
 const router = express.Router()
+const upload = multer({ storage: multer.memoryStorage() })
 
 router.get('/auth/google', (req, res) => {
   if (!GOOGLE_CLIENT_ID) {
@@ -52,7 +56,12 @@ router.get('/auth/google/callback', async (req, res) => {
     })
     const payload = ticket.getPayload()
 
-    const user = await findOrCreateUser({ googleId: payload.sub, email: payload.email, name: payload.name })
+    const user = await findOrCreateUser({
+      googleId: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture,
+    })
     const token = await createSession(user.googleId)
     setSessionCookie(res, token)
     res.redirect(FRONTEND_URL)
@@ -89,6 +98,39 @@ router.patch(
       return res.status(400).json({ error: 'displayName is required' })
     }
     const updated = await updateDisplayName(req.user.googleId, displayName.trim())
+    res.json(toPublicUser(updated))
+  })
+)
+
+// アカウントアイコン。プロジェクトに紐付かないため、常にGlankの共有ストレージ
+// （resolveManagedStorageTarget）を使う。self_hosted等プロジェクト側のstorageMode設定とは無関係。
+router.patch(
+  '/auth/me/avatar',
+  requireAuth,
+  upload.single('image'),
+  asyncHandler(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'image file is required' })
+    }
+    const target = resolveManagedStorageTarget()
+    const oldImageUrl = req.user.imageUrl
+    const { imageUrl } = await saveImage(target, req.file.buffer, req.file.originalname)
+    const updated = await updateUserImage(req.user.googleId, imageUrl)
+    // 元がGoogleプロフィール画像（Glankの管理外のURL）の場合、deleteFileは
+    // /uploads/や自前R2のpublicUrl以外には何もしないため安全に無視される。
+    if (oldImageUrl) await deleteFile(target, oldImageUrl)
+    res.json(toPublicUser(updated))
+  })
+)
+
+router.delete(
+  '/auth/me/avatar',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const target = resolveManagedStorageTarget()
+    const oldImageUrl = req.user.imageUrl
+    const updated = await updateUserImage(req.user.googleId, null)
+    if (oldImageUrl) await deleteFile(target, oldImageUrl)
     res.json(toPublicUser(updated))
   })
 )

@@ -84,7 +84,8 @@ await db.executeMultiple(`
   CREATE TABLE IF NOT EXISTS users (
     googleId TEXT PRIMARY KEY,
     email TEXT NOT NULL,
-    displayName TEXT NOT NULL
+    displayName TEXT NOT NULL,
+    imageUrl TEXT
   );
 
   -- storageMode: 'self_hosted'（既定、チーム自前のTurso/R2。プロジェクトごとに設定が必要）
@@ -388,9 +389,18 @@ export async function migrateAddInputLogVideoSyncedIfNeeded(client) {
   await client.execute('ALTER TABLE bugs ADD COLUMN inputLogVideoSynced INTEGER NOT NULL DEFAULT 1')
 }
 
+// マイグレーション: users.imageUrl（アカウントアイコン）導入前に作られたDBには存在しないため追加する。
+async function migrateAddUserImageUrlIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(users)')
+  const hasColumn = columns.some((c) => c.name === 'imageUrl')
+  if (hasColumn) return
+  await db.execute('ALTER TABLE users ADD COLUMN imageUrl TEXT')
+}
+
 await migrateAddAssigneeIfNeeded(db)
 await migrateAddParentCommentIdIfNeeded(db)
 await migrateAddInputLogVideoSyncedIfNeeded(db)
+await migrateAddUserImageUrlIfNeeded()
 
 // マイグレーション: プロジェクト機能導入前に作られたDBには bugs.projectId が存在しない。
 // 既存データを失わないよう、ALTER TABLEで列を追加し、初期プロジェクトへ割り当てる。

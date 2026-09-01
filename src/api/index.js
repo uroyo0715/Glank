@@ -39,5 +39,7 @@ export const {
   logout,
   me,
   updateDisplayName,
+  updateUserAvatar,
+  removeUserAvatar,
   sdkDownloadUrl,
 } = impl

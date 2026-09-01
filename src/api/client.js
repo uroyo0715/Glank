@@ -421,7 +421,7 @@ export async function me() {
   return res.json()
 }
 
-/** @returns {Promise<{email: string, displayName: string}>} */
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
 export async function updateDisplayName(displayName) {
   const res = await fetch(`${BASE_URL}/auth/me`, {
     method: 'PATCH',
@@ -432,6 +432,35 @@ export async function updateDisplayName(displayName) {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error ?? `updateDisplayName failed: ${res.status}`)
+  }
+  return res.json()
+}
+
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
+export async function updateUserAvatar(imageFile) {
+  const form = new FormData()
+  form.set('image', imageFile)
+  const res = await fetch(`${BASE_URL}/auth/me/avatar`, {
+    method: 'PATCH',
+    credentials: 'include',
+    body: form,
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `updateUserAvatar failed: ${res.status}`)
+  }
+  return res.json()
+}
+
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
+export async function removeUserAvatar() {
+  const res = await fetch(`${BASE_URL}/auth/me/avatar`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `removeUserAvatar failed: ${res.status}`)
   }
   return res.json()
 }

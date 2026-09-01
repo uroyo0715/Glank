@@ -92,5 +92,5 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
 })
 
 export function toPublicUser(user) {
-  return { email: user.email, displayName: user.displayName }
+  return { email: user.email, displayName: user.displayName, imageUrl: user.imageUrl ?? null }
 }

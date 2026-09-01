@@ -73,10 +73,10 @@ const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
 // バックエンド未接続時は実際のGoogle OAuthを行えないため、固定のダミーユーザーで即ログインする。
 let currentUser = null
 
-/** @returns {Promise<{email: string, displayName: string}>} */
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
 export async function loginWithGoogle() {
   await delay(300)
-  currentUser = { email: 'demo@example.com', displayName: 'デモユーザー' }
+  currentUser = { email: 'demo@example.com', displayName: 'デモユーザー', imageUrl: null }
   return currentUser
 }
 
@@ -85,17 +85,33 @@ export async function logout() {
   currentUser = null
 }
 
-/** @returns {Promise<{email: string, displayName: string} | null>} */
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null} | null>} */
 export async function me() {
   await delay(50)
   return currentUser
 }
 
-/** @returns {Promise<{email: string, displayName: string}>} */
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
 export async function updateDisplayName(displayName) {
   await delay(100)
   requireLogin()
   currentUser = { ...currentUser, displayName }
+  return currentUser
+}
+
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
+export async function updateUserAvatar(imageFile) {
+  await delay(150)
+  requireLogin()
+  currentUser = { ...currentUser, imageUrl: URL.createObjectURL(imageFile) }
+  return currentUser
+}
+
+/** @returns {Promise<{email: string, displayName: string, imageUrl: string | null}>} */
+export async function removeUserAvatar() {
+  await delay(100)
+  requireLogin()
+  currentUser = { ...currentUser, imageUrl: null }
   return currentUser
 }
 

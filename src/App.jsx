@@ -6,6 +6,7 @@ import BugDetailPage from './pages/BugDetailPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
+import AccountSettingsPage from './pages/AccountSettingsPage.jsx'
 import NavMenu from './components/NavMenu.jsx'
 import UserMenu from './components/UserMenu.jsx'
 import {
@@ -36,7 +37,6 @@ import {
   loginWithGoogle,
   logout,
   me,
-  updateDisplayName,
 } from './api/index.js'
 import { STATUS_COLUMNS, PRIORITY_OPTIONS } from './data/mockBugs.js'
 
@@ -105,6 +105,7 @@ function AppShell({ user, setUser }) {
   const selectedId = reportMatch ? Number(reportMatch.params.reportId) : null
   const showHelp = location.pathname === '/help'
   const showSetupGuide = location.pathname === '/setup-guide'
+  const showAccountSettings = location.pathname === '/account'
   // ヘルプをプロジェクトのバグ一覧から開いた場合、そのプロジェクトの使用エンジンに合わせて
   // Unity/Godotどちらの手順を最初に出すか決める（?engine=godot 等）。
   const helpDefaultEngine = new URLSearchParams(location.search).get('engine') === 'godot' ? 'godot' : 'unity'
@@ -137,11 +138,6 @@ function AppShell({ user, setUser }) {
 
   const [reloadToken, setReloadToken] = useState(0)
 
-  const [editingName, setEditingName] = useState(false)
-  const [nameInput, setNameInput] = useState('')
-  const [nameSaving, setNameSaving] = useState(false)
-  const [nameError, setNameError] = useState(null)
-
   function toggleStatus(key) {
     setStatusFilter((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
@@ -156,26 +152,6 @@ function AppShell({ user, setUser }) {
 
   function handleLogout() {
     logout().then(() => setUser(null))
-  }
-
-  function startEditingName() {
-    setNameInput(user.displayName)
-    setNameError(null)
-    setEditingName(true)
-  }
-
-  function saveDisplayName(e) {
-    e.preventDefault()
-    if (!nameInput.trim()) return
-    setNameSaving(true)
-    setNameError(null)
-    updateDisplayName(nameInput.trim())
-      .then((updated) => {
-        setUser(updated)
-        setEditingName(false)
-      })
-      .catch((err) => setNameError(err.message ?? String(err)))
-      .finally(() => setNameSaving(false))
   }
 
   useEffect(() => {
@@ -492,7 +468,7 @@ function AppShell({ user, setUser }) {
           <span>Glank</span>
         </button>
         <div className="topbar-right">
-          {showHelp || showSetupGuide ? (
+          {showHelp || showSetupGuide || showAccountSettings ? (
             <button className="back-link" onClick={() => navigate(-1)}>
               ← 戻る
             </button>
@@ -507,25 +483,7 @@ function AppShell({ user, setUser }) {
               </button>
             )
           )}
-          {editingName ? (
-            <form className="name-edit-form" onSubmit={saveDisplayName}>
-              <input
-                className="name-edit-input"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                autoFocus
-              />
-              <button type="submit" className="name-edit-save" disabled={nameSaving}>
-                保存
-              </button>
-              <button type="button" className="name-edit-cancel" onClick={() => setEditingName(false)}>
-                取消
-              </button>
-              {nameError && <span className="name-edit-error">{nameError}</span>}
-            </form>
-          ) : (
-            <UserMenu user={user} onEditName={startEditingName} onLogout={handleLogout} />
-          )}
+          <UserMenu user={user} onLogout={handleLogout} />
           <NavMenu />
         </div>
       </header>
@@ -534,6 +492,8 @@ function AppShell({ user, setUser }) {
         <HelpPage defaultEngine={helpDefaultEngine} />
       ) : showSetupGuide ? (
         <SetupGuidePage />
+      ) : showAccountSettings ? (
+        <AccountSettingsPage user={user} onUserChange={setUser} />
       ) : selectedProjectId == null ? (
         projectsLoading ? (
           <div className="state-panel">読み込み中...</div>

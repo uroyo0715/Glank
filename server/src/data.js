@@ -863,12 +863,14 @@ export async function findUserByGoogleId(googleId) {
  * displayName は「登録後もいつでも変更できる、表示名としての役割」を持つフィールドで、
  * 初期値はGoogleプロフィールの名前。ログインID自体はgoogleId（不変）で、emailは表示・連絡用の付随情報。
  */
-export async function findOrCreateUser({ googleId, email, name }) {
+export async function findOrCreateUser({ googleId, email, name, picture }) {
   const existing = await findUserByGoogleId(googleId)
   if (existing) return existing
+  // 初回サインイン時のみ、Googleプロフィール画像を初期のアカウントアイコンとして使う
+  // （以後はユーザー自身が変更するまでこのままで、Google側の画像更新を追いかけたりはしない）。
   await db.execute({
-    sql: 'INSERT INTO users (googleId, email, displayName) VALUES (?, ?, ?)',
-    args: [googleId, email, name || email],
+    sql: 'INSERT INTO users (googleId, email, displayName, imageUrl) VALUES (?, ?, ?, ?)',
+    args: [googleId, email, name || email, picture || null],
   })
   return findUserByGoogleId(googleId)
 }
@@ -877,6 +879,14 @@ export async function updateDisplayName(googleId, displayName) {
   await db.execute({
     sql: 'UPDATE users SET displayName = ? WHERE googleId = ?',
     args: [displayName, googleId],
+  })
+  return findUserByGoogleId(googleId)
+}
+
+export async function updateUserImage(googleId, imageUrl) {
+  await db.execute({
+    sql: 'UPDATE users SET imageUrl = ? WHERE googleId = ?',
+    args: [imageUrl, googleId],
   })
   return findUserByGoogleId(googleId)
 }

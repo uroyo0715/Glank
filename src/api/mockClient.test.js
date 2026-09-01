@@ -21,7 +21,7 @@ describe('mockClient auth', () => {
     expect(await client.me()).toBeNull()
 
     const user = await client.loginWithGoogle()
-    expect(user).toEqual({ email: 'demo@example.com', displayName: 'デモユーザー' })
+    expect(user).toEqual({ email: 'demo@example.com', displayName: 'デモユーザー', imageUrl: null })
     expect(await client.me()).toEqual(user)
   })
 
@@ -35,6 +35,26 @@ describe('mockClient auth', () => {
 
     await client.logout()
     expect(await client.me()).toBeNull()
+  })
+
+  it('updateUserAvatar sets imageUrl and removeUserAvatar clears it', async () => {
+    const client = await freshClient()
+    await client.loginWithGoogle()
+
+    const file = new File(['fake'], 'avatar.png', { type: 'image/png' })
+    const withAvatar = await client.updateUserAvatar(file)
+    expect(withAvatar.imageUrl).toBeTruthy()
+    expect((await client.me()).imageUrl).toBe(withAvatar.imageUrl)
+
+    const removed = await client.removeUserAvatar()
+    expect(removed.imageUrl).toBeNull()
+  })
+
+  it('updateUserAvatar/removeUserAvatar require login', async () => {
+    const client = await freshClient()
+    const file = new File(['fake'], 'avatar.png', { type: 'image/png' })
+    await expect(client.updateUserAvatar(file)).rejects.toThrow('login required')
+    await expect(client.removeUserAvatar()).rejects.toThrow('login required')
   })
 })
 

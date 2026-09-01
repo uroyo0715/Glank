@@ -255,19 +255,21 @@ describe('App (mock client integration)', () => {
     expect(window.location.pathname).toBe('/projects/1')
   })
 
-  it('lets the user rename their display name from the header', async () => {
+  it('lets the user rename their display name from the account settings page', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
     await user.click(await screen.findByRole('button', { name: /デモユーザー/ }))
-    await user.click(screen.getByRole('button', { name: '表示名を変更' }))
+    await user.click(screen.getByRole('button', { name: 'アカウント設定' }))
 
+    await screen.findByRole('heading', { name: 'アカウント設定' })
     const input = screen.getByDisplayValue('デモユーザー')
     await user.clear(input)
     await user.type(input, '改名後')
     await user.click(screen.getByRole('button', { name: '保存' }))
 
+    await screen.findByText('保存しました')
     expect(await screen.findByRole('button', { name: /改名後/ })).toBeInTheDocument()
   })
 })

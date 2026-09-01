@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-export default function UserMenu({ user, onEditName, onLogout }) {
+export default function UserMenu({ user, onLogout }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
+  const navigate = useNavigate()
 
   // メニュー外をクリックしたら閉じる。
   useEffect(() => {
@@ -14,9 +16,9 @@ export default function UserMenu({ user, onEditName, onLogout }) {
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [open])
 
-  function handleEditName() {
+  function handleOpenSettings() {
     setOpen(false)
-    onEditName()
+    navigate('/account')
   }
 
   function handleLogout() {
@@ -34,7 +36,11 @@ export default function UserMenu({ user, onEditName, onLogout }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        <span className="user-menu-avatar">{initial}</span>
+        {user.imageUrl ? (
+          <img src={user.imageUrl} alt="" className="user-menu-avatar user-menu-avatar-image" />
+        ) : (
+          <span className="user-menu-avatar">{initial}</span>
+        )}
         <span className="user-menu-name">{user.displayName}</span>
       </button>
       {open && (
@@ -44,8 +50,8 @@ export default function UserMenu({ user, onEditName, onLogout }) {
             <div className="user-menu-email">{user.email}</div>
           </div>
           <div className="user-menu-divider" />
-          <button type="button" className="user-menu-item" onClick={handleEditName}>
-            表示名を変更
+          <button type="button" className="user-menu-item" onClick={handleOpenSettings}>
+            アカウント設定
           </button>
           <div className="user-menu-divider" />
           <button type="button" className="user-menu-item user-menu-item-danger" onClick={handleLogout}>
