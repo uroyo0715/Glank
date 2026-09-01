@@ -101,6 +101,13 @@ describe('VideoPlayer', () => {
     expect(setPlaying).toHaveBeenCalled()
   })
 
+  it('clicking the video itself also toggles the playing state via setPlaying', () => {
+    const setPlaying = vi.fn()
+    const video = renderPlayer({ setPlaying })
+    fireEvent.click(video)
+    expect(setPlaying).toHaveBeenCalled()
+  })
+
   it('pressing Space toggles play/pause', () => {
     const setPlaying = vi.fn()
     renderPlayer({ setPlaying })

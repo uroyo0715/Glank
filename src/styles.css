@@ -1883,26 +1883,7 @@ body {
   height: 100%;
   object-fit: contain;
   background: #000;
-}
-.play-btn {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 52px;
-  height: 52px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(2px);
-}
-.play-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--text);
 }
 
 .controls {
@@ -1911,6 +1892,27 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.play-btn {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.play-btn:hover {
+  border-color: var(--accent-cyan);
+}
+.play-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--text);
 }
 .scrub {
   flex: 1;

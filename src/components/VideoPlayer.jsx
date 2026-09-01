@@ -135,18 +135,19 @@ export default function VideoPlayer({ videoUrl, duration: fallbackDuration, elap
           onTimeUpdate={handleTimeUpdate}
           onDurationChange={handleDurationChange}
           onEnded={handleEnded}
+          onClick={togglePlay}
           playsInline
         />
-        <div className="play-btn" onClick={togglePlay}>
+      </div>
+
+      <div className="controls">
+        <button type="button" className="play-btn" onClick={togglePlay}>
           {playing ? (
             <svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
           ) : (
             <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
           )}
-        </div>
-      </div>
-
-      <div className="controls">
+        </button>
         <div
           className={`scrub ${dragging ? 'dragging' : ''}`}
           ref={scrubRef}
