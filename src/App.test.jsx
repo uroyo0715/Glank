@@ -21,7 +21,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
 
     await screen.findByText('プロジェクト')
     await user.click(await screen.findByText('Nightfall Trail'))
@@ -49,7 +49,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByText('Nightfall Trail'))
     await user.click(await screen.findByText('崖から落ちた直後にゲームがフリーズする'))
 
@@ -67,7 +67,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByText('Nightfall Trail'))
     await user.click(await screen.findByText('崖から落ちた直後にゲームがフリーズする'))
     await screen.findByRole('heading', { name: '崖から落ちた直後にゲームがフリーズする' })
@@ -81,7 +81,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByText('Nightfall Trail'))
     await screen.findByText('プロジェクト: Nightfall Trail')
     await user.click(await screen.findByText('崖から落ちた直後にゲームがフリーズする'))
@@ -98,19 +98,19 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await screen.findByText('デモユーザー')
 
     await user.click(screen.getByRole('button', { name: /デモユーザー/ }))
     await user.click(screen.getByRole('button', { name: 'ログアウト' }))
-    await screen.findByRole('button', { name: 'Googleでログイン' })
+    await screen.findByRole('button', { name: 'Googleではじめる' })
   })
 
   it('creates a new project from the projects screen and can open it', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await screen.findByText('Nightfall Trail')
 
     await user.click(screen.getByRole('button', { name: /新規プロジェクト/ }))
@@ -127,7 +127,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await screen.findByText('Nightfall Trail')
 
     await user.click(screen.getByRole('button', { name: /新規プロジェクト/ }))
@@ -157,7 +157,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await screen.findByText('Nightfall Trail')
 
     // 削除対象にしない2件目のプロジェクトを作っておき、削除後も残ることを確認する
@@ -180,7 +180,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByText('Nightfall Trail'))
     await screen.findByText('プロジェクト: Nightfall Trail')
 
@@ -197,7 +197,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByText('Nightfall Trail'))
     await screen.findByText('プロジェクト: Nightfall Trail')
 
@@ -227,7 +227,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await screen.findByText('プロジェクト')
     expect(window.location.pathname).toBe('/projects')
 
@@ -259,7 +259,7 @@ describe('App (mock client integration)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
+    await user.click(await screen.findByRole('button', { name: 'Googleではじめる' }))
     await user.click(await screen.findByRole('button', { name: /デモユーザー/ }))
     await user.click(screen.getByRole('button', { name: 'アカウント設定' }))
 

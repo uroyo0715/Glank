@@ -1,5 +1,4 @@
-import React from 'react'
-import LoginPage from './LoginPage.jsx'
+import React, { useState } from 'react'
 
 const FEATURES = [
   {
@@ -21,6 +20,18 @@ const FEATURES = [
 ]
 
 export default function LandingPage({ onGoogleLogin }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
+
+  function handleLogin() {
+    setSubmitting(true)
+    setError(null)
+    onGoogleLogin().catch((err) => {
+      setError(err.message ?? String(err))
+      setSubmitting(false)
+    })
+  }
+
   return (
     <div className="landing-page">
       <header className="landing-header">
@@ -28,9 +39,9 @@ export default function LandingPage({ onGoogleLogin }) {
           <div className="brand-dot" />
           <span>Glank</span>
         </div>
-        <a href="#login" className="landing-header-cta">
-          ログイン
-        </a>
+        <button type="button" className="landing-header-cta" onClick={handleLogin} disabled={submitting}>
+          {submitting ? '接続中...' : 'ログイン'}
+        </button>
       </header>
 
       <section className="landing-hero">
@@ -44,9 +55,14 @@ export default function LandingPage({ onGoogleLogin }) {
           チームで確認・管理できるWebダッシュボードです。プレイ中に気づいたバグを、
           動画と入力ログ付きでそのまま送信できます。
         </p>
-        <a href="#login" className="landing-hero-cta">
-          はじめる
-        </a>
+        <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
+          {submitting ? '接続中...' : 'Googleではじめる'}
+        </button>
+        <p className="landing-notice">
+          サーバーの都合上、しばらく使われていないと起動に時間がかかることがあります
+          （初回アクセス時は数十秒ほどお待ちください）。
+        </p>
+        {error && <div className="landing-error">{error}</div>}
       </section>
 
       <section className="landing-features">
@@ -56,10 +72,6 @@ export default function LandingPage({ onGoogleLogin }) {
             <p>{f.desc}</p>
           </div>
         ))}
-      </section>
-
-      <section id="login" className="landing-login-section">
-        <LoginPage onGoogleLogin={onGoogleLogin} />
       </section>
     </div>
   )

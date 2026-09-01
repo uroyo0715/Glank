@@ -278,14 +278,20 @@ body {
   padding: 7px 18px;
   border: 1px solid var(--border);
   border-radius: 6px;
+  background: none;
   color: var(--text-dim);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  text-decoration: none;
+  cursor: pointer;
 }
 .landing-header-cta:hover {
   color: var(--text);
   border-color: var(--text-faint);
+}
+.landing-header-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .landing-hero {
   max-width: 720px;
@@ -308,15 +314,35 @@ body {
 .landing-hero-cta {
   display: inline-block;
   padding: 13px 34px;
+  border: none;
   border-radius: 8px;
   background: var(--accent-amber);
   color: #1a1300;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 700;
-  text-decoration: none;
+  cursor: pointer;
 }
 .landing-hero-cta:hover {
   filter: brightness(1.08);
+}
+.landing-hero-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
+  filter: none;
+}
+.landing-notice {
+  margin: 16px auto 0;
+  max-width: 480px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-faint);
+}
+.landing-error {
+  margin: 10px auto 0;
+  max-width: 480px;
+  color: var(--error, #d9534f);
+  font-size: 13px;
 }
 .landing-features {
   max-width: 1000px;
@@ -343,63 +369,6 @@ body {
   color: var(--text-dim);
   margin: 0;
 }
-.landing-login-section {
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-/* ---- Login page ---- */
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.login-card {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 100%;
-  max-width: 320px;
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-}
-.login-card h1 {
-  font-size: 16px;
-  margin: 0;
-}
-.login-hint {
-  font-size: 13px;
-  color: var(--text-dim);
-  margin: 0;
-}
-.login-server-notice {
-  font-size: 12px;
-  color: var(--text-faint);
-  margin: -6px 0 0;
-  line-height: 1.6;
-}
-.login-error {
-  color: var(--error, #d9534f);
-  font-size: 13px;
-}
-.login-google-button {
-  padding: 9px;
-  border: none;
-  border-radius: 4px;
-  background: var(--accent-amber);
-  color: #1a1300;
-  font-weight: 700;
-  cursor: pointer;
-}
-.login-google-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
 /* ---- Projects page ---- */
 .projects-page {
   padding: 26px 34px;
