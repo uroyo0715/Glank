@@ -101,6 +101,7 @@ describe('App (mock client integration)', () => {
     await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
     await screen.findByText('デモユーザー')
 
+    await user.click(screen.getByRole('button', { name: /デモユーザー/ }))
     await user.click(screen.getByRole('button', { name: 'ログアウト' }))
     await screen.findByRole('button', { name: 'Googleでログイン' })
   })
@@ -259,13 +260,14 @@ describe('App (mock client integration)', () => {
     render(<App />)
 
     await user.click(await screen.findByRole('button', { name: 'Googleでログイン' }))
-    await user.click(await screen.findByRole('button', { name: 'デモユーザー' }))
+    await user.click(await screen.findByRole('button', { name: /デモユーザー/ }))
+    await user.click(screen.getByRole('button', { name: '表示名を変更' }))
 
     const input = screen.getByDisplayValue('デモユーザー')
     await user.clear(input)
     await user.type(input, '改名後')
     await user.click(screen.getByRole('button', { name: '保存' }))
 
-    expect(await screen.findByRole('button', { name: '改名後' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /改名後/ })).toBeInTheDocument()
   })
 })

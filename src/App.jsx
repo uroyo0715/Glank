@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
 import NavMenu from './components/NavMenu.jsx'
+import UserMenu from './components/UserMenu.jsx'
 import {
   fetchProjects,
   createProject,
@@ -486,7 +487,6 @@ function AppShell({ user, setUser }) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <NavMenu />
         <button type="button" className="brand" onClick={() => navigate('/projects')}>
           <div className="brand-dot" />
           <span>Glank</span>
@@ -524,13 +524,9 @@ function AppShell({ user, setUser }) {
               {nameError && <span className="name-edit-error">{nameError}</span>}
             </form>
           ) : (
-            <button className="current-user" onClick={startEditingName} title="表示名を変更">
-              {user.displayName}
-            </button>
+            <UserMenu user={user} onEditName={startEditingName} onLogout={handleLogout} />
           )}
-          <button className="logout-link" onClick={handleLogout}>
-            ログアウト
-          </button>
+          <NavMenu />
         </div>
       </header>
 
