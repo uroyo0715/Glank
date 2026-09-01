@@ -5,6 +5,8 @@ import BugListPage from './pages/BugListPage.jsx'
 import BugDetailPage from './pages/BugDetailPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
+import SetupGuidePage from './pages/SetupGuidePage.jsx'
+import NavMenu from './components/NavMenu.jsx'
 import {
   fetchProjects,
   createProject,
@@ -101,6 +103,7 @@ function AppShell({ user, setUser }) {
       : null
   const selectedId = reportMatch ? Number(reportMatch.params.reportId) : null
   const showHelp = location.pathname === '/help'
+  const showSetupGuide = location.pathname === '/setup-guide'
   // ヘルプをプロジェクトのバグ一覧から開いた場合、そのプロジェクトの使用エンジンに合わせて
   // Unity/Godotどちらの手順を最初に出すか決める（?engine=godot 等）。
   const helpDefaultEngine = new URLSearchParams(location.search).get('engine') === 'godot' ? 'godot' : 'unity'
@@ -483,12 +486,13 @@ function AppShell({ user, setUser }) {
   return (
     <div className="app-shell">
       <header className="topbar">
+        <NavMenu />
         <button type="button" className="brand" onClick={() => navigate('/projects')}>
           <div className="brand-dot" />
           <span>Glank</span>
         </button>
         <div className="topbar-right">
-          {showHelp ? (
+          {showHelp || showSetupGuide ? (
             <button className="back-link" onClick={() => navigate(-1)}>
               ← 戻る
             </button>
@@ -532,6 +536,8 @@ function AppShell({ user, setUser }) {
 
       {showHelp ? (
         <HelpPage defaultEngine={helpDefaultEngine} />
+      ) : showSetupGuide ? (
+        <SetupGuidePage />
       ) : selectedProjectId == null ? (
         projectsLoading ? (
           <div className="state-panel">読み込み中...</div>

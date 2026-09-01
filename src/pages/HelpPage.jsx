@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
 import { sdkDownloadUrl } from '../api/index.js'
 
@@ -349,6 +349,14 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
         </p>
 
         {engine === 'godot' ? <GodotGuide /> : <UnityGuide />}
+
+        {engine === 'unity' && (
+          <p className="help-setup-guide-callout">
+            Unity側のInspectorでのコンポーネントの配線が複雑に感じる場合は、
+            <Link to="/setup-guide">詳細セットアップガイド</Link>
+            も参照してください（コンポーネント同士の配線図・トラブルシューティング付き）。
+          </p>
+        )}
 
         <p className="help-footer-note">
           より詳しい技術仕様は{' '}

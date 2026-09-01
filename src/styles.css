@@ -83,6 +83,59 @@ body {
   cursor: pointer;
   color: var(--text);
 }
+.nav-menu {
+  position: relative;
+}
+.nav-menu-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 15px;
+  cursor: pointer;
+}
+.nav-menu-toggle:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+.nav-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.nav-menu-item {
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.nav-menu-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.nav-menu-item.active {
+  color: var(--accent-amber);
+  font-weight: 700;
+}
 .brand-dot {
   width: 10px;
   height: 10px;
@@ -590,6 +643,185 @@ body {
   margin-top: 30px;
   font-size: 12px;
   color: var(--text-faint);
+}
+
+.help-setup-guide-callout {
+  margin-top: 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 8px;
+  background: rgba(91, 163, 154, 0.08);
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.help-setup-guide-callout a {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  text-decoration: none;
+}
+.help-setup-guide-callout a:hover {
+  text-decoration: underline;
+}
+
+/* ---- 詳細セットアップガイド（/setup-guide） ---- */
+.setup-guide-page {
+  max-width: 1180px;
+}
+.setup-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.setup-section h2 {
+  font-size: 17px;
+  margin: 0 0 10px;
+}
+.setup-section > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+.setup-steps {
+  margin-top: 16px;
+}
+.setup-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.setup-checklist li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.setup-checklist li strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+/* 配線図 */
+.wiring-diagram {
+  overflow-x: auto;
+}
+.wiring-go {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 480px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.wiring-go-label {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.wiring-component {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+.wiring-component-main {
+  border-color: var(--accent-amber);
+}
+.wiring-component-optional,
+.wiring-component-conditional {
+  border-style: dashed;
+}
+.wiring-component-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.wiring-optional {
+  font-weight: 400;
+  color: var(--text-faint);
+  font-size: 11.5px;
+}
+.wiring-field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+  padding: 3px 0;
+  flex-wrap: wrap;
+}
+.wiring-field-name {
+  font-family: 'Space Mono', monospace;
+  color: var(--text);
+  min-width: 130px;
+}
+.wiring-arrow {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+.wiring-target-external {
+  color: var(--accent-amber);
+}
+.wiring-target-optional {
+  color: var(--text-faint);
+}
+.wiring-target-loop {
+  color: var(--accent-cyan);
+}
+
+/* Input System選択フローチャート */
+.flowchart {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.flowchart-question {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.flowchart-branches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.flowchart-branch {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+}
+.flowchart-branch-warn {
+  border-color: var(--accent-amber);
+}
+.flowchart-branch-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+.flowchart-branch-warn .flowchart-branch-label {
+  color: var(--accent-amber);
+}
+.flowchart-branch-result {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-dim);
 }
 
 /* ---- List page / Kanban ---- */
