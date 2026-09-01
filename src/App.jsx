@@ -3,7 +3,7 @@ import { BrowserRouter, useLocation, useNavigate, matchPath } from 'react-router
 import ProjectsPage from './pages/ProjectsPage.jsx'
 import BugListPage from './pages/BugListPage.jsx'
 import BugDetailPage from './pages/BugDetailPage.jsx'
-import LoginPage from './pages/LoginPage.jsx'
+import LandingPage from './pages/LandingPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
 import AccountSettingsPage from './pages/AccountSettingsPage.jsx'
@@ -70,7 +70,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <LoginPage onGoogleLogin={handleGoogleLogin} />
+    return <LandingPage onGoogleLogin={handleGoogleLogin} />
   }
 
   return (

@@ -262,6 +262,92 @@ body {
   color: var(--accent-red);
 }
 
+/* ---- Landing page ---- */
+.landing-page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+.landing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+}
+.landing-header-cta {
+  padding: 7px 18px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.landing-header-cta:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+.landing-hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 90px 24px 70px;
+  text-align: center;
+}
+.landing-hero h1 {
+  font-size: 40px;
+  line-height: 1.35;
+  margin: 0 0 22px;
+}
+.landing-hero p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  margin: 0 auto 34px;
+  max-width: 560px;
+}
+.landing-hero-cta {
+  display: inline-block;
+  padding: 13px 34px;
+  border-radius: 8px;
+  background: var(--accent-amber);
+  color: #1a1300;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.landing-hero-cta:hover {
+  filter: brightness(1.08);
+}
+.landing-features {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 24px 90px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.landing-feature {
+  padding: 22px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.landing-feature h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+  color: var(--accent-cyan);
+}
+.landing-feature p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin: 0;
+}
+.landing-login-section {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
 /* ---- Login page ---- */
 .login-page {
   min-height: 100vh;
