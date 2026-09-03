@@ -20,8 +20,8 @@ namespace Glank
         [Tooltip("再送を試みる間隔（秒）")]
         [SerializeField] private float retryIntervalSeconds = 60f;
 
-        [Tooltip("送信そのものに使うGlankConfig（BugReportTriggerと同じものでよい）")]
-        [SerializeField] private GlankConfig config;
+        [Tooltip("送信そのものに使うGlankSettings（BugReportTriggerと同じものでよい）")]
+        [SerializeField] private GlankSettings config;
 
         private string QueueDir => Path.Combine(Application.persistentDataPath, "GlankQueue");
         private string FailedDir => Path.Combine(Application.persistentDataPath, "GlankQueue", "_failed");

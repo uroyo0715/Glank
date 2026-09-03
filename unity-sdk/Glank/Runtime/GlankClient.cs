@@ -30,7 +30,7 @@ namespace Glank
     public static class GlankClient
     {
         public static IEnumerator SubmitReport(
-            GlankConfig config,
+            GlankSettings config,
             ReportMetadata metadata,
             string videoFilePath,
             Action<GlankSubmitOutcome, string> onComplete)

@@ -20,11 +20,11 @@ namespace Glank
     /// 原理的にどのような実装であっても報告を送信できない点に注意（ソフトウェア側の対処には限界がある。
     /// これは外部プロセスによるハングウォッチドッグ等、SDKの範囲外の仕組みでのみ対応可能）。
     ///
-    /// <see cref="GlankConfig.autoDetectionEnabled"/> がfalseの間は何もしない（既定OFF）。
+    /// <see cref="GlankSettings.autoDetectionEnabled"/> がfalseの間は何もしない（既定OFF）。
     /// </summary>
     public class FreezeWatchdog : MonoBehaviour
     {
-        [SerializeField] private GlankConfig config;
+        [SerializeField] private GlankSettings config;
         [SerializeField] private BugReportTrigger trigger;
 
         [Tooltip("この秒数フレームが進まなかったらフリーズとみなす")]

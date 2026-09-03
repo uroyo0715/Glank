@@ -15,11 +15,11 @@ namespace Glank
     /// <see cref="treatAllErrorsAsFatal"/> を有効にするか、<see cref="IsFatalError"/> に
     /// 個別の判定条件（メッセージ文字列のパターンマッチ等）を差し込む。
     ///
-    /// <see cref="GlankConfig.autoDetectionEnabled"/> がfalseの間は何もしない（既定OFF）。
+    /// <see cref="GlankSettings.autoDetectionEnabled"/> がfalseの間は何もしない（既定OFF）。
     /// </summary>
     public class CrashDetector : MonoBehaviour
     {
-        [SerializeField] private GlankConfig config;
+        [SerializeField] private GlankSettings config;
         [SerializeField] private BugReportTrigger trigger;
 
         [Tooltip("LogType.Errorもすべて致命的として扱う（既定false）。ONにすると、Unity内部の" +

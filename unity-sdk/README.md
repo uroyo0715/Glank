@@ -9,13 +9,29 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 コピー（またはUPMの `Add package from disk...` で `package.json` を指定）する。
 依存パッケージなし（レガシー `Input` クラスのみ使用）。
 
+導入後のセットアップは3通りある。どれか1つでよい。
+
+1. **Setup Wizard（推奨）**: Unityメニューの `Tools > Glank > Setup Wizard` を開き、
+   APIキー・プロジェクトIDを入力して「セットアップ」ボタンを押すだけ。`GlankSettings`
+   アセットの生成と、必要なコンポーネント一式が配線された `GlankManager` の
+   シーンへの配置、新Input System（`com.unity.inputsystem`）を使っているかどうかの
+   自動判定まで行う。詳細は下記「Setup Wizard」を参照。
+2. **プレハブをドラッグ&ドロップ**: `<パッケージルート>/Runtime/Prefabs/GlankManager.prefab`
+   をシーンに置き、Inspectorで `GlankSettings` を生成・アサインする
+   （配線済みなのでこれだけで動く）。詳細は下記「GlankManager プレハブ」を参照。
+3. **手動セットアップ**: 下記の各コンポーネントを個別にシーンへ配置し、Inspectorで
+   手動で配線する（従来通りの方法。細かくカスタマイズしたい場合向け）。
+
 ## 構成
 
-- `GlankConfig.cs` — APIサーバーのURL・APIキー・報告先プロジェクトIDを持つScriptableObject。
-  `Assets > Create > Glank > Config` で作成し、`baseUrl` を
+- `GlankSettings.cs` — APIサーバーのURL・APIキー・報告先プロジェクトIDを持つ
+  ScriptableObject。`BugReportTrigger`・`CrashDetector`・`FreezeWatchdog`・
+  `GlankOfflineQueue` はすべてこの1つのアセットを共有する（手動セットアップの場合は
+  `Assets > Create > Glank > Settings` で作成し、`baseUrl` を
   `http://localhost:8787/api/v1`（または本番URL）に設定する。`projectId` は
   Webアプリのプロジェクト一覧画面でカードに表示されている番号を設定する
   （プロジェクトを跨いだ複数ゲーム運用を想定していないため、通常はゲームごとに固定値でよい）。
+  Setup Wizardまたはプレハブを使う場合はこの手順は不要）。
 - `InputLogRecorder.cs` — 直近nバッファ秒分の入力をリングバッファで保持し続けるMonoBehaviour。
   監視するキーを `watchedKeys`（`KeyCode` + Glank上の表示グリフ + ラベル）に登録する。
   レガシー `Input` クラスを使う（新Input Systemを使う場合は下記
@@ -49,6 +65,58 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
   「入力ログからの再現（GlankReplayer）」を参照。
 - `CrashDetector.cs` / `FreezeWatchdog.cs` — クラッシュ・フリーズを自動検知して報告を送信する
   （既定OFF）。詳細は下記「自動検知（クラッシュ/フリーズ）」を参照。
+- `GlankNewInputSystemBridge.cs` / `GlankInstantReplayBridge.cs` — Setup Wizard・配布用プレハブが
+  内部で使う橋渡し役。`BugReportTrigger`のデリゲート型フィールド（`CaptureInputLog`/
+  `GetLatestClipPathAsync`）はInspectorから直接ドラッグ&ドロップできないため、これらが
+  同じGameObjectでの起動時に自動で配線する。手動セットアップでNewInputSystem版や
+  InstantReplayVideoRecorderを使う場合も、コードを書く代わりにこれらをアタッチするだけでよい。
+- `Editor/GlankSetupWizard.cs` — `Tools > Glank > Setup Wizard`。詳細は下記「Setup Wizard」を参照。
+- `Runtime/Prefabs/GlankManager.prefab` — 配線済みの配布用プレハブ。詳細は下記
+  「GlankManager プレハブ」を参照。
+
+## Setup Wizard
+
+Unityメニューの `Tools > Glank > Setup Wizard` を開くと、以下をまとめて自動で行うウィンドウが表示される。
+
+1. Base URL・API Key・Project IDを1つのフォームに入力する。
+2. 「セットアップ」ボタンを押すと:
+   - プロジェクト内に`GlankSettings`アセットが無ければ`Assets/Glank/GlankSettings.asset`に
+     新規作成し、既にあれば入力値で更新する。
+   - `BugReportTrigger`・`CrashDetector`・`FreezeWatchdog`・`GlankOfflineQueue`がアタッチされ、
+     上記`GlankSettings`が配線済みの`GlankManager` GameObjectをシーンに生成する
+     （`GlankOfflineQueue`は送信失敗時の自動再送用。詳細は下記「送信失敗時のリトライ
+     （GlankOfflineQueue）」を参照）。
+   - プロジェクトが新Input System（`com.unity.inputsystem`、`ENABLE_INPUT_SYSTEM`スクリプティング
+     定義で判定）を使っているかどうかを自動判定し、レガシー版`InputLogRecorder`と
+     `InputLogRecorderNewInputSystem`（+ `GlankNewInputSystemBridge`）のどちらを使うかを自動選択する。
+   - `GLANK_INSTANT_REPLAY`スクリプティング定義が既に追加済み（=InstantReplay本体を導入済み）の
+     場合は、`InstantReplayVideoRecorder`（+ `GlankInstantReplayBridge`）も合わせて配線する。
+     未導入の場合は何もしない（`BugReportTrigger`標準の`ReplayFolderWatcher`フォールバックが
+     そのまま使われる。導入方法は下記「動画録画について」を参照）。
+
+ウィザードを再度実行すると、既存の`GlankSettings`を検出して値を更新するだけで、
+`GlankManager`は毎回新規に作られる点に注意（重複して配置しないよう、既存の`GlankManager`は
+手動で削除してから再実行するか、Inspectorで直接値を編集すること）。
+
+## GlankManager プレハブ
+
+ウィザードを使わずに導入したい場合向けに、上記と同じ構成が組まれた
+`<パッケージルート>/Runtime/Prefabs/GlankManager.prefab` を同梱している。シーンに
+ドラッグ&ドロップし、アタッチされている`GlankSettings`（`GlankSettings_PLACEHOLDER_DO_NOT_FILL_IN.asset`。
+ファイル名の通りapiKey・projectIdともに空のプレースホルダー）に自分のAPIキー・プロジェクトIDを
+入力するだけで動く。
+
+**プレハブをそのままドラッグ&ドロップしただけでは動かない。** `projectId`が未設定（0）の間、
+`BugReportTrigger`は送信を行わず、`GlankSettings.projectIdが未設定です`という分かりやすいエラーを
+コンソールに出す（ホットキーを押しても何も起きないだけ、という気付きにくい失敗にはならない）。
+これは意図した挙動で、SDK開発時の動作確認に使った実際のAPIキー・プロジェクトIDが誤って
+プレハブに紐付いたまま配布されることはない（`<パッケージルート>/Runtime/Prefabs/`配下の
+プレースホルダーアセットは、同梱プレハブを再生成するたびに強制的に空へリセットされる。
+詳細は`GlankPrefabGenerator.cs`のコメント参照）。
+
+複数のプロジェクトでこのプレハブを使う場合、プレースホルダーの`GlankSettings`を複数プロジェクトで
+共有しないよう、プレハブインスタンスごとに別の`GlankSettings`アセットを複製してアサインし直すこと
+（1つの設定を共有してしまうと、片方のプロジェクトでAPIキーを変更したときにもう片方にも影響する）。
 
 ## 動画録画について
 
@@ -268,7 +336,7 @@ public class PlayerInput : MonoBehaviour
 画面解析（コンピュータビジョン）が必要でコストが見合わないのと、そもそもGlankが目指しているのは
 「人間にしか気づけない主観的な違和感を拾う」ことだから（そちらは引き続きホットキーでの手動報告が対象）。
 
-**両方とも既定で無効。** `GlankConfig.autoDetectionEnabled` をtrueにしない限り何もしない
+**両方とも既定で無効。** `GlankSettings.autoDetectionEnabled` をtrueにしない限り何もしない
 （配布ビルドに含める場合、意図せず大量の自動報告が飛ぶのを防ぐため）。有効化する前に、
 実機に近い環境で自動検知の挙動（誤検知しないか、報告が乱発しないか）を十分確認すること。
 
@@ -310,8 +378,8 @@ crashDetector.IsFatalError = (condition, stackTrace) => condition.Contains("FATA
 ### セットアップ
 
 シーンに`CrashDetector`・`FreezeWatchdog`をアタッチしたGameObjectを置き、それぞれの
-`config`（`GlankConfig`）と`trigger`（`BugReportTrigger`）をInspectorでアサインするだけでよい
-（コード不要）。`GlankConfig.autoDetectionEnabled`をtrueにすると有効になる。
+`config`（`GlankSettings`）と`trigger`（`BugReportTrigger`）をInspectorでアサインするだけでよい
+（コード不要）。`GlankSettings.autoDetectionEnabled`をtrueにすると有効になる。
 
 ## 入力ログのフレーム番号について
 
@@ -325,6 +393,10 @@ crashDetector.IsFatalError = (condition, stackTrace) => condition.Contains("FATA
 
 ## 未対応・今後の検討事項
 
+- `<パッケージルート>/Runtime/Prefabs/GlankManager.prefab`はテキストファイルのSDKリポジトリ単体では
+  生成できないため、`Tools > Glank > SDK開発者向け > 配布用GlankManagerプレハブを再生成`を
+  実際にUnity Editorで一度実行し、生成された`.prefab`/`.asset`ファイル（と対応する`.meta`）を
+  コミットする必要がある（SDK自体の構成・配線ロジックを変更した場合のみ。SDK利用者はこの手順は不要）
 - `InstantReplayVideoRecorder`はLinuxのみ、システムにインストール済みのffmpegが必要
   （プレイヤー環境依存のため、Linux版を配布する場合は別途案内が必要）
 - OSのインスタントリプレイ保存ホットキー（Win+Alt+G等）と`BugReportTrigger`のホットキーの

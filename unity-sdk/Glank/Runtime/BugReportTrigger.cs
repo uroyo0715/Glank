@@ -16,7 +16,7 @@ namespace Glank
     /// </summary>
     public class BugReportTrigger : MonoBehaviour
     {
-        [SerializeField] private GlankConfig config;
+        [SerializeField] private GlankSettings config;
         [SerializeField] private InputLogRecorder inputLogRecorder;
         [SerializeField] private KeyCode reportHotkey = KeyCode.F12;
 
@@ -145,6 +145,22 @@ namespace Glank
             if (config == null || (inputLogRecorder == null && CaptureInputLog == null))
             {
                 Debug.LogError("[Glank] config / inputLogRecorder（またはCaptureInputLog）が設定されていません。");
+                return;
+            }
+
+            // projectId未設定（0）のまま送信すると、サーバー側に存在しないプロジェクトへの報告や、
+            // 意図しない他プロジェクトへの誤爆になりかねない。配布用プレハブ（GlankManager.prefab）は
+            // apiKey/projectIdが空のプレースホルダーGlankSettingsを参照しているため、導入しただけで
+            // 中身を設定し忘れた場合にここで気付けるようにする。
+            if (config.projectId <= 0)
+            {
+                Debug.LogError(
+                    "[Glank] GlankSettings.projectIdが未設定です（0のまま）。報告を送信しませんでした。" +
+                    "Setup Wizard（Tools > Glank > Setup Wizard）を実行するか、GlankSettingsアセットに" +
+                    "Web側のプロジェクト画面で確認できるプロジェクトIDを入力してください。" +
+                    "GlankManagerプレハブをそのまま導入した場合、参照先はAPIキー・プロジェクトID未設定の" +
+                    "プレースホルダーです。"
+                );
                 return;
             }
 
