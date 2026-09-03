@@ -676,6 +676,18 @@ body {
   color: var(--text-dim);
   margin: 0;
 }
+.help-substep-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.help-steps li > * + * {
+  margin-top: 12px;
+}
+.help-steps li > * + .help-substep-title {
+  margin-top: 24px;
+}
 .help-table {
   margin-top: 12px;
   border-collapse: collapse;
@@ -701,6 +713,25 @@ body {
   border: 1px solid var(--border);
   font-size: 12px;
   overflow-x: auto;
+}
+.image-placeholder {
+  margin-top: 12px;
+  padding: 28px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+  color: var(--text-dim);
+}
+.image-placeholder-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+.image-placeholder-caption {
+  font-size: 12px;
+  line-height: 1.6;
 }
 .sdk-download-button {
   display: inline-flex;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
+import ImagePlaceholder from '../components/ImagePlaceholder.jsx'
 import { sdkDownloadUrl } from '../api/index.js'
 
 function SdkDownloadButton({ engine, label }) {
@@ -23,6 +24,7 @@ function UnityGuide() {
           使用ゲームエンジン（Unity）を指定して作成します。作成されたプロジェクトカードに表示される
           <span className="mono">ID: 3</span> のような番号が、Unity側の設定で使うプロジェクトIDです。
         </p>
+        <ImagePlaceholder caption="プロジェクトカードに表示されるIDの位置がわかるスクリーンショット" />
       </li>
 
       <li>
@@ -39,9 +41,44 @@ function UnityGuide() {
       </li>
 
       <li>
-        <h2>3. 接続設定（GlankConfig）を作る</h2>
+        <h2>3. セットアップ方法を選ぶ</h2>
         <p>
-          Unityのメニューから <span className="mono">Assets &gt; Create &gt; Glank &gt; Config</span>{' '}
+          導入後のセットアップは3通りあります。基本的には<strong>方法A（Setup Wizard）</strong>が一番簡単です。
+        </p>
+
+        <h3 className="help-substep-title">方法A（推奨）: Setup Wizardを使う</h3>
+        <p>
+          Unityメニューの <span className="mono">Tools &gt; Glank &gt; Setup Wizard</span> を開き、
+          Base URL・API Key・プロジェクトID（手順1で確認した番号）を入力して
+          「セットアップ」ボタンを押すだけです。接続設定（<span className="mono">GlankSettings</span>
+          アセット）の生成と、必要なコンポーネント一式が配線された
+          <span className="mono">GlankManager</span> というGameObjectのシーンへの配置、新Input
+          System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
+          自動判定まで、まとめて行われます。
+        </p>
+        <ImagePlaceholder caption="Setup Wizardのウィンドウ（Base URL / API Key / Project ID入力欄とセットアップボタン）のスクリーンショット" />
+
+        <h3 className="help-substep-title">方法B: プレハブをドラッグ&ドロップする</h3>
+        <p>
+          ウィザードを使わず導入したい場合は、SDKに同梱されている
+          <span className="mono"> Packages/Glank/Runtime/Prefabs/GlankManager.prefab</span>
+          （方法Aと同じ構成が組まれたプレハブ）をシーンにドラッグ&ドロップします。ただし、
+          このプレハブが参照している<span className="mono">GlankSettings</span>は
+          <strong>APIキー・プロジェクトIDが空のプレースホルダー</strong>です。プレースホルダーの
+          アセットを右クリック→複製し、複製した方に自分のAPIキー・プロジェクトIDを入力したうえで、
+          <strong>シーンに置いたインスタンス側</strong>の<span className="mono">BugReportTrigger</span>
+          ・<span className="mono">CrashDetector</span>・<span className="mono">FreezeWatchdog</span>
+          ・<span className="mono">GlankOfflineQueue</span>それぞれの<span className="mono">Config</span>
+          欄を、複製したアセットに差し替えてください（プレハブアセット自体を直接編集しないよう注意）。
+          設定を入力し忘れたまま実行すると、「projectIdが未設定です」という分かりやすいエラーが
+          Consoleに出て送信が中止されるので、実際の値が入っているかどうかはすぐに気付けます。
+        </p>
+        <ImagePlaceholder caption="プレハブをHierarchyにドラッグした直後と、GlankSettingsを複製して差し替えた後のInspectorの比較スクリーンショット" />
+
+        <h3 className="help-substep-title">方法C: 手動でコンポーネントを配置する</h3>
+        <p>
+          細かくカスタマイズしたい場合向けの、従来通りの方法です。Unityのメニューから
+          <span className="mono"> Assets &gt; Create &gt; Glank &gt; Settings</span>{' '}
           でScriptableObjectを作成し、次の3項目を設定します。
         </p>
         <table className="help-table">
@@ -66,22 +103,18 @@ function UnityGuide() {
             </tr>
           </tbody>
         </table>
-      </li>
-
-      <li>
-        <h2>4. シーンにコンポーネントを置く</h2>
         <p>
-          シーン内の任意のGameObjectに <span className="mono">InputLogRecorder</span> と
+          続けて、シーン内の任意のGameObjectに <span className="mono">InputLogRecorder</span> と
           <span className="mono"> BugReportTrigger</span> の2つをアタッチします。
           <span className="mono">BugReportTrigger</span> の <span className="mono">config</span>{' '}
-          欄に、手順3で作った設定を割り当ててください。
+          欄に、上で作った設定を割り当ててください。
           <span className="mono">InputLogRecorder</span> の <span className="mono">watchedKeys</span>{' '}
           には、ログに残したい入力キーを登録します。
         </p>
       </li>
 
       <li>
-        <h2>5. 動画の取得方法を選ぶ</h2>
+        <h2>4. 動画の取得方法を選ぶ</h2>
         <p>
           <strong>推奨: </strong>
           <span className="mono">InstantReplayVideoRecorder</span> を追加すると、ゲーム自身が
@@ -101,7 +134,7 @@ function UnityGuide() {
       </li>
 
       <li>
-        <h2>6. バグを見つけたらホットキーを押す</h2>
+        <h2>5. バグを見つけたらホットキーを押す</h2>
         <p>
           <span className="mono">BugReportTrigger</span>のホットキー（既定は
           <span className="mono"> F12</span>）を押すと、直近の入力ログと動画がまとめて自動送信され、
@@ -112,8 +145,11 @@ function UnityGuide() {
         <p>
           タイトルやタグをQA担当者に入力させてから送信したい場合は、
           <span className="mono">GlankReportPromptUI</span>を使うと、ホットキー即送信の代わりに
-          簡易フォームを開けます。
+          簡易フォームを開けます。方法A・Bで導入した場合、送信に失敗しても
+          <span className="mono">GlankOfflineQueue</span>が自動で退避・再送してくれます
+          （最初から組み込み済みです）。
         </p>
+        <ImagePlaceholder caption="ホットキーを押した後、Webアプリのバグ一覧に報告が表示された状態のスクリーンショット" />
       </li>
     </ol>
   )

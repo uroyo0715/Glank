@@ -1,4 +1,5 @@
 import React from 'react'
+import ImagePlaceholder from '../components/ImagePlaceholder.jsx'
 
 function WiringDiagram() {
   return (
@@ -16,7 +17,7 @@ function WiringDiagram() {
           <div className="wiring-field-row">
             <span className="wiring-field-name">Config</span>
             <span className="wiring-arrow">→</span>
-            <span className="wiring-target wiring-target-external">GlankConfig（プロジェクトのアセット）</span>
+            <span className="wiring-target wiring-target-external">GlankSettings（プロジェクトのアセット）</span>
           </div>
           <div className="wiring-field-row">
             <span className="wiring-field-name">Input Log Recorder</span>
@@ -96,14 +97,14 @@ function InputSystemFlowchart() {
 }
 
 const TRIGGER_FIELDS = [
-  { name: 'Config', desc: 'GlankConfigアセット（baseUrl / apiKey / projectId）。必須。' },
+  { name: 'Config', desc: 'GlankSettingsアセット（baseUrl / apiKey / projectId）。必須。projectIdが0（未設定）のままだと、送信時にエラーログを出して中止される。' },
   {
     name: 'Input Log Recorder',
     desc: 'レガシー版InputLogRecorderを使う場合のみ割り当てる。新Input System版を使う場合は空のままでよい（GlankNewInputSystemBridge経由でCaptureInputLogに配線されるため）。',
   },
   { name: 'Report Hotkey', desc: '送信のホットキー（既定 F12）。反応しない場合はFnキーが必要な環境の可能性があるため、英字キー等で試すと切り分けやすい。' },
   { name: 'Replay Watcher', desc: 'ReplayFolderWatcherの設定（監視フォルダ・対象拡張子・有効期限秒数）。既定でWindowsのXbox Game Bar保存先を見る。' },
-  { name: 'Offline Queue', desc: '任意。設定すると送信失敗時に自動で退避・再送する（GlankOfflineQueueをアタッチして割り当てる）。' },
+  { name: 'Offline Queue', desc: '任意。設定すると送信失敗時に自動で退避・再送する（GlankOfflineQueueをアタッチして割り当てる。Setup Wizard・プレハブ経由なら最初から配線済み）。' },
   { name: 'Prompt UI', desc: '任意。設定すると、ホットキー押下時に即送信の代わりに入力フォームを開く（GlankReportPromptUIを使う）。' },
 ]
 
@@ -120,16 +121,25 @@ export default function SetupGuidePage() {
         <p className="help-lead">
           「SDK連携の使い方」で一通り接続できたあと、実際にInspectorで複数のコンポーネントを
           配線していく段階で迷いやすいポイントをまとめたガイドです。基本の導入手順（プロジェクト作成・
-          SDKのダウンロード・GlankConfigの作成）は先にヘルプページを参照してください。
+          SDKのダウンロード・GlankSettingsの作成）は先にヘルプページを参照してください。
+        </p>
+        <p className="help-lead">
+          なお、ここで説明する手動配線は<strong>Setup Wizard</strong>（Unityメニューの
+          <span className="mono"> Tools &gt; Glank &gt; Setup Wizard</span>）や、同梱の
+          <span className="mono"> GlankManager.prefab</span>
+          を使えば自動で行われます。まずはそちらを試し、うまくいかない・中身をカスタマイズしたい
+          という場合にこのページで詳細を確認する、という使い方を想定しています。
         </p>
 
         <section className="setup-section">
           <h2>1. コンポーネントの配線全体図</h2>
           <p>
             複数のコンポーネントが同じGameObjectに乗り、互いのフィールドを参照し合う構成になっています。
-            「どのフィールドに何を割り当てるか」が分かりにくい場合は、まずここで全体像を確認してください。
+            「どのフィールドに何を割り当てるか」が分かりにくい場合は、まずここで全体像を確認してください
+            （Setup Wizard・プレハブを使った場合も、内部的にはこの構成が組まれます）。
           </p>
           <WiringDiagram />
+          <ImagePlaceholder caption="実際にUnity Inspectorで配線された状態（GlankManagerのHierarchy・各コンポーネントのフィールド）のスクリーンショット" />
         </section>
 
         <section className="setup-section">
@@ -269,6 +279,15 @@ GlankReporterIdentity.SetReporterName("田中QA");`}</pre>
         <section className="setup-section">
           <h2>7. うまく動かないときのチェックリスト</h2>
           <ul className="setup-checklist">
+            <li>
+              <strong>「GlankSettings.projectIdが未設定です」というエラーが出る</strong> —
+              <span className="mono">GlankManager.prefab</span>をそのままドラッグ&ドロップしただけの状態。
+              このプレハブが参照している<span className="mono">GlankSettings</span>はAPIキー・
+              プロジェクトIDが空のプレースホルダーになっているため、意図的にこのエラーで止まる。
+              プレースホルダーを複製し、値を入力したうえで、シーン上の<strong>インスタンス側</strong>の
+              各コンポーネントの<span className="mono">Config</span>欄を差し替える（詳しくは
+              「SDK連携の使い方」の「方法B」を参照）。
+            </li>
             <li>
               <strong>ホットキーを押しても何も起きない・Consoleにも何も出ない</strong> —
               Play Modeが一時停止のままになっていないか、「ゲーム」タブをクリックしてフォーカスしてから
