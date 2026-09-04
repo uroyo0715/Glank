@@ -69,7 +69,7 @@ export default function FieldOptionsPanel({
 
   return (
     <div className="field-options-panel">
-      <div className="members-panel-label">選択肢の管理</div>
+      <div className="members-panel-label">入力項目の管理</div>
       <p className="storage-panel-hint">
         既定の項目は使わないものをオフにすると報告フォームのプルダウンから消えます。
         タグ・プラットフォームはこのプロジェクト独自の項目を追加でき、追加したものはいつでも削除できます

@@ -16,7 +16,7 @@ function priorityLabel(key) {
   return PRIORITY_OPTIONS.find((p) => p.key === key)?.label ?? key
 }
 
-// 「メンバー」「ストレージ設定」「選択肢の管理」をまとめる管理メニュー。ヘッダーに
+// 「メンバー」「ストレージ設定」「入力項目の管理」をまとめる管理メニュー。ヘッダーに
 // 個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つのドロップダウンに
 // 集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
 function ManageMenu({
@@ -81,7 +81,7 @@ function ManageMenu({
             className={`manage-menu-item ${showFieldOptions ? 'active' : ''}`}
             onClick={() => select(setShowFieldOptions)}
           >
-            選択肢の管理
+            入力項目の管理
           </button>
         </div>
       )}

@@ -5,7 +5,7 @@ const TAG_LABELS = Object.fromEntries(TAG_OPTIONS.map((t) => [t.key, t.label]))
 
 // 絞り込みチップに出す「タグ」の一覧を組み立てる。
 // プリセット + このプロジェクトが追加した独自項目 + 実際の報告で使われている自由記述のタグを
-// まとめたうえで、「選択肢の管理」で非表示にしたプリセットだけ除く。
+// まとめたうえで、「入力項目の管理」で非表示にしたプリセットだけ除く。
 function buildTagChipOptions(hiddenFieldOptions, customFieldOptions, reportFacets) {
   const hidden = hiddenFieldOptions?.tag ?? []
   const keys = new Set([

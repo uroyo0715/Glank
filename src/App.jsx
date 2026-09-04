@@ -399,31 +399,90 @@ function AppShell({ user, setUser }) {
     })
   }
 
+  // クリックした瞬間に見た目を切り替え、サーバー応答を待たずに反映する（体感速度優先）。
+  // 応答が来たら実際の値で上書きし、失敗したら元の値に戻す。
   function handleUpdateFieldOptions(projectId, fieldOptions) {
-    return updateProjectFieldOptions(projectId, fieldOptions).then((result) => {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, hiddenFieldOptions: result } : p))
-      )
-      return result
-    })
+    let previous
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== projectId) return p
+        previous = p.hiddenFieldOptions
+        return { ...p, hiddenFieldOptions: { ...p.hiddenFieldOptions, ...fieldOptions } }
+      })
+    )
+    return updateProjectFieldOptions(projectId, fieldOptions)
+      .then((result) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, hiddenFieldOptions: result } : p))
+        )
+        return result
+      })
+      .catch((err) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, hiddenFieldOptions: previous } : p))
+        )
+        throw err
+      })
   }
 
   function handleAddCustomOption(projectId, field, value) {
-    return addProjectCustomOption(projectId, field, value).then((result) => {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: result } : p))
-      )
-      return result
-    })
+    let previous
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== projectId) return p
+        previous = p.customFieldOptions
+        return {
+          ...p,
+          customFieldOptions: {
+            ...p.customFieldOptions,
+            [field]: [...(p.customFieldOptions?.[field] ?? []), value],
+          },
+        }
+      })
+    )
+    return addProjectCustomOption(projectId, field, value)
+      .then((result) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: result } : p))
+        )
+        return result
+      })
+      .catch((err) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: previous } : p))
+        )
+        throw err
+      })
   }
 
   function handleRemoveCustomOption(projectId, field, value) {
-    return removeProjectCustomOption(projectId, field, value).then((result) => {
-      setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: result } : p))
-      )
-      return result
-    })
+    let previous
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id !== projectId) return p
+        previous = p.customFieldOptions
+        return {
+          ...p,
+          customFieldOptions: {
+            ...p.customFieldOptions,
+            [field]: (p.customFieldOptions?.[field] ?? []).filter((v) => v !== value),
+          },
+        }
+      })
+    )
+    return removeProjectCustomOption(projectId, field, value)
+      .then((result) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: result } : p))
+        )
+        return result
+      })
+      .catch((err) => {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? { ...p, customFieldOptions: previous } : p))
+        )
+        throw err
+      })
   }
 
   function handleRemoveMember(projectId, email) {
