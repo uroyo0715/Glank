@@ -51,6 +51,20 @@ namespace Glank
         /// </summary>
         public Func<InputLogSnapshot> CaptureInputLog;
 
+        // 送信中に何が起きているか画面上で分からないと、反応が無いように見えて連打され、
+        // 同じ内容の報告が複数件送られてしまう（実際に起きた問題）。それを防ぐため、
+        // 送信中は新規の送信を受け付けない（IsSendingガード）のに加えて、
+        // 送信中/成功/失敗の3パターンだけの簡易通知を画面に出す（OnGUI。Canvas不要でどのプロジェクトでも
+        // 追加設定なしに動く）。パターンを増やしすぎると逆に分かりにくくなるため、この3つに絞っている。
+        private enum NotificationKind { Sending, Success, Failure }
+        private bool _isSending;
+        private NotificationKind _notificationKind;
+        private string _notificationText;
+        private float _notificationHideAtUnscaledTime = float.NegativeInfinity;
+
+        /// <summary>送信処理の最中かどうか。連打防止のガードと同じ値をUI側からも参照できるよう公開している。</summary>
+        public bool IsSending => _isSending;
+
         private void Update()
         {
             if (!IsHotkeyDown()) return;
@@ -142,6 +156,15 @@ namespace Glank
 
         public void SubmitReport(string title, string[] tags, string desc, string who, string build, string platform, string priority)
         {
+            if (_isSending)
+            {
+                // 連打対策: 前の送信がまだ終わっていない間は新しい送信を受け付けない
+                // （受け付けてしまうと、同じ内容の報告が複数件生成されてしまう）。
+                // 「無視された」ことが分かるよう、送信中通知を出し直して気付けるようにする。
+                ShowNotification(NotificationKind.Sending, "送信中です。しばらくお待ちください…", 2f);
+                return;
+            }
+
             if (config == null || (inputLogRecorder == null && CaptureInputLog == null))
             {
                 Debug.LogError("[Glank] config / inputLogRecorder（またはCaptureInputLog）が設定されていません。");
@@ -182,6 +205,8 @@ namespace Glank
                 inputs = snapshot.inputs,
             };
 
+            _isSending = true;
+            ShowNotification(NotificationKind.Sending, "報告を送信中…", 30f); // 完了/失敗時に上書きされる想定の暫定値
             StartCoroutine(SubmitReportCoroutine(metadata));
         }
 
@@ -197,6 +222,8 @@ namespace Glank
                 if (task.IsFaulted)
                 {
                     Debug.LogError($"[Glank] 動画の書き出しに失敗しました: {task.Exception?.GetBaseException().Message}");
+                    _isSending = false;
+                    ShowNotification(NotificationKind.Failure, "送信失敗: 動画の書き出しに失敗しました", 5f);
                     yield break;
                 }
                 videoPath = task.Result;
@@ -225,25 +252,71 @@ namespace Glank
                     "[Glank] 録画ファイルが見つかりません。OSのインスタントリプレイ機能（Xbox Game Bar等）で" +
                     "直近の録画を保存してから再度お試しください。送信を中止しました。"
                 );
+                _isSending = false;
+                ShowNotification(NotificationKind.Failure, "送信失敗: 録画ファイルが見つかりません", 5f);
                 yield break;
             }
 
             yield return GlankClient.SubmitReport(config, metadata, videoPath, (outcome, message) =>
             {
+                _isSending = false;
                 switch (outcome)
                 {
                     case GlankSubmitOutcome.Success:
                         Debug.Log($"[Glank] report submitted: {message}");
+                        ShowNotification(NotificationKind.Success, "報告を送信しました", 3f);
                         break;
                     case GlankSubmitOutcome.RetryableFailure when offlineQueue != null:
                         // ネットワーク断・サーバー一時停止等。オフラインキューに退避して後で再送する。
                         offlineQueue.Enqueue(metadata, videoPath);
+                        ShowNotification(NotificationKind.Failure, "送信できませんでした（自動で再送します）", 5f);
                         break;
                     default:
                         Debug.LogError($"[Glank] report submission failed: {message}");
+                        ShowNotification(NotificationKind.Failure, "送信に失敗しました（詳細はConsole参照）", 5f);
                         break;
                 }
             });
+        }
+
+        private void ShowNotification(NotificationKind kind, string text, float durationSeconds)
+        {
+            _notificationKind = kind;
+            _notificationText = text;
+            _notificationHideAtUnscaledTime = Time.unscaledTime + durationSeconds;
+        }
+
+        /// <summary>
+        /// 送信中/成功/失敗の状態を画面左下に簡易表示する。Canvasを組む手間を無くすため、
+        /// あえてUnityEngine.UIではなくOnGUI（IMGUI）を使っている
+        /// （GlankReportPromptUIのような凝ったUIが要る機能ではないため）。
+        /// </summary>
+        private void OnGUI()
+        {
+            if (Time.unscaledTime >= _notificationHideAtUnscaledTime) return;
+
+            Color boxColor = _notificationKind switch
+            {
+                NotificationKind.Sending => new Color(0.25f, 0.45f, 0.85f, 0.9f),
+                NotificationKind.Success => new Color(0.20f, 0.6f, 0.3f, 0.9f),
+                _ => new Color(0.75f, 0.2f, 0.2f, 0.9f),
+            };
+
+            const float width = 320f;
+            const float height = 40f;
+            const float margin = 16f;
+            var rect = new Rect(margin, Screen.height - height - margin, width, height);
+
+            var prevColor = GUI.color;
+            GUI.color = boxColor;
+            GUI.Box(rect, GUIContent.none);
+            GUI.color = Color.white;
+            GUI.Label(rect, _notificationText, new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 14,
+            });
+            GUI.color = prevColor;
         }
     }
 }

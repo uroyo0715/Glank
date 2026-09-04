@@ -220,6 +220,23 @@ public class BugReportSetup : MonoBehaviour
 `F12` を押すと、`InputLogRecorder` が保持している直近の入力ログと、上記の優先順で
 解決された動画ファイルを合わせて `POST /reports` に送信する。
 
+## 送信中の連打防止・画面通知
+
+送信には動画の書き出し・アップロードなどで数秒〜十数秒かかることがあるが、それが画面上から
+分からないと「反応が無い」と誤解して連打され、同じ内容の報告が複数件送信されてしまう
+（実際に起きた問題）。これを防ぐため、`BugReportTrigger`には以下の2つが標準で組み込まれている。
+
+- **連打防止**: 送信中（`IsSending`）に新たに`SubmitReport`が呼ばれても無視する
+  （同じ内容の報告が複数件生成されるのを防ぐ）。無視した場合も、下記の「送信中」通知を
+  出し直すことで、押した反応自体は返す。
+- **画面通知**: 画面左下に、送信中・成功・失敗の3パターンだけの簡易表示を出す
+  （`OnGUI`によるIMGUI実装で、Canvasのセットアップは不要）。パターンを増やしすぎると
+  かえって分かりにくくなるため、この3つに絞っている。「送信できませんでした（自動で再送します）」
+  （`GlankOfflineQueue`にキューイングされた場合）も、色・表示位置は失敗と同じ扱いにしている。
+
+見た目をカスタマイズしたい場合は、`BugReportTrigger.cs`の`ShowNotification`/`OnGUI`を
+直接書き換えるか、`IsSending`を参照して独自のUIを組んでもよい。
+
 ## 送信失敗時のリトライ（GlankOfflineQueue）
 
 ネットワーク断やサーバーの一時停止で送信に失敗した場合、`BugReportTrigger`に
@@ -393,6 +410,8 @@ crashDetector.IsFatalError = (condition, stackTrace) => condition.Contains("FATA
 
 ## 未対応・今後の検討事項
 
+- 送信中/成功/失敗の画面通知（`BugReportTrigger.OnGUI`）は開発中のPC環境でのみ確認済み。
+  モバイル・コンソール等、解像度やセーフエリアが大きく異なる環境での表示崩れは未検証
 - `<パッケージルート>/Runtime/Prefabs/GlankManager.prefab`はテキストファイルのSDKリポジトリ単体では
   生成できないため、`Tools > Glank > SDK開発者向け > 配布用GlankManagerプレハブを再生成`を
   実際にUnity Editorで一度実行し、生成された`.prefab`/`.asset`ファイル（と対応する`.meta`）を
