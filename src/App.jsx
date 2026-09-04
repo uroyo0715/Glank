@@ -556,7 +556,6 @@ function AppShell({ user, setUser }) {
           bugsLoading={bugsLoading}
           bugsError={bugsError}
           onOpen={(id) => navigate(`/projects/${selectedProjectId}/reports/${id}`)}
-          onOpenHelp={() => navigate(`/help?engine=${selectedProject?.gameEngine === 'godot' ? 'godot' : 'unity'}`)}
           projectId={selectedProjectId}
           projectName={selectedProject?.name ?? ''}
           onFetchMembers={fetchProjectMembers}

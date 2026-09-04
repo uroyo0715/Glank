@@ -1077,6 +1077,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 10px;
   margin-bottom: 16px;
 }
 .list-header h1 {
@@ -1134,15 +1136,70 @@ body {
   color: var(--text);
   text-decoration: none;
 }
-.panel-toggle.warning {
-  color: var(--accent-amber);
-  border-color: var(--accent-amber);
-}
 
 .list-header-actions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 「メンバー」「ストレージ設定」「選択肢の管理」をまとめる管理メニュー。
+   見た目はヘッダー右上のハンバーガーメニュー（.nav-menu-dropdown系）に揃えている。 */
+.manage-menu {
+  position: relative;
+}
+.manage-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.manage-menu-caret {
+  font-size: 10px;
+  opacity: 0.7;
+}
+.manage-menu-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  flex: none;
+}
+.manage-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.manage-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.manage-menu-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.manage-menu-item.active {
+  color: var(--accent-amber);
+  font-weight: 700;
 }
 
 /* ---- Members panel ---- */
@@ -2046,7 +2103,8 @@ body {
 }
 .bug-card .meta {
   display: flex;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 4px 6px;
   align-items: center;
 }
 /* 種類はプロジェクトごとの自由記述で固定の意味を持たないため、色は付けずプレーンな

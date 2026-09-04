@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { STATUS_COLUMNS, PRIORITY_OPTIONS } from '../data/mockBugs.js'
 import FilterBar from '../components/FilterBar.jsx'
 import MembersPanel from '../components/MembersPanel.jsx'
@@ -16,6 +16,79 @@ function priorityLabel(key) {
   return PRIORITY_OPTIONS.find((p) => p.key === key)?.label ?? key
 }
 
+// 「メンバー」「ストレージ設定」「選択肢の管理」をまとめる管理メニュー。ヘッダーに
+// 個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つのドロップダウンに
+// 集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
+function ManageMenu({
+  showMembers,
+  setShowMembers,
+  showStorage,
+  setShowStorage,
+  showFieldOptions,
+  setShowFieldOptions,
+  storageBlocked,
+}) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handlePointerDown(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [open])
+
+  function select(toggleFn) {
+    setOpen(false)
+    toggleFn((v) => !v)
+  }
+
+  const anyPanelOpen = showMembers || showStorage || showFieldOptions
+
+  return (
+    <div className="manage-menu" ref={rootRef}>
+      <button
+        type="button"
+        className={`panel-toggle manage-menu-toggle ${anyPanelOpen ? 'active' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        管理
+        {storageBlocked && <span className="manage-menu-dot" aria-label="要対応" />}
+        <span className="manage-menu-caret">▾</span>
+      </button>
+      {open && (
+        <div className="manage-menu-dropdown">
+          <button
+            type="button"
+            className={`manage-menu-item ${showMembers ? 'active' : ''}`}
+            onClick={() => select(setShowMembers)}
+          >
+            メンバー
+          </button>
+          <button
+            type="button"
+            className={`manage-menu-item ${showStorage ? 'active' : ''}`}
+            onClick={() => select(setShowStorage)}
+          >
+            ストレージ設定
+            {storageBlocked && <span className="manage-menu-dot" aria-label="要対応" />}
+          </button>
+          <button
+            type="button"
+            className={`manage-menu-item ${showFieldOptions ? 'active' : ''}`}
+            onClick={() => select(setShowFieldOptions)}
+          >
+            選択肢の管理
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function BugListPage({
   bugs,
   bugsLoading,
@@ -26,7 +99,6 @@ export default function BugListPage({
   onFetchMembers,
   onAddMembers,
   onRemoveMember,
-  onOpenHelp,
   onCreateReport,
   defaultReporterName,
   storageStatus,
@@ -82,32 +154,15 @@ export default function BugListPage({
             >
               + 新規報告
             </button>
-            <button
-              type="button"
-              className={`panel-toggle ${showMembers ? 'active' : ''}`}
-              onClick={() => setShowMembers((v) => !v)}
-            >
-              メンバー
-            </button>
-            <button
-              type="button"
-              className={`panel-toggle ${showStorage ? 'active' : ''} ${
-                storageBlocked ? 'warning' : ''
-              }`}
-              onClick={() => setShowStorage((v) => !v)}
-            >
-              ストレージ設定
-            </button>
-            <button
-              type="button"
-              className={`panel-toggle ${showFieldOptions ? 'active' : ''}`}
-              onClick={() => setShowFieldOptions((v) => !v)}
-            >
-              選択肢の管理
-            </button>
-            <button type="button" className="help-link" onClick={onOpenHelp}>
-              SDK連携の使い方
-            </button>
+            <ManageMenu
+              showMembers={showMembers}
+              setShowMembers={setShowMembers}
+              showStorage={showStorage}
+              setShowStorage={setShowStorage}
+              showFieldOptions={showFieldOptions}
+              setShowFieldOptions={setShowFieldOptions}
+              storageBlocked={storageBlocked}
+            />
             <SegmentedToggle
               value={view}
               onChange={setView}
