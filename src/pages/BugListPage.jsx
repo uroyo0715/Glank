@@ -6,6 +6,7 @@ import NewReportForm from '../components/NewReportForm.jsx'
 import StorageSettingsPanel from '../components/StorageSettingsPanel.jsx'
 import FieldOptionsPanel from '../components/FieldOptionsPanel.jsx'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
+import { formatCreatedAt } from '../utils/formatDate.js'
 
 function statusLabel(key) {
   return STATUS_COLUMNS.find((s) => s.key === key)?.label ?? key
@@ -208,6 +209,7 @@ export default function BugListPage({
                 <div className="col-who">報告者</div>
                 <div className="col-build">ビルド</div>
                 <div className="col-priority">優先度</div>
+                <div className="col-created">報告日時</div>
               </div>
               <div className="bug-table-body">
                 {filtered.length === 0 && (
@@ -229,6 +231,7 @@ export default function BugListPage({
                     <div className="col-who">{b.who}</div>
                     <div className="col-build mono">{b.build}</div>
                     <div className="col-priority">{priorityLabel(b.priority)}</div>
+                    <div className="col-created">{b.createdAt ? formatCreatedAt(b.createdAt) : '—'}</div>
                   </div>
                 ))}
               </div>
@@ -260,6 +263,9 @@ export default function BugListPage({
                               </span>
                             ))}
                             <span className="who">{b.who}</span>
+                            {b.createdAt && (
+                              <span className="created-at">{formatCreatedAt(b.createdAt)}</span>
+                            )}
                           </div>
                         </div>
                       ))}

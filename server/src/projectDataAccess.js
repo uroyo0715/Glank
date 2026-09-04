@@ -7,6 +7,7 @@ import {
   migrateAddAssigneeIfNeeded,
   migrateAddParentCommentIdIfNeeded,
   migrateAddInputLogVideoSyncedIfNeeded,
+  migrateAddCreatedAtIfNeeded,
 } from './db.js'
 import { encryptJson, decryptJson } from './crypto.js'
 
@@ -60,6 +61,7 @@ export async function resolveProjectDbClient(project) {
   await migrateAddAssigneeIfNeeded(client)
   await migrateAddParentCommentIdIfNeeded(client)
   await migrateAddInputLogVideoSyncedIfNeeded(client)
+  await migrateAddCreatedAtIfNeeded(client)
   clientCache.set(project.id, { configEnc: project.tursoConfigEnc, client })
   return { ready: true, client }
 }

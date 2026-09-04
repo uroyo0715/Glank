@@ -51,6 +51,7 @@ function rowToListItem(row) {
     build: row.build,
     platform: row.platform,
     priority: row.priority,
+    createdAt: row.createdAt || null,
   }
 }
 
@@ -304,8 +305,8 @@ export async function createBug(client, {
   try {
     await tx.execute({
       sql: `INSERT INTO bugs
-          (id, projectId, title, tags, status, description, who, build, platform, priority, videoUrl, videoBytes, fps, durationFrames, inputLogVideoSynced)
-         VALUES (?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, projectId, title, tags, status, description, who, build, platform, priority, videoUrl, videoBytes, fps, durationFrames, inputLogVideoSynced, createdAt)
+         VALUES (?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         bugId,
         projectId,
@@ -321,6 +322,7 @@ export async function createBug(client, {
         fps,
         durationFrames,
         inputLogVideoSynced === false ? 0 : 1,
+        new Date().toISOString(),
       ],
     })
 

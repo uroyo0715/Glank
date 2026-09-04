@@ -52,7 +52,8 @@ export const BUG_TABLES_SCHEMA = `
     -- 場合はfalseになる（動画の終端と入力ログの終端が別々のタイミングで決まるため、
     -- フレーム単位でのズレが起きうる）。falseの間、Web UIはタイムライン表示や
     -- クリックでの動画シークを提供しない（正確に対応しない位置へ誘導してしまうため）。
-    inputLogVideoSynced INTEGER NOT NULL DEFAULT 1
+    inputLogVideoSynced INTEGER NOT NULL DEFAULT 1,
+    createdAt TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS bugInputs (
@@ -389,6 +390,16 @@ export async function migrateAddInputLogVideoSyncedIfNeeded(client) {
   await client.execute('ALTER TABLE bugs ADD COLUMN inputLogVideoSynced INTEGER NOT NULL DEFAULT 1')
 }
 
+// マイグレーション: createdAt（報告日時）導入前に作られたbugsには存在しないため追加する。
+// 既存データの実際の作成日時は分からないため空文字のままにする（フロントエンド側は
+// 空文字・不正な値の場合、日時表記を単に表示しない）。
+export async function migrateAddCreatedAtIfNeeded(client) {
+  const { rows: columns } = await client.execute('PRAGMA table_info(bugs)')
+  const hasColumn = columns.some((c) => c.name === 'createdAt')
+  if (hasColumn) return
+  await client.execute("ALTER TABLE bugs ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''")
+}
+
 // マイグレーション: users.imageUrl（アカウントアイコン）導入前に作られたDBには存在しないため追加する。
 async function migrateAddUserImageUrlIfNeeded() {
   const { rows: columns } = await db.execute('PRAGMA table_info(users)')
@@ -400,6 +411,7 @@ async function migrateAddUserImageUrlIfNeeded() {
 await migrateAddAssigneeIfNeeded(db)
 await migrateAddParentCommentIdIfNeeded(db)
 await migrateAddInputLogVideoSyncedIfNeeded(db)
+await migrateAddCreatedAtIfNeeded(db)
 await migrateAddUserImageUrlIfNeeded()
 
 // マイグレーション: プロジェクト機能導入前に作られたDBには bugs.projectId が存在しない。
@@ -627,8 +639,8 @@ async function seedIfEmpty() {
   for (const seedBug of SEED_BUGS) {
     const bugResult = await db.execute({
       sql: `INSERT INTO bugs
-          (projectId, title, tags, status, description, who, build, platform, priority, videoUrl, fps, durationFrames)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (projectId, title, tags, status, description, who, build, platform, priority, videoUrl, fps, durationFrames, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         projectId,
         seedBug.title,
@@ -642,6 +654,7 @@ async function seedIfEmpty() {
         seedBug.videoUrl,
         seedBug.fps,
         seedBug.durationFrames,
+        new Date().toISOString(),
       ],
     })
     const bugId = bugResult.lastInsertRowid

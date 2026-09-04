@@ -5,6 +5,7 @@ import EditReportForm from '../components/EditReportForm.jsx'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
 import CommentThread from '../components/CommentThread.jsx'
 import { STATUS_COLUMNS, PRIORITY_OPTIONS } from '../data/mockBugs.js'
+import { formatCreatedAt } from '../utils/formatDate.js'
 
 function priorityLabel(key) {
   return PRIORITY_OPTIONS.find((p) => p.key === key)?.label ?? key
@@ -224,6 +225,12 @@ export default function BugDetailPage({
               <div className="k">優先度</div>
               <div className="v">{priorityLabel(bug.priority)}</div>
             </div>
+            {bug.createdAt && (
+              <div className="meta-item">
+                <div className="k">報告日時</div>
+                <div className="v">{formatCreatedAt(bug.createdAt)}</div>
+              </div>
+            )}
           </div>
         </div>
 

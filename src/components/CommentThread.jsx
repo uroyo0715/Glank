@@ -1,13 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { formatCreatedAt } from '../utils/formatDate.js'
 
 const MAX_INDENT_DEPTH = 6
 const INDENT_PX = 20
-
-function formatCreatedAt(iso) {
-  const d = new Date(iso.includes('T') || iso.endsWith('Z') ? iso : `${iso}Z`)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString('ja-JP', { dateStyle: 'short', timeStyle: 'short' })
-}
 
 /** フラットな配列(parentCommentIdで返信関係を持つ)から、親id -> 子コメント配列 のMapを作る。 */
 function buildChildrenMap(comments) {

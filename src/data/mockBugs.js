@@ -1,4 +1,4 @@
-export const bugs = [
+const rawBugs = [
   {
     id: 1,
     projectId: 1,
@@ -198,6 +198,14 @@ export const bugs = [
     ],
   },
 ]
+
+// 実データはサーバーが報告受信時に付与するが、モックにはその仕組みが無いため、
+// 一覧の見た目を確認できるようここで一律に生成する（各バグのidが大きいほど新しい、という体で
+// 30分ずつずらす）。
+export const bugs = rawBugs.map((b, i) => ({
+  ...b,
+  createdAt: new Date(Date.now() - (rawBugs.length - i) * 30 * 60 * 1000).toISOString(),
+}))
 
 export const STATUS_COLUMNS = [
   { key: 'todo', label: '未対応' },

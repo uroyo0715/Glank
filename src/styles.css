@@ -1917,7 +1917,7 @@ body {
 .bug-table-head,
 .bug-row {
   display: grid;
-  grid-template-columns: 2.2fr 0.9fr 1fr 0.9fr 1fr 1.1fr;
+  grid-template-columns: 2.2fr 0.9fr 1fr 0.9fr 1fr 1.1fr 1.1fr;
   gap: 10px;
   align-items: center;
   padding: 10px 16px;
@@ -1954,7 +1954,8 @@ body {
   gap: 4px 8px;
 }
 .bug-row .col-who,
-.bug-row .col-priority {
+.bug-row .col-priority,
+.bug-row .col-created {
   color: var(--text-dim);
 }
 .table-empty {
@@ -2070,6 +2071,11 @@ body {
   font-size: 11px;
   color: var(--text-faint);
   margin-left: auto;
+}
+.bug-card .created-at {
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
 }
 
 /* ---- Comment thread ---- */
