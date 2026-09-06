@@ -571,6 +571,21 @@ body {
   font-size: 11px;
   color: var(--text-faint);
 }
+.project-card-id-reveal {
+  align-self: flex-start;
+  margin: 0 14px 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.project-card-id-reveal:hover {
+  color: var(--text-dim);
+}
 .help-link {
   background: none;
   border: none;

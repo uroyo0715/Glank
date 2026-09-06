@@ -5,6 +5,29 @@ function gameEngineLabel(key) {
   return GAME_ENGINE_OPTIONS.find((o) => o.key === key)?.label ?? key
 }
 
+// プロジェクトIDはUnity/Godot SDK側の接続設定にそのまま入力する値のため削除も番号の
+// 再利用もしない（詳細はサーバー側のコメント参照）。連番でないのが不格好という理由で
+// 常時表示する必要はないため、既定では隠しておき、必要なときだけクリックで表示する。
+function ProjectCardId({ id }) {
+  const [revealed, setRevealed] = useState(false)
+
+  if (revealed) {
+    return <div className="project-card-id mono">ID: {id}</div>
+  }
+  return (
+    <button
+      type="button"
+      className="project-card-id-reveal"
+      onClick={(e) => {
+        e.stopPropagation()
+        setRevealed(true)
+      }}
+    >
+      IDを表示
+    </button>
+  )
+}
+
 export default function ProjectsPage({
   projects,
   onOpen,
@@ -282,7 +305,7 @@ export default function ProjectsPage({
               </div>
               <div className="project-card-name">{p.name}</div>
               {p.gameEngine && <div className="project-card-engine">{gameEngineLabel(p.gameEngine)}</div>}
-              <div className="project-card-id mono">ID: {p.id}</div>
+              <ProjectCardId id={p.id} />
               {!selecting && (
                 <button
                   type="button"
