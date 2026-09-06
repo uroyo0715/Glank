@@ -57,6 +57,13 @@ export default function BugDetailPage({
   const [resizingWidth, setResizingWidth] = useState(false)
   const [logLayout, setLogLayout] = useState(loadStoredLogLayout) // 'side' | 'below'
   const [assigneeOptions, setAssigneeOptions] = useState([])
+  // ステータス/対応者はプルダウンをすぐ連打で切り替えられてしまうため、送信中は
+  // 次の変更を受け付けない（受け付けると複数のPATCHが競合し、後から返ってきた応答が
+  // 実際に最後に選んだ値を上書きしてしまうことがある）。
+  const [statusSaving, setStatusSaving] = useState(false)
+  const [statusError, setStatusError] = useState(null)
+  const [assigneeSaving, setAssigneeSaving] = useState(false)
+  const [assigneeError, setAssigneeError] = useState(null)
   const resizeDragRef = useRef(null) // { startX, startWidth }
   const hasVideo = Boolean(bug.videoUrl)
   const duration = hasVideo ? bug.durationFrames / bug.fps : 0
@@ -71,6 +78,8 @@ export default function BugDetailPage({
     setConfirmingDelete(false)
     setDeleteError(null)
     setAttachVideoError(null)
+    setStatusError(null)
+    setAssigneeError(null)
   }, [bug.id])
 
   // 対応者のプルダウンはプロジェクトメンバーの表示名から選ぶ（報告者選択と同じ考え方）。
@@ -90,8 +99,22 @@ export default function BugDetailPage({
     }
   }, [bug.projectId, onFetchMembers])
 
+  function handleStatusChange(e) {
+    if (statusSaving) return
+    setStatusSaving(true)
+    setStatusError(null)
+    onStatusChange(bug.id, e.target.value).catch((err) => {
+      setStatusError(err.message ?? String(err))
+    }).finally(() => setStatusSaving(false))
+  }
+
   function handleAssigneeChange(e) {
-    onUpdateReport(bug.id, { assignee: e.target.value })
+    if (assigneeSaving) return
+    setAssigneeSaving(true)
+    setAssigneeError(null)
+    onUpdateReport(bug.id, { assignee: e.target.value }).catch((err) => {
+      setAssigneeError(err.message ?? String(err))
+    }).finally(() => setAssigneeSaving(false))
   }
 
   function handleAttachVideoChange(e) {
@@ -185,7 +208,8 @@ export default function BugDetailPage({
               <select
                 className="status-select"
                 value={bug.status}
-                onChange={(e) => onStatusChange(bug.id, e.target.value)}
+                onChange={handleStatusChange}
+                disabled={statusSaving}
               >
                 {STATUS_COLUMNS.map((c) => (
                   <option key={c.key} value={c.key}>
@@ -193,10 +217,16 @@ export default function BugDetailPage({
                   </option>
                 ))}
               </select>
+              {statusError && <div className="project-form-error">{statusError}</div>}
             </div>
             <div className="status-row-item">
               <div className="k">対応者</div>
-              <select className="status-select" value={bug.assignee} onChange={handleAssigneeChange}>
+              <select
+                className="status-select"
+                value={bug.assignee}
+                onChange={handleAssigneeChange}
+                disabled={assigneeSaving}
+              >
                 <option value="">未割り当て</option>
                 {/* 現在の対応者がメンバー一覧から外れていても（脱退済み等）選択肢自体は消さない */}
                 {[...new Set([bug.assignee, ...assigneeOptions].filter(Boolean))].map((name) => (
@@ -205,6 +235,7 @@ export default function BugDetailPage({
                   </option>
                 ))}
               </select>
+              {assigneeError && <div className="project-form-error">{assigneeError}</div>}
             </div>
           </div>
 

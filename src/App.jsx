@@ -329,9 +329,10 @@ function AppShell({ user, setUser }) {
   }, [user, selectedId, reloadToken])
 
   function updateStatus(id, status) {
-    updateReportStatus(id, status).then((updated) => {
+    return updateReportStatus(id, status).then((updated) => {
       setBugs((prev) => prev.map((b) => (b.id === id ? { ...b, ...updated } : b)))
       setSelectedBug((prev) => (prev && prev.id === id ? { ...prev, status } : prev))
+      return updated
     })
   }
 

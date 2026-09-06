@@ -57,6 +57,7 @@ export default function FieldOptionsPanel({
   }
 
   function addCustom(fieldKey) {
+    if (pendingKey) return
     const value = (newValueByField[fieldKey] ?? '').trim()
     if (!value) return
     setPendingKey(`${fieldKey}:__new__`)
@@ -127,7 +128,10 @@ export default function FieldOptionsPanel({
                 }
                 placeholder={`独自の${field.label}を追加`}
               />
-              <button type="submit" disabled={!(newValueByField[field.key] ?? '').trim()}>
+              <button
+                type="submit"
+                disabled={!(newValueByField[field.key] ?? '').trim() || pendingKey === `${field.key}:__new__`}
+              >
                 追加
               </button>
             </form>
