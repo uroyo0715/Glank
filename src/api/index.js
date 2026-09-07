@@ -17,6 +17,8 @@ export const {
   removeProjectMember,
   fetchProjectStorageStatus,
   updateProjectStorage,
+  fetchProjectApiKey,
+  regenerateProjectApiKey,
   fetchSavedStorageConfigs,
   saveNamedStorageConfig,
   deleteSavedStorageConfig,

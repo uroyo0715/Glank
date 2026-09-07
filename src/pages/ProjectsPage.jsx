@@ -40,6 +40,80 @@ function ProjectCardId({ id }) {
   )
 }
 
+// APIキーはprojectIdと違って秘密情報（SDKのGlankSettingsに設定する値）。IDと同じ感覚で
+// 気軽に貼り付けたりスクリーンショットに写り込んだりしないよう、既定では隠しておく。
+function ProjectApiKeyReveal({ projectId, onFetch, onRegenerate }) {
+  const [state, setState] = useState('hidden') // 'hidden' | 'loading' | 'shown' | 'error'
+  const [apiKey, setApiKey] = useState(null)
+  const [error, setError] = useState(null)
+  const [regenerating, setRegenerating] = useState(false)
+
+  function reveal(e) {
+    e.stopPropagation()
+    setState('loading')
+    setError(null)
+    onFetch(projectId)
+      .then((result) => {
+        setApiKey(result.apiKey)
+        setState('shown')
+      })
+      .catch((err) => {
+        setError(err.message ?? String(err))
+        setState('error')
+      })
+  }
+
+  function hide(e) {
+    e.stopPropagation()
+    setState('hidden')
+    setApiKey(null)
+  }
+
+  function regenerate(e) {
+    e.stopPropagation()
+    if (
+      !window.confirm(
+        'APIキーを再発行します。古いキーを使っているSDKはこれ以降送信できなくなります。よろしいですか？'
+      )
+    ) {
+      return
+    }
+    setRegenerating(true)
+    setError(null)
+    onRegenerate(projectId)
+      .then((result) => setApiKey(result.apiKey))
+      .catch((err) => setError(err.message ?? String(err)))
+      .finally(() => setRegenerating(false))
+  }
+
+  if (state === 'hidden') {
+    return (
+      <button type="button" className="project-card-id-reveal" onClick={reveal}>
+        APIキーを表示
+      </button>
+    )
+  }
+
+  if (state === 'loading') {
+    return <div className="project-card-id">読み込み中...</div>
+  }
+
+  return (
+    <div className="project-card-apikey" onClick={(e) => e.stopPropagation()}>
+      {apiKey && <div className="project-card-apikey-value mono">{apiKey}</div>}
+      {error && <div className="project-form-error">{error}</div>}
+      <div className="project-card-apikey-actions">
+        <button type="button" className="help-link" onClick={regenerate} disabled={regenerating}>
+          {regenerating ? '再発行中...' : '再発行'}
+        </button>
+        <button type="button" className="help-link" onClick={hide}>
+          隠す
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function ProjectsPage({
   projects,
   onOpen,
@@ -48,6 +122,8 @@ export default function ProjectsPage({
   onOpenHelp,
   onUpdateProject,
   onRemoveImage,
+  onFetchApiKey,
+  onRegenerateApiKey,
 }) {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
@@ -56,6 +132,7 @@ export default function ProjectsPage({
   const [imagePreview, setImagePreview] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [imageSkippedNotice, setImageSkippedNotice] = useState(false)
 
   const [selecting, setSelecting] = useState(false)
   const [selectedIds, setSelectedIds] = useState(() => new Set())
@@ -93,7 +170,10 @@ export default function ProjectsPage({
     setSubmitting(true)
     setError(null)
     onCreate(name.trim(), imageFile, gameEngine)
-      .then(() => resetForm())
+      .then((result) => {
+        if (result?.imageSkipped) setImageSkippedNotice(true)
+        resetForm()
+      })
       .catch((err) => setError(err.message ?? String(err)))
       .finally(() => setSubmitting(false))
   }
@@ -210,6 +290,22 @@ export default function ProjectsPage({
         </div>
       </div>
 
+      {imageSkippedNotice && (
+        <div className="storage-blocking-panel">
+          <p>
+            プロジェクトは作成しましたが、ストレージ（Turso・R2）が未設定のため画像は保存されませんでした。
+            ストレージ設定後、カードの「編集」から画像を登録し直せます。
+          </p>
+          <button
+            type="button"
+            className="help-link"
+            onClick={() => setImageSkippedNotice(false)}
+          >
+            閉じる
+          </button>
+        </div>
+      )}
+
       {confirming && (
         <div className="delete-confirm">
           <p>
@@ -318,6 +414,7 @@ export default function ProjectsPage({
               <div className="project-card-name">{p.name}</div>
               {p.gameEngine && <div className="project-card-engine">{gameEngineLabel(p.gameEngine)}</div>}
               <ProjectCardId id={p.id} />
+              <ProjectApiKeyReveal projectId={p.id} onFetch={onFetchApiKey} onRegenerate={onRegenerateApiKey} />
               {!selecting && (
                 <button
                   type="button"

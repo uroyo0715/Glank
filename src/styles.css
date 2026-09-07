@@ -582,6 +582,26 @@ body {
   color: var(--text-dim);
   text-decoration: underline;
 }
+.project-card-apikey {
+  margin: 0 14px 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.project-card-apikey-value {
+  font-size: 11px;
+  color: var(--text);
+  word-break: break-all;
+  margin-bottom: 6px;
+}
+.project-card-apikey-actions {
+  display: flex;
+  gap: 12px;
+}
+.project-card-apikey-actions .help-link {
+  font-size: 11px;
+}
 .project-card-id-reveal {
   align-self: flex-start;
   margin: 0 14px 12px;
@@ -606,6 +626,12 @@ body {
   cursor: pointer;
 }
 .help-link:hover {
+  text-decoration: underline;
+}
+.help-external-link {
+  color: var(--accent-cyan);
+}
+.help-external-link:hover {
   text-decoration: underline;
 }
 .projects-header-actions {
@@ -679,6 +705,25 @@ body {
   line-height: 1.7;
   color: var(--text-dim);
   margin: 4px 0 28px;
+}
+.help-coming-soon {
+  padding: 28px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.help-coming-soon h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.help-coming-soon p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+}
+.help-coming-soon p:last-child {
+  margin-bottom: 0;
 }
 .help-steps {
   list-style: none;

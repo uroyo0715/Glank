@@ -20,6 +20,8 @@ import {
   removeProjectMember,
   fetchProjectStorageStatus,
   updateProjectStorage,
+  fetchProjectApiKey,
+  regenerateProjectApiKey,
   updateProjectFieldOptions,
   addProjectCustomOption,
   removeProjectCustomOption,
@@ -571,6 +573,8 @@ function AppShell({ user, setUser }) {
             onOpenHelp={() => navigate('/help')}
             onUpdateProject={handleUpdateProject}
             onRemoveImage={handleRemoveProjectImage}
+            onFetchApiKey={fetchProjectApiKey}
+            onRegenerateApiKey={regenerateProjectApiKey}
           />
         )
       ) : selectedId != null ? (

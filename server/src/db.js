@@ -1,5 +1,7 @@
 import { createClient } from '@libsql/client'
 import path from 'node:path'
+import crypto from 'node:crypto'
+import { encryptJson } from './crypto.js'
 
 // 本番はTurso（TURSO_DATABASE_URL/TURSO_AUTH_TOKENを設定）、それ以外（開発・テスト）は
 // ローカルのsqliteファイルを使う。どちらも同じ@libsql/client経由なのでアプリ側のコードは
@@ -103,6 +105,11 @@ await db.executeMultiple(`
   -- （優先度は固定の3段階のため対象外）。
   -- gameEngine: 'unity' | 'godot' | 'other' | ''（未設定）。UnityとGodot両方のSDKを
   -- 提供しているため、どちらを使っているプロジェクトか見分けられるようにするための項目。
+  -- apiKeyEnc: SDK（POST /reports）がX-Glank-Keyヘッダーで提示する、プロジェクトごとに
+  -- 発行するAPIキーをAES-256-GCMで暗号化したもの（server/src/crypto.js）。以前はサーバー全体で
+  -- 1つの共有シークレット（環境変数GLANK_API_KEY）しか無く、projectIdの数字を書き換えるだけで
+  -- 別プロジェクトに報告を送れてしまっていたため、プロジェクトごとに分離した
+  -- （マイグレーションで既存プロジェクトにも1つずつ発行してバックフィルする）。
   CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -113,7 +120,8 @@ await db.executeMultiple(`
     tursoConfigEnc TEXT,
     r2ConfigEnc TEXT,
     hiddenFieldOptions TEXT NOT NULL DEFAULT '{}',
-    customFieldOptions TEXT NOT NULL DEFAULT '{}'
+    customFieldOptions TEXT NOT NULL DEFAULT '{}',
+    apiKeyEnc TEXT
   );
 
   ${BUG_TABLES_SCHEMA}
@@ -412,6 +420,43 @@ await migrateAddAssigneeIfNeeded(db)
 await migrateAddParentCommentIdIfNeeded(db)
 await migrateAddInputLogVideoSyncedIfNeeded(db)
 await migrateAddCreatedAtIfNeeded(db)
+
+/** SDKがX-Glank-Keyヘッダーで提示するプロジェクト固有のAPIキーの平文を生成する。 */
+export function generateApiKey() {
+  return crypto.randomBytes(24).toString('base64url')
+}
+
+// マイグレーション: apiKeyEnc導入前に作られたprojectsには存在しないため追加し、
+// まだキーを持たない（NULLの）プロジェクト全てに1つずつ新規発行してバックフィルする。
+// 列追加とバックフィルを分けているのは、GLANK_ENCRYPTION_KEY未設定でバックフィルに失敗しても
+// 列自体は追加されている状態にし、鍵を設定してサーバーを再起動すれば自動的に再試行される
+// （不足分だけを埋める）ようにするため。
+async function migrateAddApiKeyIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(projects)')
+  const hasColumn = columns.some((c) => c.name === 'apiKeyEnc')
+  if (!hasColumn) {
+    await db.execute('ALTER TABLE projects ADD COLUMN apiKeyEnc TEXT')
+  }
+
+  const { rows: missing } = await db.execute('SELECT id FROM projects WHERE apiKeyEnc IS NULL')
+  if (missing.length === 0) return
+  try {
+    for (const row of missing) {
+      await db.execute({
+        sql: 'UPDATE projects SET apiKeyEnc = ? WHERE id = ?',
+        args: [encryptJson(generateApiKey()), row.id],
+      })
+    }
+  } catch (err) {
+    console.error(
+      '[Glank] プロジェクトAPIキーの自動発行に失敗しました（GLANK_ENCRYPTION_KEYが未設定の可能性があります）。' +
+        '設定後にサーバーを再起動すると、未発行分だけ自動でバックフィルされます:',
+      err.message
+    )
+  }
+}
+
+await migrateAddApiKeyIfNeeded()
 await migrateAddUserImageUrlIfNeeded()
 
 // マイグレーション: プロジェクト機能導入前に作られたDBには bugs.projectId が存在しない。

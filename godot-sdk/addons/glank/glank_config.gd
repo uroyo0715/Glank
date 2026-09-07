@@ -7,7 +7,8 @@ extends Resource
 ## 例: http://localhost:8787/api/v1 （末尾に /reports は付けない）
 @export var base_url: String = "http://localhost:8787/api/v1"
 
-## POST /reports に付与するX-Glank-Keyヘッダー。サーバー側でGLANK_API_KEYが未設定なら空でよい
+## POST /reports に付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、
+## Webアプリのプロジェクトカードの「APIキーを表示」から確認できる
 @export var api_key: String = ""
 
 ## 報告先のGlankプロジェクトID。Web側のプロジェクト一覧画面でカードに表示されている番号

@@ -302,6 +302,32 @@ export async function updateProjectStorage(projectId, { storageMode, turso, r2 }
   return { ...current }
 }
 
+function generateMockApiKey() {
+  return Array.from({ length: 24 }, () => Math.floor(Math.random() * 36).toString(36)).join('')
+}
+
+// projectId -> apiKey（実サーバーと同じく、プロジェクトごとに1つ発行される想定のモック）。
+const apiKeyByProject = new Map(projects.map((p) => [p.id, generateMockApiKey()]))
+
+/** @returns {Promise<{apiKey: string}>} */
+export async function fetchProjectApiKey(projectId) {
+  await delay(80)
+  requireLogin()
+  const id = Number(projectId)
+  if (!apiKeyByProject.has(id)) apiKeyByProject.set(id, generateMockApiKey())
+  return { apiKey: apiKeyByProject.get(id) }
+}
+
+/** @returns {Promise<{apiKey: string}>} */
+export async function regenerateProjectApiKey(projectId) {
+  await delay(150)
+  requireLogin()
+  const id = Number(projectId)
+  const apiKey = generateMockApiKey()
+  apiKeyByProject.set(id, apiKey)
+  return { apiKey }
+}
+
 /**
  * ログイン中の自分が名前を付けて保存したTurso/R2接続情報の一覧（プロジェクトには紐付かない）。
  * @returns {Promise<{id: number, name: string, hasTurso: boolean, hasR2: boolean, updatedAt: string}[]>}

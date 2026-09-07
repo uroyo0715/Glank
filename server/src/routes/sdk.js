@@ -27,14 +27,12 @@ const SDK_VERSION = (() => {
 // unity-sdk/godot-sdkはserver/の外（リポジトリ直下）にあるため、Renderのデプロイが
 // リポジトリ全体をクローンしていることが前提（Root Directoryはビルド/起動コマンドの
 // 実行場所を変えるだけで、他のフォルダも一緒にクローンされる）。
+// Godotは今後対応予定でまだ配布していない。godot-sdk/自体はリポジトリに残っているが、
+// 未完成のものを配ってしまわないよう配布経路（このAPIとヘルプページのボタン）だけ塞ぐ。
 const SDK_SOURCES = {
   unity: {
     dir: path.join(REPO_ROOT, 'unity-sdk', 'Glank'),
     filename: 'glank-unity-sdk.zip',
-  },
-  godot: {
-    dir: path.join(REPO_ROOT, 'godot-sdk', 'addons', 'glank'),
-    filename: 'glank-godot-sdk.zip',
   },
 }
 

@@ -93,8 +93,8 @@ function UnityGuide() {
             <tr>
               <td className="mono">apiKey</td>
               <td>
-                サーバー側の<span className="mono">GLANK_API_KEY</span>環境変数と同じ値。
-                サーバー側で未設定なら、ここも空欄のままでよい（開発中は認証をスキップできる）
+                このプロジェクト専用のAPIキー。プロジェクトカードの「APIキーを表示」で確認できる
+                （プロジェクトごとに別の値が発行されるため、他のプロジェクトのキーは使えない）
               </td>
             </tr>
             <tr>
@@ -157,101 +157,16 @@ function UnityGuide() {
 
 function GodotGuide() {
   return (
-    <ol className="help-steps">
-      <li>
-        <h2>1. このWebアプリでプロジェクトを作成する</h2>
-        <p>
-          プロジェクト一覧画面の「新規プロジェクト」から、タイトル・ティザー画像（任意）・
-          使用ゲームエンジン（Godot）を指定して作成します。作成されたプロジェクトカードに表示される
-          <span className="mono">ID: 3</span> のような番号が、Godot側の設定で使うプロジェクトIDです。
-        </p>
-      </li>
-
-      <li>
-        <h2>2. Godot側にGlank SDKを導入する</h2>
-        <p>
-          下のボタンからSDK一式をダウンロードし、展開してできる<span className="mono">glank</span>
-          フォルダごと、対象Godotプロジェクトの<span className="mono">addons/glank</span>
-          に置きます。続けてGodotエディタで
-          <span className="mono">プロジェクト &gt; プロジェクト設定 &gt; プラグイン</span>{' '}
-          を開き、「Glank Bug Report SDK」を有効化してください（Godot 4系を想定）。
-        </p>
-        <SdkDownloadButton engine="godot" label="Godot SDK" />
-      </li>
-
-      <li>
-        <h2>3. 接続設定（GlankConfig）を作る</h2>
-        <p>
-          FileSystemドックを右クリック &gt; <span className="mono">New Resource &gt; GlankConfig</span>{' '}
-          でリソースを作成し、次の3項目を設定します。
-        </p>
-        <table className="help-table">
-          <tbody>
-            <tr>
-              <td className="mono">base_url</td>
-              <td>
-                このアプリのAPIサーバーのURL。ローカル開発なら
-                <span className="mono"> http://localhost:8787/api/v1</span>
-              </td>
-            </tr>
-            <tr>
-              <td className="mono">api_key</td>
-              <td>
-                サーバー側の<span className="mono">GLANK_API_KEY</span>環境変数と同じ値。
-                サーバー側で未設定なら、ここも空欄のままでよい（開発中は認証をスキップできる）
-              </td>
-            </tr>
-            <tr>
-              <td className="mono">project_id</td>
-              <td>手順1で確認したプロジェクトID</td>
-            </tr>
-          </tbody>
-        </table>
-      </li>
-
-      <li>
-        <h2>4. シーンにNodeを置く</h2>
-        <p>
-          シーン内の任意のNodeに <span className="mono">InputLogRecorder</span> と
-          <span className="mono"> BugReportTrigger</span> の2つをアタッチします。
-          <span className="mono">BugReportTrigger</span> の <span className="mono">config</span>{' '}
-          欄に、手順3で作った設定を割り当ててください。
-          <span className="mono">InputLogRecorder</span> の <span className="mono">watched_keys</span>
-          （<span className="mono">GlankWatchedKey</span>リソースの配列）には、ログに残したい
-          入力キーを登録します。
-        </p>
-      </li>
-
-      <li>
-        <h2>5. 動画はOSのインスタントリプレイ機能に任せる</h2>
-        <p>
-          Unity版が使っている<span className="mono">InstantReplayVideoRecorder</span>（自前で
-          リングバッファ録画をmp4に書き出す仕組み）に相当する、信頼できるOSSがGodotでは
-          見つからなかったため、Godot版は<span className="mono">ReplayFolderWatcher</span>
-          （Windowsの<strong>Xbox Game Bar</strong>や<strong>NVIDIA ShadowPlay</strong>、
-          <strong>AMD ReLive</strong>といったOS標準のインスタントリプレイ機能の出力フォルダを
-          監視する仕組み）のみを提供します。そのため、プレイヤー側で事前にOSの録画機能を
-          有効にしておく必要があります。詳細は
-          <span className="mono">godot-sdk/README.md</span>を参照してください。
-        </p>
-      </li>
-
-      <li>
-        <h2>6. バグを見つけたら2つのキーを押す</h2>
-        <p>
-          まず <span className="mono">Win + Alt + G</span> を押してOS側に直近の録画を保存させ、
-          続けて<span className="mono">BugReportTrigger</span>のホットキー（既定は
-          <span className="mono"> F12</span>）を押します。直近の入力ログと、いま保存された
-          録画動画がまとめて自動送信され、このWebアプリのプロジェクト内バグ一覧に「未対応」として
-          表示されます。
-        </p>
-        <p>
-          タイトルやタグをQA担当者に入力させてから送信したい場合は、
-          <span className="mono">GlankReportPromptUI</span>を使うと、ホットキー即送信の代わりに
-          簡易フォームを開けます。
-        </p>
-      </li>
-    </ol>
+    <div className="help-coming-soon">
+      <h2>Godot連携は準備中です</h2>
+      <p>
+        Godot向けのGlank SDKは現在開発中で、まだ一般提供していません（SDKのダウンロードも
+        現時点ではご利用いただけません）。対応が完了次第、こちらのページで導入手順を案内します。
+      </p>
+      <p>
+        Unityでの導入をお急ぎの場合は、上のトグルから「Unity」に切り替えてください。
+      </p>
+    </div>
   )
 }
 
@@ -260,27 +175,25 @@ function StorageGuide() {
     <section id="storage-setup" className="help-storage-section">
       <h1>ストレージ設定（Turso・R2）の手順</h1>
       <p className="help-lead">
-        プロジェクトごとの報告データベースと動画・画像の保存先には、Glankが用意する共有ストレージ
-        （<span className="mono">managed</span>）と、自分のTurso・Cloudflare R2アカウントを使う
-        （<span className="mono">self_hosted</span>）の2種類があります。プロジェクトのバグ一覧画面の
-        「ストレージ設定」から切り替えられます。
+        プロジェクトごとの報告データベースと動画・画像の保存先には、自分のTurso・Cloudflare R2アカウントを
+        使う（<span className="mono">self_hosted</span>）方式を使います。プロジェクトのバグ一覧画面の
+        「ストレージ設定」から設定してください（Glank共有の<span className="mono">managed</span>方式は
+        今後提供予定で、現時点では選択できません）。
       </p>
 
       <ol className="help-steps">
         <li>
-          <h2>1. managed と self_hosted、どちらを使うか</h2>
+          <h2>1. Turso・R2を用意する</h2>
           <p>
-            まずは<span className="mono">managed</span>（設定不要・無料）から始めるのが手軽です。
-            プロジェクト単位500MB・全体8GBの上限を超えそうな場合や、データを自分の管理下に置きたい
-            場合に、下記の手順でTurso・R2を用意して<span className="mono">self_hosted</span>
-            に切り替えてください。
+            報告機能を使うには、下記の手順でTurso（データベース）とCloudflare R2（動画・画像）を
+            用意し、ストレージ設定フォームに接続情報を入力してください。
           </p>
         </li>
 
         <li>
           <h2>2. Turso（データベース）を用意する</h2>
           <p>
-            <a href="https://turso.tech/" target="_blank" rel="noreferrer">
+            <a href="https://turso.tech/" target="_blank" rel="noreferrer" className="help-external-link">
               Tursoのダッシュボード
             </a>
             にアクセスし、アカウント作成後「Create Database」から新しいデータベースを1つ作成します
@@ -311,7 +224,7 @@ function StorageGuide() {
         <li>
           <h2>3. Cloudflare R2（動画・画像ストレージ）を用意する</h2>
           <p>
-            <a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer">
+            <a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer" className="help-external-link">
               Cloudflareダッシュボード
             </a>
             の「R2」からバケットを1つ作成し、バケットの設定でパブリックアクセス（
@@ -378,27 +291,30 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
       </div>
 
       <div className="help-body">
-        <p className="help-lead">
-          Glankは「Webアプリ側のプロジェクト」と「{engine === 'godot' ? 'Godot' : 'Unity'}
-          で作っているゲーム」を<strong>プロジェクトID</strong>で紐付けます。ゲーム内でホットキーを
-          押すと、直近の録画動画と入力ログが自動でこのWebアプリに送信され、一覧に表示されます。
-        </p>
+        {engine === 'godot' ? (
+          <GodotGuide />
+        ) : (
+          <>
+            <p className="help-lead">
+              Glankは「Webアプリ側のプロジェクト」と「Unityで作っているゲーム」を
+              <strong>プロジェクトID</strong>で紐付けます。ゲーム内でホットキーを押すと、
+              直近の録画動画と入力ログが自動でこのWebアプリに送信され、一覧に表示されます。
+            </p>
 
-        {engine === 'godot' ? <GodotGuide /> : <UnityGuide />}
+            <UnityGuide />
 
-        {engine === 'unity' && (
-          <p className="help-setup-guide-callout">
-            Setup Wizard・プレハブを使ってもうまく動かない場合は、
-            <Link to="/setup-guide">詳細セットアップガイド</Link>
-            のトラブルシューティングを参照してください（配線図・原因の切り分け付き）。
-          </p>
+            <p className="help-setup-guide-callout">
+              Setup Wizard・プレハブを使ってもうまく動かない場合は、
+              <Link to="/setup-guide">詳細セットアップガイド</Link>
+              のトラブルシューティングを参照してください（配線図・原因の切り分け付き）。
+            </p>
+
+            <p className="help-footer-note">
+              より詳しい技術仕様は <span className="mono">unity-sdk/README.md</span> と
+              <span className="mono"> docs/api-spec.md</span> を参照してください。
+            </p>
+          </>
         )}
-
-        <p className="help-footer-note">
-          より詳しい技術仕様は{' '}
-          <span className="mono">{engine === 'godot' ? 'godot-sdk/README.md' : 'unity-sdk/README.md'}</span>{' '}
-          と<span className="mono"> docs/api-spec.md</span> を参照してください。
-        </p>
 
         <StorageGuide />
       </div>

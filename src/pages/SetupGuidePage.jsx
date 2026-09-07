@@ -144,6 +144,13 @@ export default function SetupGuidePage() {
               「SDK連携の使い方」の「方法B」を参照）。
             </li>
             <li>
+              <strong>送信失敗（401・invalid or missing X-Glank-Key）というエラーが出る</strong> —
+              APIキーはプロジェクトごとに発行される値で、他のプロジェクトのAPIキーや空文字では
+              認証が通らない。Webアプリのプロジェクトカードの「APIキーを表示」から、
+              このプロジェクト専用の値を確認して<span className="mono">GlankSettings.apiKey</span>に
+              設定し直す。「再発行」した場合は、古いキーを設定したままのSDKは以後このエラーになる点にも注意。
+            </li>
+            <li>
               <strong>ホットキーを押しても何も起きない・Consoleにも何も出ない</strong> —
               Play Modeが一時停止のままになっていないか、「ゲーム」タブをクリックしてフォーカスしてから
               押しているかを確認する。それでも反応しない場合、ノートPCの環境では

@@ -287,7 +287,7 @@ namespace Glank
         }
 
         /// <summary>
-        /// 送信中/成功/失敗の状態を画面左下に簡易表示する。Canvasを組む手間を無くすため、
+        /// 送信中/成功/失敗の状態を画面右上に簡易表示する。Canvasを組む手間を無くすため、
         /// あえてUnityEngine.UIではなくOnGUI（IMGUI）を使っている
         /// （GlankReportPromptUIのような凝ったUIが要る機能ではないため）。
         /// </summary>
@@ -305,7 +305,7 @@ namespace Glank
             const float width = 320f;
             const float height = 40f;
             const float margin = 16f;
-            var rect = new Rect(margin, Screen.height - height - margin, width, height);
+            var rect = new Rect(Screen.width - width - margin, margin, width, height);
 
             var prevColor = GUI.color;
             GUI.color = boxColor;

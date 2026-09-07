@@ -13,7 +13,8 @@ namespace Glank
         [Tooltip("例: http://localhost:8787/api/v1 （末尾に /reports は付けない）")]
         public string baseUrl = "http://localhost:8787/api/v1";
 
-        [Tooltip("POST /reports に付与する X-Glank-Key ヘッダー。サーバー側で GLANK_API_KEY が未設定なら空でよい")]
+        [Tooltip("POST /reports に付与する X-Glank-Key ヘッダー。プロジェクトごとに発行される値で、" +
+            "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる")]
         public string apiKey = "";
 
         [Tooltip("報告先のGlankプロジェクトID。Web側のプロジェクト画面で確認できる。" +

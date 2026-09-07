@@ -24,6 +24,8 @@ import {
   getSavedStorageConfigForOwner,
   saveNamedStorageConfig,
   deleteSavedStorageConfig,
+  getProjectApiKey,
+  regenerateProjectApiKey,
 } from '../data.js'
 import { requireAuth } from '../auth.js'
 import { saveImage, deleteFile } from '../storage.js'
@@ -66,14 +68,18 @@ router.post(
     }
 
     // 新規プロジェクトは既定でstorageMode='self_hosted'・未設定のため、この時点ではまだ
-    // 保存先が無い。カバー画像の設定は必須機能ではないので、その場合は黙って画像なしで作成する
-    // （ストレージ設定後、あらためて編集で付けられるようにする想定。今回のスコープ外）。
+    // 保存先が無い。カバー画像の設定は必須機能ではないので、その場合でも作成自体は続行するが、
+    // 画像が保存されなかったことは imageSkipped でクライアントに伝える（以前は完全に無言で
+    // 捨てていたため、利用者から見ると原因不明のまま「画像が反映されない」バグに見えていた）。
     let imageUrl = null
+    let imageSkipped = false
     if (req.file) {
       const draftProject = { storageMode: 'self_hosted', isManagedAllowed: false, r2ConfigEnc: null }
       const target = resolveProjectStorageConfig(draftProject)
       if (target.ready) {
         ;({ imageUrl } = await saveImage(target, req.file.buffer, req.file.originalname))
+      } else {
+        imageSkipped = true
       }
     }
 
@@ -83,7 +89,7 @@ router.post(
       gameEngine: gameEngine ?? '',
       creatorEmail: req.user.email,
     })
-    res.status(201).json(project)
+    res.status(201).json(imageSkipped ? { ...project, imageSkipped: true } : project)
   })
 )
 
@@ -278,6 +284,40 @@ router.get(
     }
     const project = await getProjectRaw(projectId)
     res.json(toStorageStatus(project))
+  })
+)
+
+// SDK（Unity/GodotのGlankSettings）に設定するプロジェクト固有のAPIキーを確認する。
+// プロジェクトIDと違い秘密情報なので、他人に見せてよいIDと同じ感覚で共有しないよう
+// Web UI側でも既定では隠し、必要な時だけ表示させる。
+router.get(
+  '/projects/:id/api-key',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const projectId = Number(req.params.id)
+    if (!(await isProjectMember(projectId, req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+    const apiKey = await getProjectApiKey(projectId)
+    if (!apiKey) {
+      return res.status(500).json({ error: 'API key not provisioned for this project' })
+    }
+    res.json({ apiKey })
+  })
+)
+
+// 漏洩した・別チームに渡したものを無効化したい等の理由で、既存のAPIキーを
+// 新しいものに差し替える（古いキーを使っていたSDKは以後401になる）。
+router.post(
+  '/projects/:id/api-key/regenerate',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const projectId = Number(req.params.id)
+    if (!(await isProjectMember(projectId, req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+    const apiKey = await regenerateProjectApiKey(projectId)
+    res.json({ apiKey })
   })
 )
 

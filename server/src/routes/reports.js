@@ -17,6 +17,7 @@ import {
   createBugComment,
   deleteBugComment,
 } from '../data.js'
+import { decryptJson } from '../crypto.js'
 import { requireAuth } from '../auth.js'
 import { saveVideo, deleteFile } from '../storage.js'
 import { asyncHandler } from '../asyncHandler.js'
@@ -33,13 +34,24 @@ const router = express.Router()
 // 差し替える際もここは変更不要（storage.js の実装だけ差し替える）。
 const upload = multer({ storage: multer.memoryStorage() })
 
-function requireApiKey(req, res, next) {
-  const expected = process.env.GLANK_API_KEY
-  if (!expected) return next() // 未設定の間は認証をスキップ（開発用）
-  if (req.get('X-Glank-Key') !== expected) {
-    return res.status(401).json({ error: 'invalid or missing X-Glank-Key' })
+// 以前はサーバー全体で1つの共有シークレット（環境変数GLANK_API_KEY）しか無く、
+// リクエストのprojectIdを書き換えるだけで別プロジェクトに報告を送り込めてしまっていた。
+// projectIdはこの時点（multerがmetadataを解析した後）でしか分からないため、
+// POST /reportsハンドラ内でprojectごとのapiKeyEncと突き合わせて認証する
+// （ミドルウェアとしては切り出さない）。
+function checkProjectApiKey(req, res, project) {
+  const provided = req.get('X-Glank-Key')
+  if (!project.apiKeyEnc) {
+    // マイグレーションでの自動発行に失敗した等、想定外の状態。呼び出し側の問題ではないので
+    // 401ではなく500にして、サーバー側の設定不備であることが分かるようにする。
+    res.status(500).json({ error: 'API key not provisioned for this project (server misconfiguration)' })
+    return false
   }
-  next()
+  if (provided !== decryptJson(project.apiKeyEnc)) {
+    res.status(401).json({ error: 'invalid or missing X-Glank-Key' })
+    return false
+  }
+  return true
 }
 
 // projectIdからそのプロジェクトのバグデータ用DBクライアントを解決する。
@@ -309,7 +321,6 @@ router.patch(
 
 router.post(
   '/reports',
-  requireApiKey,
   upload.single('video'),
   asyncHandler(async (req, res) => {
     let metadata
@@ -341,6 +352,7 @@ router.post(
     if (!project) {
       return res.status(400).json({ error: `unknown projectId: ${metadata.projectId}` })
     }
+    if (!checkProjectApiKey(req, res, project)) return
     const priority = metadata.priority || 'medium'
     if (!PRIORITY_LABELS[priority]) {
       return res.status(400).json({ error: `unknown priority: ${priority}` })

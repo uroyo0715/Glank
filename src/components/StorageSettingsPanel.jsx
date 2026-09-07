@@ -152,10 +152,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
     <div className="storage-panel">
       <div className="members-panel-label">ストレージ設定</div>
       <p className="storage-panel-hint">
-        報告のデータベースと動画の保存先を選べます。チーム自前のTurso・R2を使えば無料です。
-        Glankが用意する共有ストレージ（managed）を使うと、プロジェクトごとのTurso・R2設定が
-        不要になります（プロジェクト単位500MB・全体8GBの上限あり）。
-        {!status.isManagedAllowed && 'ただし現在このプロジェクトでは利用できません。'}
+        報告のデータベースと動画の保存先を選べます。
         {' '}
         <Link to="/help#storage-setup" target="_blank" className="help-link">
           Turso・R2の設定方法はこちら
@@ -174,22 +171,14 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
             disabled={modeSaving}
             onChange={() => handleModeChange('self_hosted')}
           />
-          self_hosted（自前・無料）
+          self_hosted（自前）
         </label>
         <label
-          className={`storage-mode-option ${!isSelfHosted ? 'active' : ''} ${
-            !status.isManagedAllowed ? 'disabled' : ''
-          }`}
-          title={!status.isManagedAllowed ? 'このプロジェクトではまだ利用できません' : undefined}
+          className="storage-mode-option disabled"
+          title="今後提供予定の機能です"
         >
-          <input
-            type="radio"
-            name="storageMode"
-            checked={!isSelfHosted}
-            disabled={modeSaving || !status.isManagedAllowed}
-            onChange={() => handleModeChange('managed')}
-          />
-          managed（Glank共有）
+          <input type="radio" name="storageMode" checked={false} disabled />
+          managed（Glank共有・近日提供予定）
         </label>
       </div>
       {modeError && <div className="project-form-error">{modeError}</div>}

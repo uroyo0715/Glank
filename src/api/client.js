@@ -155,6 +155,26 @@ export async function updateProjectStorage(projectId, { storageMode, turso, r2 }
   return res.json()
 }
 
+/** SDK（GlankSettings）に設定するプロジェクト固有のAPIキー。 @returns {Promise<{apiKey: string}>} */
+export async function fetchProjectApiKey(projectId) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/api-key`, { credentials: 'include' })
+  if (!res.ok) throw new Error(`fetchProjectApiKey failed: ${res.status}`)
+  return res.json()
+}
+
+/** 既存のAPIキーを無効化し、新しいものを発行し直す。 @returns {Promise<{apiKey: string}>} */
+export async function regenerateProjectApiKey(projectId) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/api-key/regenerate`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `regenerateProjectApiKey failed: ${res.status}`)
+  }
+  return res.json()
+}
+
 /**
  * ログイン中の自分が名前を付けて保存したTurso/R2接続情報の一覧。プロジェクトには紐付かないため、
  * どのプロジェクトからでも同じ一覧が見える。他メンバーが保存したものは含まれない。

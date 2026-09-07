@@ -1,7 +1,8 @@
-import { db } from './db.js'
+import { db, generateApiKey } from './db.js'
+import { encryptJson, decryptJson } from './crypto.js'
 
 // 種類（tag）に既定のプリセットは無く、全プロジェクト共通のラベル変換テーブルも持たない
-// （プロジェクトごとに「選択肢の管理」で追加した項目や自由記述をそのままラベルとして使う）。
+// （プロジェクトごとに「入力項目の管理」で追加した項目や自由記述をそのままラベルとして使う）。
 export const TAG_LABELS = {}
 
 export const PRIORITY_LABELS = {
@@ -132,7 +133,7 @@ export async function listBugs(
 }
 
 /** カンバン/テーブルの絞り込みUI用に、プロジェクト内で実際に使われているビルド・報告者・対応者・タグの一覧を返す。
- * tagsは「選択肢の管理」で隠していないプリセットに加え、実際の報告で使われた自由記述のタグも
+ * tagsは「入力項目の管理」で隠していないプリセットに加え、実際の報告で使われた自由記述のタグも
  * ここに出てくるため、絞り込みチップに新しく付けたタグがすぐ反映される。 */
 export async function listReportFacets(client, projectId) {
   const [buildsResult, whosResult, assigneesResult, tagsResult] = await Promise.all([
@@ -539,7 +540,29 @@ export async function getProjectRaw(id) {
     storageConfiguredByEmail: row.storageConfiguredByEmail,
     storageConfiguredByName: row.storageConfiguredByName,
     storageConfiguredFromSavedConfig: Boolean(row.storageConfiguredFromSavedConfig),
+    apiKeyEnc: row.apiKeyEnc,
   }
+}
+
+/**
+ * SDK認証用のプロジェクト固有APIキー（平文）を返す。存在しない場合はnull
+ * （通常は起動時のマイグレーションで全プロジェクトに発行済みのはずだが、
+ * GLANK_ENCRYPTION_KEY未設定でバックフィルが未完了の場合に起こりうる）。
+ */
+export async function getProjectApiKey(id) {
+  const { rows } = await db.execute({ sql: 'SELECT apiKeyEnc FROM projects WHERE id = ?', args: [id] })
+  const enc = rows[0]?.apiKeyEnc
+  return enc ? decryptJson(enc) : null
+}
+
+/** 漏洩・流出時などに、既存のAPIキーを無効化して新しいものに差し替える。 */
+export async function regenerateProjectApiKey(id) {
+  const apiKey = generateApiKey()
+  await db.execute({
+    sql: 'UPDATE projects SET apiKeyEnc = ? WHERE id = ?',
+    args: [encryptJson(apiKey), id],
+  })
+  return apiKey
 }
 
 /**
@@ -774,8 +797,8 @@ export async function removeProjectMember(projectId, email) {
 // Glank共有のmanagedストレージ（プロジェクトごとのTurso/R2設定が不要）を選べるようにする。
 export async function createProject({ name, imageUrl, gameEngine, creatorEmail }) {
   const result = await db.execute({
-    sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed) VALUES (?, ?, ?, 1)',
-    args: [name, imageUrl ?? null, gameEngine ?? ''],
+    sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc) VALUES (?, ?, ?, 1, ?)',
+    args: [name, imageUrl ?? null, gameEngine ?? '', encryptJson(generateApiKey())],
   })
   const projectId = result.lastInsertRowid
   await addProjectMembers(projectId, [creatorEmail])
