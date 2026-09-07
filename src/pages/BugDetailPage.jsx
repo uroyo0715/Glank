@@ -36,6 +36,7 @@ export default function BugDetailPage({
   onUpdateReport,
   onAttachVideo,
   buildOptions,
+  existingTags,
   hiddenFieldOptions,
   customFieldOptions,
   onFetchMembers,
@@ -292,6 +293,7 @@ export default function BugDetailPage({
           <EditReportForm
             bug={bug}
             buildOptions={buildOptions}
+            existingTags={existingTags}
             hiddenFieldOptions={hiddenFieldOptions}
             customFieldOptions={customFieldOptions}
             onFetchMembers={onFetchMembers}

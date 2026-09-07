@@ -51,7 +51,8 @@ namespace Glank.Editor
 
         /// <summary>
         /// BugReportTrigger・InputLogRecorder(またはNewInputSystem版)・CrashDetector・
-        /// FreezeWatchdogが配線済みの"GlankManager" GameObjectを生成する。
+        /// FreezeWatchdog・GlankOfflineQueue・GlankReporterNamePromptが配線済みの
+        /// "GlankManager" GameObjectを生成する。
         /// <paramref name="settings"/>にnullを渡すと配線先のGlankSettingsは未設定のまま作る
         /// （配布用プレハブ生成時など、あとから利用者側でアサインしてもらう場合に使う）。
         /// </summary>
@@ -95,6 +96,10 @@ namespace Glank.Editor
             var offlineQueue = Undo.AddComponent<GlankOfflineQueue>(go);
             SetField(offlineQueue, "config", settings);
             SetField(trigger, "offlineQueue", offlineQueue);
+
+            // 他コンポーネントとのフィールド参照が無いため配線は不要。付けるだけで、
+            // 報告者名が未設定の間はゲーム起動時に自動で入力欄を出すようになる。
+            Undo.AddComponent<GlankReporterNamePrompt>(go);
 
             return go;
         }

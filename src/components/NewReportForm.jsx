@@ -17,6 +17,7 @@ export default function NewReportForm({
   projectId,
   defaultWho,
   buildOptions,
+  existingTags,
   hiddenFieldOptions,
   customFieldOptions,
   onFetchMembers,
@@ -28,10 +29,16 @@ export default function NewReportForm({
   const [error, setError] = useState(null)
   const [whoOptions, setWhoOptions] = useState([])
 
+  // 「入力項目の管理」で明示的に登録したプリセットに加えて、このプロジェクトで実際に
+  // これまで使われたことのあるタグ（reportFacets.tags）もリストから選べるようにする
+  // （そうしないと、毎回同じタグを自由入力欄に手打ちし直すことになって不便なため）。
   const tagOptions = [
-    ...TAG_OPTIONS.map((t) => ({ value: t.key, label: t.label })),
-    ...(customFieldOptions?.tag ?? []).map((v) => ({ value: v, label: v })),
-  ]
+    ...new Set([
+      ...TAG_OPTIONS.map((t) => t.key),
+      ...(customFieldOptions?.tag ?? []),
+      ...(existingTags ?? []),
+    ]),
+  ].map((v) => ({ value: v, label: TAG_OPTIONS.find((t) => t.key === v)?.label ?? v }))
   const platformOptions = [...PLATFORM_OPTIONS, ...(customFieldOptions?.platform ?? [])]
 
   useEffect(() => {

@@ -62,7 +62,7 @@ namespace Glank
                 desc: $"{condition}\n{stackTrace}",
                 who: SystemInfo.deviceName,
                 build: Application.version,
-                platform: Application.platform.ToString(),
+                platform: GlankPlayerPlatform.GetPlatform(),
                 priority: "high");
         }
     }

@@ -1716,29 +1716,16 @@ body {
 .tag-multi-chip button:hover {
   color: var(--accent-red);
 }
-.tag-multi-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.tag-multi-option {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
+.tag-multi-select {
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.tag-multi-option:hover {
-  border-color: var(--text-dim);
-}
-.tag-multi-option.active {
-  background: var(--surface-3);
-  border-color: var(--accent-cyan);
+  font-size: 12.5px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
   color: var(--text);
+  cursor: pointer;
+  align-self: flex-start;
 }
 .tag-multi-add {
   display: flex;
@@ -1774,6 +1761,13 @@ body {
 .tag-multi-add button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+.tag-multi-add button.tag-multi-cancel {
+  background: none;
+  border-color: transparent;
+}
+.tag-multi-add button.tag-multi-cancel:hover {
+  border-color: var(--border);
 }
 
 /* ---- New report form ---- */

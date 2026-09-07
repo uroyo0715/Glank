@@ -47,6 +47,15 @@ function WiringDiagram() {
           <div className="wiring-component-title">GlankOfflineQueue<span className="wiring-optional">（任意）</span></div>
         </div>
 
+        <div className="wiring-component wiring-component-optional">
+          <div className="wiring-component-title">
+            GlankReporterNamePrompt<span className="wiring-optional">（他コンポーネントとの配線不要）</span>
+          </div>
+          <div className="wiring-field-row">
+            報告者名が未設定なら起動時に自動で入力欄を表示する（既定F9キーで開き直せる）
+          </div>
+        </div>
+
         <div className="wiring-component wiring-component-conditional">
           <div className="wiring-component-title">
             GlankNewInputSystemBridge<span className="wiring-optional">（新Input System単体のプロジェクトのみ）</span>

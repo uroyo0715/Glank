@@ -65,6 +65,11 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
   「入力ログからの再現（GlankReplayer）」を参照。
 - `CrashDetector.cs` / `FreezeWatchdog.cs` — クラッシュ・フリーズを自動検知して報告を送信する
   （既定OFF）。詳細は下記「自動検知（クラッシュ/フリーズ）」を参照。
+- `GlankReporterIdentity.cs` / `GlankReporterNamePrompt.cs` — 報告の`who`欄に使う報告者名の
+  保存・取得と、それを設定するコード不要の入力欄。詳細は下記「報告者名
+  （GlankReporterIdentity / GlankReporterNamePrompt）」を参照。
+- `GlankInputCompat.cs` — レガシー`Input`クラスと新Input Systemのどちらでもホットキー判定が
+  動くようにする内部ヘルパー（`BugReportTrigger`・`GlankReporterNamePrompt`が使用）。
 - `GlankNewInputSystemBridge.cs` / `GlankInstantReplayBridge.cs` — Setup Wizard・配布用プレハブが
   内部で使う橋渡し役。`BugReportTrigger`のデリゲート型フィールド（`CaptureInputLog`/
   `GetLatestClipPathAsync`）はInspectorから直接ドラッグ&ドロップできないため、これらが
@@ -286,12 +291,38 @@ Canvas
 このフォームが開くようになる。ゲームを一時停止したい場合は、`Show()`が呼ばれるタイミングを
 フックして`Time.timeScale = 0`にする等、呼び出し側で行う（SDK側では強制しない）。
 
-## 報告者名（GlankReporterIdentity）
+## 報告者名（GlankReporterIdentity / GlankReporterNamePrompt）
 
 既定では報告の`who`欄に`SystemInfo.deviceName`（端末名）が入るだけで、実際に誰が
-報告したのかは分からない。`GlankReporterIdentity`を使うと、ゲーム内の好きな場所
-（設定画面、初回起動時のプロンプト等）から報告者名を設定でき、以降のすべての報告に
-自動で使われる（`PlayerPrefs`に保存されるため、ゲームを再起動しても保持される）。
+報告したのかは分からない。`GlankReporterIdentity`が報告者名の保存・取得を担当し
+（`PlayerPrefs`に保存されるため、ゲームを再起動しても保持される）、
+`GlankReporterNamePrompt`がそれを設定するためのコード不要の入力欄を提供する。
+
+**Setup Wizard・配布用プレハブを使った場合は自動で有効。** `GlankManager`に
+`GlankReporterNamePrompt`が最初から付いており、報告者名が未設定の間はゲーム起動時に
+自動で入力欄（画面中央）を表示する。一度設定すればそれ以降は出さない。既定`F9`キーで
+いつでも開き直せる（`reopenHotkey`で変更可能）。名前欄は`UnityEngine.UI.InputField`で
+実装しており（実行時にCanvas等を自動生成するため、手動でのセットアップは不要）、
+ビルドしたプレイヤーでも日本語入力（全角/半角キーでのIME切り替え）ができる。
+以前はIMGUI（`OnGUI`のGUI.TextField）で実装していたが、Unity側の既知の制限として
+IMGUIのテキスト入力はEditor上でしかIMEが機能せず、ビルド後は全角/半角キーがOSのIMEに
+渡らないため日本語入力ができないという不具合があった。加えて、日本語入力では変換確定の
+ためにEnterキーを押す操作を挟むことが多いため、「Enterキーで即送信」のショートカットは
+設けていない（設けると変換確定のつもりのEnterで入力途中のまま送信されてしまう）。
+「設定」ボタンを押して確定する。開いている間は既定で`Time.timeScale`を0にして
+ゲームを一時停止する（`pauseGameWhileOpen`で無効化可能）。
+
+新Input System単体（Active Input Handling = Input System Package (New)）のプロジェクトで、
+シーンに`InputSystemUIInputModule`付きの`EventSystem`が無い場合、この入力欄のボタン類が
+クリックに反応しないことがある。その場合はシーンに`EventSystem`を1つ用意し、
+`InputSystemUIInputModule`を付けておくこと（多くの場合、UI操作のためにどのみち必要になる設定）。
+
+名前欄の下には、現在プレイ中のプラットフォームを選ぶボタン一覧（PC/PlayStation/Switch/Switch2/
+Xbox/iOS/Android）も表示される（`GlankPlayerPlatform`が`PlayerPrefs`に保存）。一度設定すると、
+以後の報告（自動送信も含む）の`platform`欄はここで選んだ値になる。未設定の間は
+`Application.platform`から自動判定した値がフォールバックとして使われる。
+
+自前のUI（設定画面等）から設定したい場合は、`GlankReporterIdentity`を直接呼んでもよい。
 
 ```csharp
 using Glank;
@@ -410,8 +441,13 @@ crashDetector.IsFatalError = (condition, stackTrace) => condition.Contains("FATA
 
 ## 未対応・今後の検討事項
 
-- 送信中/成功/失敗の画面通知（`BugReportTrigger.OnGUI`）は開発中のPC環境でのみ確認済み。
-  モバイル・コンソール等、解像度やセーフエリアが大きく異なる環境での表示崩れは未検証
+- 送信中/成功/失敗の画面通知（`BugReportTrigger.OnGUI`）、および報告者名の入力欄
+  （`GlankReporterNamePrompt.OnGUI`）は開発中のPC環境でのみ確認済み。モバイル・コンソール等、
+  解像度やセーフエリアが大きく異なる環境での表示崩れは未検証
+- `GlankReporterNamePrompt`は既定で`pauseGameWhileOpen`が有効なため`Time.timeScale`を0にするが、
+  `Time.deltaTime`ベースでない移動・入力処理（`Time.unscaledDeltaTime`を使うものや、
+  フレーム経過を見ないその場判定の入力等）は止まらない点に注意
+  （UnityのIMGUIの制約上、下側のゲームの入力そのものを自動で塞ぐことはできない）
 - `<パッケージルート>/Runtime/Prefabs/GlankManager.prefab`はテキストファイルのSDKリポジトリ単体では
   生成できないため、`Tools > Glank > SDK開発者向け > 配布用GlankManagerプレハブを再生成`を
   実際にUnity Editorで一度実行し、生成された`.prefab`/`.asset`ファイル（と対応する`.meta`）を

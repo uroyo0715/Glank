@@ -89,7 +89,7 @@ namespace Glank
                 desc: desc,
                 who: GlankReporterIdentity.GetReporterName(),
                 build: Application.version,
-                platform: Application.platform.ToString(),
+                platform: GlankPlayerPlatform.GetPlatform(),
                 priority: priority);
 
             Hide();

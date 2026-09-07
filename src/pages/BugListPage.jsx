@@ -320,6 +320,7 @@ export default function BugListPage({
               projectId={projectId}
               defaultWho={defaultReporterName}
               buildOptions={reportFacets.builds}
+              existingTags={reportFacets.tags}
               hiddenFieldOptions={hiddenFieldOptions}
               customFieldOptions={customFieldOptions}
               onFetchMembers={onFetchMembers}

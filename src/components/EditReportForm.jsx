@@ -18,6 +18,7 @@ function fieldsFromBug(bug) {
 export default function EditReportForm({
   bug,
   buildOptions,
+  existingTags,
   hiddenFieldOptions,
   customFieldOptions,
   onFetchMembers,
@@ -29,10 +30,16 @@ export default function EditReportForm({
   const [error, setError] = useState(null)
   const [whoOptions, setWhoOptions] = useState([])
 
+  // 「入力項目の管理」で明示的に登録したプリセットに加えて、このプロジェクトで実際に
+  // これまで使われたことのあるタグ（reportFacets.tags）もリストから選べるようにする
+  // （そうしないと、毎回同じタグを自由入力欄に手打ちし直すことになって不便なため）。
   const tagOptions = [
-    ...TAG_OPTIONS.map((t) => ({ value: t.key, label: t.label })),
-    ...(customFieldOptions?.tag ?? []).map((v) => ({ value: v, label: v })),
-  ]
+    ...new Set([
+      ...TAG_OPTIONS.map((t) => t.key),
+      ...(customFieldOptions?.tag ?? []),
+      ...(existingTags ?? []),
+    ]),
+  ].map((v) => ({ value: v, label: TAG_OPTIONS.find((t) => t.key === v)?.label ?? v }))
   const platformOptions = [...PLATFORM_OPTIONS, ...(customFieldOptions?.platform ?? [])]
 
   useEffect(() => {
@@ -55,10 +62,12 @@ export default function EditReportForm({
     setFields((prev) => ({ ...prev, [key]: value }))
   }
 
+  // 編集時は「詳細」を必須にしない。クイック送信（ホットキー即送信）の報告は
+  // 詳細が空のまま作られるのが普通で、内容を追記しなくても他の項目（対応状況等）だけ
+  // 直したいことが多いため。
   const requiredFilled =
     fields.title.trim() &&
     fields.tags.length > 0 &&
-    fields.desc.trim() &&
     fields.who.trim() &&
     fields.build.trim() &&
     fields.platform.trim()

@@ -112,7 +112,7 @@ namespace Glank
                 desc: $"メインスレッドが約{freezeThresholdSeconds:F0}秒以上応答していませんでした。",
                 who: SystemInfo.deviceName,
                 build: Application.version,
-                platform: Application.platform.ToString(),
+                platform: GlankPlayerPlatform.GetPlatform(),
                 priority: "high");
         }
     }

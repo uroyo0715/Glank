@@ -225,7 +225,7 @@ export const PRIORITY_OPTIONS = [
   { key: 'low', label: '低' },
 ]
 
-export const PLATFORM_OPTIONS = ['PC', 'PlayStation', 'Switch', 'Switch2', 'Xbox']
+export const PLATFORM_OPTIONS = ['PC', 'PlayStation', 'Switch', 'Switch2', 'Xbox', 'iOS', 'Android']
 
 // プロジェクトが使用しているゲームエンジン。UnityとGodot両方のSDKを提供しているため、
 // どちらを使っているプロジェクトか見分けられるようにするための項目。空文字は未設定。

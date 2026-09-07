@@ -598,6 +598,7 @@ function AppShell({ user, setUser }) {
               onDeleteComment={deleteReportComment}
               currentUserEmail={user.email}
               buildOptions={reportFacets.builds}
+              existingTags={reportFacets.tags}
               hiddenFieldOptions={selectedProject?.hiddenFieldOptions}
               customFieldOptions={selectedProject?.customFieldOptions}
               onFetchMembers={fetchProjectMembers}

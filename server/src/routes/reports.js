@@ -207,7 +207,10 @@ router.delete(
   })
 )
 
-const EDITABLE_TEXT_FIELDS = ['title', 'desc', 'who', 'build', 'platform']
+// descはここに含めない: クイック送信（ホットキー即送信）の報告は詳細が空のまま作られるのが
+// 普通で、編集時に他の項目だけ直したい場合に「詳細を埋めないと保存できない」のは不便なため、
+// 空文字での更新を許可する。
+const EDITABLE_TEXT_FIELDS = ['title', 'who', 'build', 'platform']
 
 function isValidTags(tags) {
   return Array.isArray(tags) && tags.length > 0 && tags.every((t) => typeof t === 'string' && t.trim())
