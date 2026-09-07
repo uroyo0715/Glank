@@ -12,7 +12,19 @@ function ProjectCardId({ id }) {
   const [revealed, setRevealed] = useState(false)
 
   if (revealed) {
-    return <div className="project-card-id mono">ID: {id}</div>
+    return (
+      <button
+        type="button"
+        className="project-card-id mono project-card-id-shown"
+        onClick={(e) => {
+          e.stopPropagation()
+          setRevealed(false)
+        }}
+        title="クリックして非表示にする"
+      >
+        ID: {id}
+      </button>
+    )
   }
   return (
     <button

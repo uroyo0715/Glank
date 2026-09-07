@@ -119,40 +119,86 @@ export default function SetupGuidePage() {
 
       <div className="help-body">
         <p className="help-lead">
-          「SDK連携の使い方」で一通り接続できたあと、実際にInspectorで複数のコンポーネントを
-          配線していく段階で迷いやすいポイントをまとめたガイドです。基本の導入手順（プロジェクト作成・
-          SDKのダウンロード・GlankSettingsの作成）は先にヘルプページを参照してください。
+          通常のセットアップは<strong>Setup Wizard</strong>（Unityメニューの
+          <span className="mono"> Tools &gt; Glank &gt; Setup Wizard</span>）か、同梱の
+          <span className="mono"> GlankManager.prefab</span>
+          をドラッグ&ドロップするだけで完了し、このページの内容を読む必要はありません
+          （手順は「SDK連携の使い方」を参照）。
         </p>
         <p className="help-lead">
-          なお、ここで説明する手動配線は<strong>Setup Wizard</strong>（Unityメニューの
-          <span className="mono"> Tools &gt; Glank &gt; Setup Wizard</span>）や、同梱の
-          <span className="mono"> GlankManager.prefab</span>
-          を使えば自動で行われます。まずはそちらを試し、うまくいかない・中身をカスタマイズしたい
-          という場合にこのページで詳細を確認する、という使い方を想定しています。
+          このページは、<strong>ウィザード・プレハブを使ってもうまく動かないときの原因切り分け</strong>、
+          および<strong>ロジックのみ提供されるオプション機能（QA向け入力フォーム等）を自分で組み立てる
+          場合の手順</strong>のためのリファレンスです。
         </p>
 
         <section className="setup-section">
-          <h2>1. コンポーネントの配線全体図</h2>
+          <h2>1. うまく動かないときのチェックリスト</h2>
+          <ul className="setup-checklist">
+            <li>
+              <strong>「GlankSettings.projectIdが未設定です」というエラーが出る</strong> —
+              <span className="mono">GlankManager.prefab</span>をそのままドラッグ&ドロップしただけの状態。
+              このプレハブが参照している<span className="mono">GlankSettings</span>はAPIキー・
+              プロジェクトIDが空のプレースホルダーになっているため、意図的にこのエラーで止まる。
+              プレースホルダーを複製し、値を入力したうえで、シーン上の<strong>インスタンス側</strong>の
+              各コンポーネントの<span className="mono">Config</span>欄を差し替える（詳しくは
+              「SDK連携の使い方」の「方法B」を参照）。
+            </li>
+            <li>
+              <strong>ホットキーを押しても何も起きない・Consoleにも何も出ない</strong> —
+              Play Modeが一時停止のままになっていないか、「ゲーム」タブをクリックしてフォーカスしてから
+              押しているかを確認する。それでも反応しない場合、ノートPCの環境では
+              <span className="mono">F12</span>が<span className="mono">Fn</span>キー同時押しでないと
+              反応しないことがあるため、一度英字キーなど別のキーで試す。
+            </li>
+            <li>
+              <strong>「you have switched active Input handling to Input System package」という例外</strong> —
+              <span className="mono">Active Input Handling</span>が新Input System単体になっているのに、
+              レガシー版のコンポーネント（<span className="mono">InputLogRecorder</span>）が
+              レガシーInputを呼んでいる状態。Setup Wizard/プレハブは自動判定するため通常は起きないが、
+              手動で組んだ・後からプロジェクトのInput設定を変更した場合に起こりうる。
+              新Input System版のコンポーネントに差し替えるか、設定を<span className="mono">Both</span>に変更する。
+            </li>
+            <li>
+              <strong>Add Componentの候補にスクリプトが出てこない・Setup Wizardのメニューが出ない</strong> —
+              プロジェクト内のどこか（SDK以外でも）にコンパイルエラーが1件でも残っていると、
+              プロジェクト全体のコンパイルが止まり、どのスクリプトも新規追加できなくなる。
+              Consoleで赤いエラーが無いかを先に確認する。
+            </li>
+            <li>
+              <strong>動画が「見つかりません」と出る</strong> — <span className="mono">ReplayFolderWatcher</span>を
+              使っている場合、<span className="mono">Win + Alt + G</span>で先に録画を保存してから、
+              その後にホットキーを押す順番を守る（先にホットキーを押しても、まだ動画ファイルが存在しない）。
+            </li>
+            <li>
+              <strong>入力ログが空、またはフレーム番号が変な値になる</strong> —
+              古いバージョンのSDKでは、実際のフレームレートが高い環境（Unity Editor等）で
+              入力ログのバッファがほぼ即座に空になる既知の不具合があった。ヘルプページから
+              最新版のSDKを再ダウンロードして入れ替える。
+            </li>
+          </ul>
+        </section>
+
+        <section className="setup-section">
+          <h2>2. コンポーネントの配線全体図（参考）</h2>
           <p>
-            複数のコンポーネントが同じGameObjectに乗り、互いのフィールドを参照し合う構成になっています。
-            「どのフィールドに何を割り当てるか」が分かりにくい場合は、まずここで全体像を確認してください
-            （Setup Wizard・プレハブを使った場合も、内部的にはこの構成が組まれます）。
+            Setup Wizard・プレハブは内部的にこの構成を自動で組み立てています。中身をカスタマイズしたい、
+            または期待通りに配線されているか見比べて確認したい場合の参考図です。
           </p>
           <WiringDiagram />
           <ImagePlaceholder caption="実際にUnity Inspectorで配線された状態（GlankManagerのHierarchy・各コンポーネントのフィールド）のスクリーンショット" />
         </section>
 
         <section className="setup-section">
-          <h2>2. どちらのInputLogRecorderを使うか</h2>
+          <h2>3. どちらのInputLogRecorderが選ばれるか</h2>
           <p>
-            プロジェクトのInput System設定によって、使うべきコンポーネントが変わります。判断に迷ったら、
-            まずこのプロジェクトの設定を確認してください。
+            Setup Wizard・プレハブは、プロジェクトのInput System設定を見て自動でどちらか一方を選ぶ
+            （手動で選ぶ必要はない）。判定の仕組みを知りたい場合の参考。
           </p>
           <InputSystemFlowchart />
         </section>
 
         <section className="setup-section">
-          <h2>3. BugReportTriggerの各フィールド</h2>
+          <h2>4. BugReportTriggerの各フィールド（リファレンス）</h2>
           <table className="help-table setup-fields-table">
             <tbody>
               {TRIGGER_FIELDS.map((f) => (
@@ -166,7 +212,7 @@ export default function SetupGuidePage() {
         </section>
 
         <section className="setup-section">
-          <h2>4. 動画の取得方法と入力ログの同期</h2>
+          <h2>5. 動画の取得方法と入力ログの同期</h2>
           <p>
             動画の取得方法によって、Web UI側でタイムライン表示が使えるかどうかが変わります。
           </p>
@@ -193,7 +239,7 @@ export default function SetupGuidePage() {
         </section>
 
         <section className="setup-section">
-          <h2>5. 報告者名を設定できるようにする（GlankReporterIdentity）</h2>
+          <h2>6. 報告者名を設定できるようにする（GlankReporterIdentity）</h2>
           <p>
             既定では報告の「報告者」欄に端末名が入るだけです。ゲーム内のどこか（設定画面や初回起動時など）
             から次のように呼び出せば、以後の報告すべてにその名前が使われます（<span className="mono">PlayerPrefs</span>に
@@ -205,11 +251,12 @@ GlankReporterIdentity.SetReporterName("田中QA");`}</pre>
         </section>
 
         <section className="setup-section">
-          <h2>6. GlankReportPromptUI（入力フォーム）の作り方</h2>
+          <h2>7. GlankReportPromptUI（入力フォーム）の作り方</h2>
           <p>
             ホットキーを押した瞬間に仮タイトルで即送信する代わりに、タイトルや種類・報告者名を
             QA担当者に入力させてから送信したい場合に使います。<strong>ロジックのみを提供するスクリプト</strong>
-            なので、見た目（Canvas上のUI部品）は自分でUnity Editor上に組む必要があります。
+            なので、見た目（Canvas上のUI部品）は自分でUnity Editor上に組む必要があります
+            （この機能だけはSetup Wizard・プレハブでも自動化できません）。
           </p>
           <ol className="help-steps setup-steps">
             <li>
@@ -274,51 +321,6 @@ GlankReporterIdentity.SetReporterName("田中QA");`}</pre>
               </p>
             </li>
           </ol>
-        </section>
-
-        <section className="setup-section">
-          <h2>7. うまく動かないときのチェックリスト</h2>
-          <ul className="setup-checklist">
-            <li>
-              <strong>「GlankSettings.projectIdが未設定です」というエラーが出る</strong> —
-              <span className="mono">GlankManager.prefab</span>をそのままドラッグ&ドロップしただけの状態。
-              このプレハブが参照している<span className="mono">GlankSettings</span>はAPIキー・
-              プロジェクトIDが空のプレースホルダーになっているため、意図的にこのエラーで止まる。
-              プレースホルダーを複製し、値を入力したうえで、シーン上の<strong>インスタンス側</strong>の
-              各コンポーネントの<span className="mono">Config</span>欄を差し替える（詳しくは
-              「SDK連携の使い方」の「方法B」を参照）。
-            </li>
-            <li>
-              <strong>ホットキーを押しても何も起きない・Consoleにも何も出ない</strong> —
-              Play Modeが一時停止のままになっていないか、「ゲーム」タブをクリックしてフォーカスしてから
-              押しているかを確認する。それでも反応しない場合、ノートPCの環境では
-              <span className="mono">F12</span>が<span className="mono">Fn</span>キー同時押しでないと
-              反応しないことがあるため、一度英字キーなど別のキーで試す。
-            </li>
-            <li>
-              <strong>「you have switched active Input handling to Input System package」という例外</strong> —
-              <span className="mono">Active Input Handling</span>が新Input System単体になっているのに、
-              レガシー版のコンポーネント（<span className="mono">InputLogRecorder</span>や、修正前の
-              <span className="mono">BugReportTrigger</span>）がレガシーInputを呼んでいる状態。
-              新Input System版のコンポーネントに差し替えるか、設定を<span className="mono">Both</span>に変更する。
-            </li>
-            <li>
-              <strong>Add Componentの候補にスクリプトが出てこない</strong> — プロジェクト内のどこか
-              （SDK以外でも）にコンパイルエラーが1件でも残っていると、プロジェクト全体のコンパイルが止まり、
-              どのスクリプトも新規追加できなくなる。Consoleで赤いエラーが無いかを先に確認する。
-            </li>
-            <li>
-              <strong>動画が「見つかりません」と出る</strong> — <span className="mono">ReplayFolderWatcher</span>を
-              使っている場合、<span className="mono">Win + Alt + G</span>で先に録画を保存してから、
-              その後にホットキーを押す順番を守る（先にホットキーを押しても、まだ動画ファイルが存在しない）。
-            </li>
-            <li>
-              <strong>入力ログが空、またはフレーム番号が変な値になる</strong> —
-              古いバージョンのSDKでは、実際のフレームレートが高い環境（Unity Editor等）で
-              入力ログのバッファがほぼ即座に空になる既知の不具合があった。ヘルプページから
-              最新版のSDKを再ダウンロードして入れ替える。
-            </li>
-          </ul>
         </section>
       </div>
     </main>

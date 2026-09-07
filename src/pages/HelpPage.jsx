@@ -388,9 +388,9 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
 
         {engine === 'unity' && (
           <p className="help-setup-guide-callout">
-            Unity側のInspectorでのコンポーネントの配線が複雑に感じる場合は、
+            Setup Wizard・プレハブを使ってもうまく動かない場合は、
             <Link to="/setup-guide">詳細セットアップガイド</Link>
-            も参照してください（コンポーネント同士の配線図・トラブルシューティング付き）。
+            のトラブルシューティングを参照してください（配線図・原因の切り分け付き）。
           </p>
         )}
 
