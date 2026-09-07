@@ -635,6 +635,8 @@ function AppShell({ user, setUser }) {
           customFieldOptions={selectedProject?.customFieldOptions}
           onAddCustomOption={(field, value) => handleAddCustomOption(selectedProjectId, field, value)}
           onRemoveCustomOption={(field, value) => handleRemoveCustomOption(selectedProjectId, field, value)}
+          onFetchApiKey={fetchProjectApiKey}
+          onRegenerateApiKey={regenerateProjectApiKey}
           query={query}
           setQuery={setQuery}
           statusFilter={statusFilter}

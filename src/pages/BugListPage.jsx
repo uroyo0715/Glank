@@ -7,6 +7,7 @@ import StorageSettingsPanel from '../components/StorageSettingsPanel.jsx'
 import FieldOptionsPanel from '../components/FieldOptionsPanel.jsx'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
 import { formatCreatedAt } from '../utils/formatDate.js'
+import { backendUrl } from '../api/index.js'
 
 function statusLabel(key) {
   return STATUS_COLUMNS.find((s) => s.key === key)?.label ?? key
@@ -16,9 +17,12 @@ function priorityLabel(key) {
   return PRIORITY_OPTIONS.find((p) => p.key === key)?.label ?? key
 }
 
-// 「メンバー」「ストレージ設定」「入力項目の管理」をまとめる管理メニュー。ヘッダーに
-// 個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つのドロップダウンに
-// 集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
+// 「メンバー」「ストレージ設定」「入力項目の管理」「SDK接続情報」をまとめる管理メニュー。
+// ヘッダーに個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つの
+// ドロップダウンに集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
+// SDK接続情報（バックエンドURL・Project ID・API Key）はSetup Wizard/プレハブに入力する3項目で、
+// プロジェクトを開いてSDKをセットアップする流れの中で見たいものなので、プロジェクト一覧の
+// カードではなくこちらに置く。
 function ManageMenu({
   showMembers,
   setShowMembers,
@@ -27,8 +31,17 @@ function ManageMenu({
   showFieldOptions,
   setShowFieldOptions,
   storageBlocked,
+  projectId,
+  onFetchApiKey,
+  onRegenerateApiKey,
 }) {
   const [open, setOpen] = useState(false)
+  const [infoRevealed, setInfoRevealed] = useState(false)
+  const [apiKeyState, setApiKeyState] = useState('idle') // 'idle' | 'loading' | 'shown' | 'error'
+  const [apiKey, setApiKey] = useState(null)
+  const [apiKeyError, setApiKeyError] = useState(null)
+  const [regenerating, setRegenerating] = useState(false)
+  const [copiedField, setCopiedField] = useState(null)
   const rootRef = useRef(null)
 
   useEffect(() => {
@@ -43,6 +56,49 @@ function ManageMenu({
   function select(toggleFn) {
     setOpen(false)
     toggleFn((v) => !v)
+  }
+
+  function revealInfo() {
+    setInfoRevealed(true)
+    if (apiKeyState !== 'idle') return
+    setApiKeyState('loading')
+    onFetchApiKey(projectId)
+      .then((result) => {
+        setApiKey(result.apiKey)
+        setApiKeyState('shown')
+      })
+      .catch((err) => {
+        setApiKeyError(err.message ?? String(err))
+        setApiKeyState('error')
+      })
+  }
+
+  function copyValue(field, value) {
+    return () => {
+      navigator.clipboard
+        ?.writeText(value)
+        .then(() => {
+          setCopiedField(field)
+          setTimeout(() => setCopiedField((f) => (f === field ? null : f)), 1500)
+        })
+        .catch(() => {})
+    }
+  }
+
+  function regenerate() {
+    if (
+      !window.confirm(
+        'APIキーを再発行します。古いキーを使っているSDKはこれ以降送信できなくなります。よろしいですか？'
+      )
+    ) {
+      return
+    }
+    setRegenerating(true)
+    setApiKeyError(null)
+    onRegenerateApiKey(projectId)
+      .then((result) => setApiKey(result.apiKey))
+      .catch((err) => setApiKeyError(err.message ?? String(err)))
+      .finally(() => setRegenerating(false))
   }
 
   const anyPanelOpen = showMembers || showStorage || showFieldOptions
@@ -83,6 +139,55 @@ function ManageMenu({
           >
             入力項目の管理
           </button>
+          {!infoRevealed ? (
+            <button type="button" className="manage-menu-item" onClick={revealInfo}>
+              SDK接続情報を表示
+            </button>
+          ) : (
+            <div className="manage-menu-connection-info">
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">バックエンドURL</div>
+                <div className="manage-menu-connection-value mono">{backendUrl()}</div>
+                <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
+                  {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                </button>
+              </div>
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">Project ID</div>
+                <div className="manage-menu-connection-value mono">{projectId}</div>
+                <button
+                  type="button"
+                  className="help-link"
+                  onClick={copyValue('projectId', String(projectId))}
+                >
+                  {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
+                </button>
+              </div>
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">API Key</div>
+                {apiKeyState === 'loading' && <div className="manage-menu-connection-value">読み込み中...</div>}
+                {apiKeyState === 'error' && <div className="project-form-error">{apiKeyError}</div>}
+                {apiKeyState === 'shown' && (
+                  <>
+                    <div className="manage-menu-connection-value mono">{apiKey}</div>
+                    <button type="button" className="help-link" onClick={copyValue('apiKey', apiKey)}>
+                      {copiedField === 'apiKey' ? 'コピーしました' : 'コピー'}
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="manage-menu-apikey-actions">
+                <button
+                  type="button"
+                  className="help-link"
+                  onClick={regenerate}
+                  disabled={regenerating || apiKeyState !== 'shown'}
+                >
+                  {regenerating ? 'APIキーを再発行中...' : 'APIキーを再発行'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -109,6 +214,8 @@ export default function BugListPage({
   customFieldOptions,
   onAddCustomOption,
   onRemoveCustomOption,
+  onFetchApiKey,
+  onRegenerateApiKey,
   query,
   setQuery,
   statusFilter,
@@ -162,6 +269,9 @@ export default function BugListPage({
               showFieldOptions={showFieldOptions}
               setShowFieldOptions={setShowFieldOptions}
               storageBlocked={storageBlocked}
+              projectId={projectId}
+              onFetchApiKey={onFetchApiKey}
+              onRegenerateApiKey={onRegenerateApiKey}
             />
             <SegmentedToggle
               value={view}

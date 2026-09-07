@@ -567,23 +567,6 @@ body {
   border: 1px solid var(--border);
   color: var(--text-dim);
 }
-.project-card-manage-menu {
-  align-self: flex-start;
-  margin: 0 14px 12px;
-}
-.project-card-id-reveal {
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 11px;
-  color: var(--text-faint);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.project-card-id-reveal:hover {
-  color: var(--text-dim);
-}
 .manage-menu-connection-info {
   padding: 8px 10px;
   min-width: 260px;
