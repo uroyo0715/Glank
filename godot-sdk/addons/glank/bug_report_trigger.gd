@@ -45,9 +45,12 @@ func _input(event: InputEvent) -> void:
 		prompt_ui.show_form()
 		return
 
+	# ホットキー即送信は「クラッシュを検知した」わけではなく、プレイヤーが気づいた何らかの
+	# 違和感（スタック・見た目のミス等）を仮タイトルのまま送るだけの経路。"crash"固定だと
+	# Web UI側の検索でクラッシュ以外の報告まで埋もれてしまうため、専用タグにする。
 	submit_report(
 		"(quick report)",
-		["crash"],
+		["quick"],
 		"",
 		_default_who(),
 		ProjectSettings.get_setting("application/config/version", "0.0.0"),

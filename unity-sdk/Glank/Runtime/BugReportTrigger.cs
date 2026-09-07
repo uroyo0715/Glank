@@ -75,9 +75,14 @@ namespace Glank
                 return;
             }
 
+            // ホットキー即送信は「クラッシュを検知した」わけではなく、プレイヤーが気づいた
+            // 何らかの違和感（スタック・見た目のミス等、内容は様々）を仮タイトルのまま送るだけの
+            // 経路。以前は"crash"タグ固定だったため、テクスチャ崩れやスタックまで全部
+            // クラッシュ扱いで検索に埋もれてしまっていた。「即時報告」であること自体を示す
+            // 専用タグにして、Web UI側でquick report経由の報告だけを絞り込めるようにする。
             SubmitReport(
                 title: "(quick report)",
-                tags: new[] { "crash" },
+                tags: new[] { "quick" },
                 desc: "",
                 who: GlankReporterIdentity.GetReporterName(),
                 build: Application.version,
