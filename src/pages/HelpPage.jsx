@@ -49,14 +49,14 @@ function UnityGuide() {
         <h3 className="help-substep-title">方法A（推奨）: Setup Wizardを使う</h3>
         <p>
           Unityメニューの <span className="mono">Tools &gt; Glank &gt; Setup Wizard</span> を開き、
-          Base URL・API Key・プロジェクトID（手順1で確認した番号）を入力して
-          「セットアップ」ボタンを押すだけです。接続設定（<span className="mono">GlankSettings</span>
-          アセット）の生成と、必要なコンポーネント一式が配線された
-          <span className="mono">GlankManager</span> というGameObjectのシーンへの配置、新Input
-          System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
+          バックエンドURL・API Key・プロジェクトID（この3つは、プロジェクトカードの「管理」から
+          まとめて確認できます）を入力して「セットアップ」ボタンを押すだけです。接続設定（
+          <span className="mono">GlankSettings</span>アセット）の生成と、必要なコンポーネント一式が
+          配線された<span className="mono">GlankManager</span> というGameObjectのシーンへの配置、
+          新Input System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
           自動判定まで、まとめて行われます。
         </p>
-        <ImagePlaceholder caption="Setup Wizardのウィンドウ（Base URL / API Key / Project ID入力欄とセットアップボタン）のスクリーンショット" />
+        <ImagePlaceholder caption="Setup Wizardのウィンドウ（バックエンドURL / API Key / Project ID入力欄とセットアップボタン）のスクリーンショット" />
 
         <h3 className="help-substep-title">方法B: プレハブをドラッグ&ドロップする</h3>
         <p>

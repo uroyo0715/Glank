@@ -6,6 +6,16 @@ export function sdkDownloadUrl(engine) {
   return `${BASE_URL}/sdk/${engine}`
 }
 
+/**
+ * Unity/Godot SDKのGlankSettings.baseUrlにそのまま設定すべき値。フロントエンド自身が
+ * APIを呼ぶのに使っているのと同じ値なので、サーバーに問い合わせる必要がない
+ * （フロントエンドのドメインを変更しても、バックエンドAPIの場所自体は変わらないため無関係）。
+ * @returns {string}
+ */
+export function backendUrl() {
+  return BASE_URL
+}
+
 /** @returns {Promise<{id: number, name: string, imageUrl: string | null, bugCount: number}[]>} */
 export async function fetchProjects() {
   const res = await fetch(`${BASE_URL}/projects`, { credentials: 'include' })

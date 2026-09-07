@@ -386,7 +386,6 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
-  overflow: hidden;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -417,12 +416,14 @@ body {
 .project-card-image {
   position: relative;
   height: 130px;
+  border-radius: 9px 9px 0 0;
   background-size: cover;
   background-position: center;
   background-color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .project-card-placeholder {
   font-size: 12px;
@@ -566,45 +567,11 @@ body {
   border: 1px solid var(--border);
   color: var(--text-dim);
 }
-.project-card-id {
-  padding: 0 14px 12px;
-  font-size: 11px;
-  color: var(--text-faint);
-}
-.project-card-id-shown {
+.project-card-manage-menu {
   align-self: flex-start;
-  background: none;
-  border: none;
-  font-family: inherit;
-  cursor: pointer;
-}
-.project-card-id-shown:hover {
-  color: var(--text-dim);
-  text-decoration: underline;
-}
-.project-card-apikey {
   margin: 0 14px 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-}
-.project-card-apikey-value {
-  font-size: 11px;
-  color: var(--text);
-  word-break: break-all;
-  margin-bottom: 6px;
-}
-.project-card-apikey-actions {
-  display: flex;
-  gap: 12px;
-}
-.project-card-apikey-actions .help-link {
-  font-size: 11px;
 }
 .project-card-id-reveal {
-  align-self: flex-start;
-  margin: 0 14px 12px;
   padding: 0;
   background: none;
   border: none;
@@ -616,6 +583,41 @@ body {
 }
 .project-card-id-reveal:hover {
   color: var(--text-dim);
+}
+.manage-menu-connection-info {
+  padding: 8px 10px;
+  min-width: 260px;
+}
+.manage-menu-connection-row {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.manage-menu-connection-row:last-of-type {
+  border-bottom: none;
+}
+.manage-menu-connection-label {
+  font-size: 10.5px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 3px;
+}
+.manage-menu-connection-value {
+  font-size: 11px;
+  color: var(--text);
+  word-break: break-all;
+  margin-bottom: 4px;
+}
+.manage-menu-connection-row .help-link {
+  font-size: 11px;
+}
+.manage-menu-apikey-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+.manage-menu-apikey-actions .help-link {
+  font-size: 11px;
 }
 .help-link {
   background: none;

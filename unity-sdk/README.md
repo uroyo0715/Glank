@@ -78,7 +78,7 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 
 Unityメニューの `Tools > Glank > Setup Wizard` を開くと、以下をまとめて自動で行うウィンドウが表示される。
 
-1. Base URL・API Key・Project IDを1つのフォームに入力する。
+1. バックエンドURL・API Key・Project IDを1つのフォームに入力する。
 2. 「セットアップ」ボタンを押すと:
    - プロジェクト内に`GlankSettings`アセットが無ければ`Assets/Glank/GlankSettings.asset`に
      新規作成し、既にあれば入力値で更新する。

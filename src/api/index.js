@@ -44,4 +44,5 @@ export const {
   updateUserAvatar,
   removeUserAvatar,
   sdkDownloadUrl,
+  backendUrl,
 } = impl

@@ -1,72 +1,63 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { GAME_ENGINE_OPTIONS } from '../data/mockBugs.js'
+import { backendUrl } from '../api/index.js'
 
 function gameEngineLabel(key) {
   return GAME_ENGINE_OPTIONS.find((o) => o.key === key)?.label ?? key
 }
 
-// プロジェクトIDはUnity/Godot SDK側の接続設定にそのまま入力する値のため削除も番号の
-// 再利用もしない（詳細はサーバー側のコメント参照）。連番でないのが不格好という理由で
-// 常時表示する必要はないため、既定では隠しておき、必要なときだけクリックで表示する。
-function ProjectCardId({ id }) {
-  const [revealed, setRevealed] = useState(false)
-
-  if (revealed) {
-    return (
-      <button
-        type="button"
-        className="project-card-id mono project-card-id-shown"
-        onClick={(e) => {
-          e.stopPropagation()
-          setRevealed(false)
-        }}
-        title="クリックして非表示にする"
-      >
-        ID: {id}
-      </button>
-    )
-  }
-  return (
-    <button
-      type="button"
-      className="project-card-id-reveal"
-      onClick={(e) => {
-        e.stopPropagation()
-        setRevealed(true)
-      }}
-    >
-      IDを表示
-    </button>
-  )
-}
-
-// APIキーはprojectIdと違って秘密情報（SDKのGlankSettingsに設定する値）。IDと同じ感覚で
-// 気軽に貼り付けたりスクリーンショットに写り込んだりしないよう、既定では隠しておく。
-function ProjectApiKeyReveal({ projectId, onFetch, onRegenerate }) {
-  const [state, setState] = useState('hidden') // 'hidden' | 'loading' | 'shown' | 'error'
+// Setup Wizard・プレハブに入力する3項目（バックエンドURL・API Key・Project ID）は、
+// プロジェクトを作った時点ですべて決まっている。個別に「IDを表示」「APIキーを表示」と
+// 分けるより、SDKセットアップ時にまとめて見られた方が実用的なので、1つの「管理」
+// ドロップダウンから3つまとめて表示・コピーできるようにする。
+// バックエンドURL・Project IDはこの時点で既に分かっている値なので、表示に通信は不要。
+// APIキーだけは秘密情報でサーバーから毎回取得する（クリックするまで問い合わせない）。
+function ProjectManageMenu({ projectId, onFetchApiKey, onRegenerateApiKey }) {
+  const [open, setOpen] = useState(false)
+  const [infoRevealed, setInfoRevealed] = useState(false)
+  const [apiKeyState, setApiKeyState] = useState('idle') // 'idle' | 'loading' | 'shown' | 'error'
   const [apiKey, setApiKey] = useState(null)
-  const [error, setError] = useState(null)
+  const [apiKeyError, setApiKeyError] = useState(null)
   const [regenerating, setRegenerating] = useState(false)
+  const [copiedField, setCopiedField] = useState(null)
+  const rootRef = useRef(null)
 
-  function reveal(e) {
+  useEffect(() => {
+    if (!open) return
+    function handlePointerDown(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [open])
+
+  function revealInfo(e) {
     e.stopPropagation()
-    setState('loading')
-    setError(null)
-    onFetch(projectId)
+    setInfoRevealed(true)
+    if (apiKeyState !== 'idle') return
+    setApiKeyState('loading')
+    onFetchApiKey(projectId)
       .then((result) => {
         setApiKey(result.apiKey)
-        setState('shown')
+        setApiKeyState('shown')
       })
       .catch((err) => {
-        setError(err.message ?? String(err))
-        setState('error')
+        setApiKeyError(err.message ?? String(err))
+        setApiKeyState('error')
       })
   }
 
-  function hide(e) {
-    e.stopPropagation()
-    setState('hidden')
-    setApiKey(null)
+  function copyValue(field, value) {
+    return (e) => {
+      e.stopPropagation()
+      navigator.clipboard
+        ?.writeText(value)
+        .then(() => {
+          setCopiedField(field)
+          setTimeout(() => setCopiedField((f) => (f === field ? null : f)), 1500)
+        })
+        .catch(() => {})
+    }
   }
 
   function regenerate(e) {
@@ -79,37 +70,76 @@ function ProjectApiKeyReveal({ projectId, onFetch, onRegenerate }) {
       return
     }
     setRegenerating(true)
-    setError(null)
-    onRegenerate(projectId)
+    setApiKeyError(null)
+    onRegenerateApiKey(projectId)
       .then((result) => setApiKey(result.apiKey))
-      .catch((err) => setError(err.message ?? String(err)))
+      .catch((err) => setApiKeyError(err.message ?? String(err)))
       .finally(() => setRegenerating(false))
   }
 
-  if (state === 'hidden') {
-    return (
-      <button type="button" className="project-card-id-reveal" onClick={reveal}>
-        APIキーを表示
-      </button>
-    )
-  }
-
-  if (state === 'loading') {
-    return <div className="project-card-id">読み込み中...</div>
-  }
-
   return (
-    <div className="project-card-apikey" onClick={(e) => e.stopPropagation()}>
-      {apiKey && <div className="project-card-apikey-value mono">{apiKey}</div>}
-      {error && <div className="project-form-error">{error}</div>}
-      <div className="project-card-apikey-actions">
-        <button type="button" className="help-link" onClick={regenerate} disabled={regenerating}>
-          {regenerating ? '再発行中...' : '再発行'}
-        </button>
-        <button type="button" className="help-link" onClick={hide}>
-          隠す
-        </button>
-      </div>
+    <div className="manage-menu project-card-manage-menu" ref={rootRef} onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        className="project-card-id-reveal"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        管理 <span className="manage-menu-caret">▾</span>
+      </button>
+      {open && (
+        <div className="manage-menu-dropdown">
+          {!infoRevealed ? (
+            <button type="button" className="manage-menu-item" onClick={revealInfo}>
+              SDK接続情報を表示
+            </button>
+          ) : (
+            <div className="manage-menu-connection-info">
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">バックエンドURL</div>
+                <div className="manage-menu-connection-value mono">{backendUrl()}</div>
+                <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
+                  {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                </button>
+              </div>
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">Project ID</div>
+                <div className="manage-menu-connection-value mono">{projectId}</div>
+                <button
+                  type="button"
+                  className="help-link"
+                  onClick={copyValue('projectId', String(projectId))}
+                >
+                  {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
+                </button>
+              </div>
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">API Key</div>
+                {apiKeyState === 'loading' && <div className="manage-menu-connection-value">読み込み中...</div>}
+                {apiKeyState === 'error' && <div className="project-form-error">{apiKeyError}</div>}
+                {apiKeyState === 'shown' && (
+                  <>
+                    <div className="manage-menu-connection-value mono">{apiKey}</div>
+                    <button type="button" className="help-link" onClick={copyValue('apiKey', apiKey)}>
+                      {copiedField === 'apiKey' ? 'コピーしました' : 'コピー'}
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="manage-menu-apikey-actions">
+                <button
+                  type="button"
+                  className="help-link"
+                  onClick={regenerate}
+                  disabled={regenerating || apiKeyState !== 'shown'}
+                >
+                  {regenerating ? 'APIキーを再発行中...' : 'APIキーを再発行'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -413,8 +443,11 @@ export default function ProjectsPage({
               </div>
               <div className="project-card-name">{p.name}</div>
               {p.gameEngine && <div className="project-card-engine">{gameEngineLabel(p.gameEngine)}</div>}
-              <ProjectCardId id={p.id} />
-              <ProjectApiKeyReveal projectId={p.id} onFetch={onFetchApiKey} onRegenerate={onRegenerateApiKey} />
+              <ProjectManageMenu
+                projectId={p.id}
+                onFetchApiKey={onFetchApiKey}
+                onRegenerateApiKey={onRegenerateApiKey}
+              />
               {!selecting && (
                 <button
                   type="button"

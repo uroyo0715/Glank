@@ -43,7 +43,7 @@ namespace Glank.Editor
 
             EditorGUILayout.Space(12);
             _baseUrl = EditorGUILayout.TextField(
-                new GUIContent("Base URL", "Glank APIサーバーのURL（末尾に/reportsは付けない）"), _baseUrl);
+                new GUIContent("バックエンドURL", "Glank APIサーバーのURL（末尾に/reportsは付けない）"), _baseUrl);
             _apiKey = EditorGUILayout.TextField(
                 new GUIContent("API Key", "POST /reportsに付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、" +
                     "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる"),

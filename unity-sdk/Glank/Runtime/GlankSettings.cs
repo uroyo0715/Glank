@@ -3,14 +3,20 @@ using UnityEngine;
 namespace Glank
 {
     /// <summary>
-    /// Glank APIサーバーへの接続設定。docs/api-spec.md の Base URL / X-Glank-Key に対応する。
+    /// Glank APIサーバーへの接続設定。docs/api-spec.md の バックエンドURL / X-Glank-Key に対応する。
     /// BugReportTrigger・CrashDetector・FreezeWatchdog・GlankOfflineQueue はすべてこの1つの
     /// アセットを共有する（Setup Wizardを使えば自動生成・自動配線される）。
     /// </summary>
     [CreateAssetMenu(fileName = "GlankSettings", menuName = "Glank/Settings")]
     public class GlankSettings : ScriptableObject
     {
-        [Tooltip("例: http://localhost:8787/api/v1 （末尾に /reports は付けない）")]
+        // フィールド名自体（baseUrl）は既存の保存済みアセットとの互換性のため変更していない
+        // （変えるとInspectorの表示名だけでなく、シリアライズされた値の対応付けも壊れる）。
+        // Inspector上の見た目のラベルだけ[InspectorName]で分かりやすい名前に変えている。
+        [InspectorName("バックエンドURL")]
+        [Tooltip("Glank APIサーバー（バックエンド）のURL。例: http://localhost:8787/api/v1 " +
+            "（末尾に /reports は付けない）。フロントエンド（Webアプリの見た目のURL）とは別物で、" +
+            "フロントエンドのドメインを変更してもこの値の変更は不要")]
         public string baseUrl = "http://localhost:8787/api/v1";
 
         [Tooltip("POST /reports に付与する X-Glank-Key ヘッダー。プロジェクトごとに発行される値で、" +

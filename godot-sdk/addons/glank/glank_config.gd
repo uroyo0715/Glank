@@ -1,4 +1,4 @@
-## Glank APIサーバーへの接続設定。docs/api-spec.md の Base URL / X-Glank-Key に対応する。
+## Glank APIサーバーへの接続設定。docs/api-spec.md の バックエンドURL / X-Glank-Key に対応する。
 ## Godotエディタで新規リソースとして作成し(FileSystemを右クリック > New Resource > GlankConfig)、
 ## .tres として保存して各ノードのInspectorに割り当てる。
 class_name GlankConfig
