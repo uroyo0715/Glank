@@ -14,10 +14,11 @@ namespace Glank
         // （変えるとInspectorの表示名だけでなく、シリアライズされた値の対応付けも壊れる）。
         // Inspector上の見た目のラベルだけ[InspectorName]で分かりやすい名前に変えている。
         [InspectorName("バックエンドURL")]
-        [Tooltip("Glank APIサーバー（バックエンド）のURL。例: http://localhost:8787/api/v1 " +
-            "（末尾に /reports は付けない）。フロントエンド（Webアプリの見た目のURL）とは別物で、" +
-            "フロントエンドのドメインを変更してもこの値の変更は不要")]
-        public string baseUrl = "http://localhost:8787/api/v1";
+        [Tooltip("Glank APIサーバー（バックエンド）のURL（末尾に /reports は付けない）。" +
+            "フロントエンド（Webアプリの見た目のURL）とは別物で、フロントエンドのドメインを" +
+            "変更してもこの値の変更は不要。既定値は本番バックエンドのURLなので、自前で別環境" +
+            "（ステージング・自前デプロイ等）を使う場合以外は変更不要")]
+        public string baseUrl = "https://glank.onrender.com/api/v1";
 
         [Tooltip("POST /reports に付与する X-Glank-Key ヘッダー。プロジェクトごとに発行される値で、" +
             "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる")]

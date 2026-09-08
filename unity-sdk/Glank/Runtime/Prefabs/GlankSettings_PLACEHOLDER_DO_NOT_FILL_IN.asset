@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb9013313d47e034cb06487cb881ea7c, type: 3}
   m_Name: GlankSettings_PLACEHOLDER_DO_NOT_FILL_IN
   m_EditorClassIdentifier: Glank.Runtime::Glank.GlankSettings
-  baseUrl: http://localhost:8787/api/v1
+  baseUrl: https://glank.onrender.com/api/v1
   apiKey: 
   projectId: 0
   autoDetectionEnabled: 0

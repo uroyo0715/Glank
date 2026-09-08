@@ -37,6 +37,7 @@ function ManageMenu({
 }) {
   const [open, setOpen] = useState(false)
   const [infoRevealed, setInfoRevealed] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [apiKeyState, setApiKeyState] = useState('idle') // 'idle' | 'loading' | 'shown' | 'error'
   const [apiKey, setApiKey] = useState(null)
   const [apiKeyError, setApiKeyError] = useState(null)
@@ -146,13 +147,6 @@ function ManageMenu({
           ) : (
             <div className="manage-menu-connection-info">
               <div className="manage-menu-connection-row">
-                <div className="manage-menu-connection-label">バックエンドURL</div>
-                <div className="manage-menu-connection-value mono">{backendUrl()}</div>
-                <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
-                  {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
-                </button>
-              </div>
-              <div className="manage-menu-connection-row">
                 <div className="manage-menu-connection-label">Project ID</div>
                 <div className="manage-menu-connection-value mono">{projectId}</div>
                 <button
@@ -186,6 +180,23 @@ function ManageMenu({
                   {regenerating ? 'APIキーを再発行中...' : 'APIキーを再発行'}
                 </button>
               </div>
+              {!showAdvanced ? (
+                <button
+                  type="button"
+                  className="help-link manage-menu-advanced-toggle"
+                  onClick={() => setShowAdvanced(true)}
+                >
+                  詳細設定を表示
+                </button>
+              ) : (
+                <div className="manage-menu-connection-row">
+                  <div className="manage-menu-connection-label">バックエンドURL</div>
+                  <div className="manage-menu-connection-value mono">{backendUrl()}</div>
+                  <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
+                    {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

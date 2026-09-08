@@ -12,9 +12,10 @@ namespace Glank.Editor
     /// </summary>
     public class GlankSetupWizard : EditorWindow
     {
-        private string _baseUrl = "http://localhost:8787/api/v1";
+        private string _baseUrl = "https://glank.onrender.com/api/v1";
         private string _apiKey = "";
         private int _projectId;
+        private bool _showAdvanced;
 
         [MenuItem("Tools/Glank/Setup Wizard")]
         private static void Open()
@@ -42,14 +43,24 @@ namespace Glank.Editor
                 MessageType.Info);
 
             EditorGUILayout.Space(12);
-            _baseUrl = EditorGUILayout.TextField(
-                new GUIContent("バックエンドURL", "Glank APIサーバーのURL（末尾に/reportsは付けない）"), _baseUrl);
             _apiKey = EditorGUILayout.TextField(
                 new GUIContent("API Key", "POST /reportsに付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、" +
                     "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる"),
                 _apiKey);
             _projectId = EditorGUILayout.IntField(
                 new GUIContent("Project ID", "報告先のGlankプロジェクトID。Web側のプロジェクト画面で確認できる"), _projectId);
+
+            EditorGUILayout.Space(4);
+            _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "詳細設定");
+            if (_showAdvanced)
+            {
+                EditorGUI.indentLevel++;
+                _baseUrl = EditorGUILayout.TextField(
+                    new GUIContent("バックエンドURL", "Glank APIサーバーのURL（末尾に/reportsは付けない）。既定値は本番バックエンドの" +
+                        "URLなので、自前で別環境（ステージング・自前デプロイ等）を使う場合以外は変更不要"),
+                    _baseUrl);
+                EditorGUI.indentLevel--;
+            }
 
             EditorGUILayout.Space(8);
 #if ENABLE_INPUT_SYSTEM

@@ -164,7 +164,7 @@ namespace Glank.Editor
                 AssetDatabase.CreateAsset(placeholder, placeholderSettingsPath);
             }
 
-            placeholder.baseUrl = "http://localhost:8787/api/v1";
+            placeholder.baseUrl = "https://glank.onrender.com/api/v1";
             placeholder.apiKey = "";
             placeholder.projectId = 0;
             placeholder.autoDetectionEnabled = false;

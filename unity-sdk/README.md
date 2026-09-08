@@ -27,9 +27,9 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 - `GlankSettings.cs` — APIサーバーのURL・APIキー・報告先プロジェクトIDを持つ
   ScriptableObject。`BugReportTrigger`・`CrashDetector`・`FreezeWatchdog`・
   `GlankOfflineQueue` はすべてこの1つのアセットを共有する（手動セットアップの場合は
-  `Assets > Create > Glank > Settings` で作成し、`baseUrl` を
-  `http://localhost:8787/api/v1`（または本番URL）に設定する。`projectId` は
-  Webアプリのプロジェクト一覧画面でカードに表示されている番号を設定する
+  `Assets > Create > Glank > Settings` で作成する。`baseUrl`は既定値が本番バックエンドの
+  URLなので、自前で別環境（ステージング・自前デプロイ等）を使う場合以外は変更不要。
+  `projectId` はWebアプリのプロジェクト一覧画面でカードに表示されている番号を設定する
   （プロジェクトを跨いだ複数ゲーム運用を想定していないため、通常はゲームごとに固定値でよい）。
   Setup Wizardまたはプレハブを使う場合はこの手順は不要）。
 - `InputLogRecorder.cs` — 直近nバッファ秒分の入力をリングバッファで保持し続けるMonoBehaviour。
@@ -83,7 +83,8 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 
 Unityメニューの `Tools > Glank > Setup Wizard` を開くと、以下をまとめて自動で行うウィンドウが表示される。
 
-1. バックエンドURL・API Key・Project IDを1つのフォームに入力する。
+1. API Key・Project IDを入力する（バックエンドURLは既定値が本番URLなので、通常は入力不要。
+   自前で別環境を使う場合のみ「詳細設定」を開いて変更する）。
 2. 「セットアップ」ボタンを押すと:
    - プロジェクト内に`GlankSettings`アセットが無ければ`Assets/Glank/GlankSettings.asset`に
      新規作成し、既にあれば入力値で更新する。

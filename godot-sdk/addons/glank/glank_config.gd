@@ -4,8 +4,9 @@
 class_name GlankConfig
 extends Resource
 
-## 例: http://localhost:8787/api/v1 （末尾に /reports は付けない）
-@export var base_url: String = "http://localhost:8787/api/v1"
+## 末尾に /reports は付けない。既定値は本番バックエンドのURLなので、自前で別環境
+## （ステージング・自前デプロイ等）を使う場合以外は変更不要
+@export var base_url: String = "https://glank.onrender.com/api/v1"
 
 ## POST /reports に付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、
 ## Webアプリのプロジェクトカードの「APIキーを表示」から確認できる
