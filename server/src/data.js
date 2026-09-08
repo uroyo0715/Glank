@@ -796,9 +796,21 @@ export async function removeProjectMember(projectId, email) {
 // 実際には運営者自身のチームで使うことが主目的のため、新規プロジェクトは最初から
 // Glank共有のmanagedストレージ（プロジェクトごとのTurso/R2設定が不要）を選べるようにする。
 export async function createProject({ name, imageUrl, gameEngine, creatorEmail }) {
+  // APIキーの暗号化にはGLANK_ENCRYPTION_KEYが必要。未設定の場合、ここで例外を投げてしまうと
+  // 画像保存等とは無関係なプロジェクト作成自体が丸ごと失敗してしまう（実際にこれで
+  // internal server errorになり、プロジェクトが作成できなくなったことがあった）。
+  // 未設定ならapiKeyEncはnullのままにし、起動時のマイグレーション(migrateAddApiKeyIfNeeded)が
+  // 鍵設定後に後から発行する。
+  let apiKeyEnc = null
+  try {
+    apiKeyEnc = encryptJson(generateApiKey())
+  } catch (err) {
+    console.error('[Glank] プロジェクト作成時のAPIキー発行に失敗しました（GLANK_ENCRYPTION_KEY未設定の可能性）:', err)
+  }
+
   const result = await db.execute({
     sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc) VALUES (?, ?, ?, 1, ?)',
-    args: [name, imageUrl ?? null, gameEngine ?? '', encryptJson(generateApiKey())],
+    args: [name, imageUrl ?? null, gameEngine ?? '', apiKeyEnc],
   })
   const projectId = result.lastInsertRowid
   await addProjectMembers(projectId, [creatorEmail])
