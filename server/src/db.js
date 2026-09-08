@@ -196,6 +196,24 @@ async function migrateAddStorageModeIfNeeded() {
 
 await migrateAddStorageModeIfNeeded()
 
+// マイグレーション: 上記migrateAddStorageModeIfNeededが既存プロジェクトに割り当てたmanagedモードは、
+// 当時はGlank単一DB/ローカルディスクへの保存を意味していたが、managed機能自体は「今後実装予定」として
+// UI上選択不可にした（Renderのディスクは再デプロイのたびに消えるため、本番でmanagedのローカル
+// フォールバックが使われ続けると、画像・動画が「保存はできるが次のデプロイで消える」という
+// 気付きにくいデータ消失になる。実際にこれが原因でプロジェクトのサムネイルが消える不具合が発生した）。
+// Glank共有のmanaged R2が設定されていない環境では、managedのままの既存プロジェクトを
+// self_hostedへ倒し、self_hosted同様「ストレージ未設定」の409を明示的に返すようにする
+// （自前のTurso/R2を設定するまで保存をスキップする方が、消えるサムネイル/動画より安全）。
+const managedR2ConfiguredForMigration = Boolean(
+  process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID &&
+  process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET
+)
+async function migrateManagedProjectsWithoutR2ToSelfHosted() {
+  if (managedR2ConfiguredForMigration) return
+  await db.execute("UPDATE projects SET storageMode = 'self_hosted' WHERE storageMode = 'managed'")
+}
+await migrateManagedProjectsWithoutR2ToSelfHosted()
+
 // マイグレーション: bugIndex導入前に作られたbugs（＝すべてこのDBに同居しているmanaged相当）を
 // 索引に登録する。idはbugs.idをそのまま使う（このDBがそのbugの実データの置き場所でもあるため）。
 async function migrateBackfillBugIndex() {

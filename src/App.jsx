@@ -570,7 +570,6 @@ function AppShell({ user, setUser }) {
             onOpen={(id) => navigate(`/projects/${id}`)}
             onCreate={handleCreateProject}
             onDelete={handleDeleteProjects}
-            onOpenHelp={() => navigate('/help')}
             onUpdateProject={handleUpdateProject}
             onRemoveImage={handleRemoveProjectImage}
             onFetchApiKey={fetchProjectApiKey}

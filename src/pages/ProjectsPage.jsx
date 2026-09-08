@@ -10,7 +10,6 @@ export default function ProjectsPage({
   onOpen,
   onCreate,
   onDelete,
-  onOpenHelp,
   onUpdateProject,
   onRemoveImage,
 }) {
@@ -170,10 +169,7 @@ export default function ProjectsPage({
               </button>
             )}
             <button className="help-link" onClick={toggleSelecting}>
-              {selecting ? '選択を解除' : '選択'}
-            </button>
-            <button className="help-link" onClick={onOpenHelp}>
-              SDK連携の使い方 →
+              {selecting ? '選択を解除' : 'プロジェクト削除'}
             </button>
           </div>
         </div>
