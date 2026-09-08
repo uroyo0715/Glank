@@ -25,6 +25,13 @@ function getS3Client(config) {
   return client
 }
 
+// multerはmultipart/form-dataのファイル名部分をlatin1として読むため、ブラウザが送ってくる
+// UTF-8のファイル名（日本語等）が文字化けする（Node.js/multerでよく知られた挙動）。
+// UTF-8として読み直すことで元の文字列に戻す。
+function decodeOriginalName(name) {
+  return Buffer.from(name, 'latin1').toString('utf8')
+}
+
 /**
  * @param {{ mode: 'r2', config: object } | { mode: 'local' }} storageTarget
  * @param {Buffer} buffer
@@ -32,7 +39,12 @@ function getS3Client(config) {
  * @returns {Promise<{ url: string, bytes: number }>}
  */
 async function saveFile(storageTarget, buffer, originalName) {
-  const filename = `${Date.now()}-${originalName}`
+  const decodedName = decodeOriginalName(originalName)
+  const filename = `${Date.now()}-${decodedName}`
+  // 日本語・スペース等を含むファイル名をそのままURLに埋め込むと不正なURLになる
+  // （実際にこれでCSSのbackground-imageが不正な値として無視され、サムネイルが表示されない
+  // 不具合になった）。URLに使う部分だけエンコードする（保存先のキー自体は元の名前のまま）。
+  const encodedFilename = encodeURIComponent(filename)
 
   if (storageTarget.mode === 'r2') {
     const { config } = storageTarget
@@ -44,12 +56,12 @@ async function saveFile(storageTarget, buffer, originalName) {
         ContentType: guessContentType(originalName),
       })
     )
-    return { url: `${config.publicUrl}/${filename}`, bytes: buffer.length }
+    return { url: `${config.publicUrl}/${encodedFilename}`, bytes: buffer.length }
   }
 
   await fs.mkdir(UPLOAD_DIR, { recursive: true })
   await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer)
-  return { url: `/uploads/${filename}`, bytes: buffer.length }
+  return { url: `/uploads/${encodedFilename}`, bytes: buffer.length }
 }
 
 function guessContentType(name) {
@@ -84,7 +96,7 @@ export async function deleteFile(storageTarget, url) {
   if (!url) return
 
   if (storageTarget?.mode === 'r2' && url.startsWith(`${storageTarget.config.publicUrl}/`)) {
-    const key = url.slice(`${storageTarget.config.publicUrl}/`.length)
+    const key = decodeURIComponent(url.slice(`${storageTarget.config.publicUrl}/`.length))
     await getS3Client(storageTarget.config)
       .send(new DeleteObjectCommand({ Bucket: storageTarget.config.bucket, Key: key }))
       .catch(() => {})
@@ -92,6 +104,6 @@ export async function deleteFile(storageTarget, url) {
   }
 
   if (!url.startsWith('/uploads/')) return
-  const filePath = path.join(UPLOAD_DIR, url.slice('/uploads/'.length))
+  const filePath = path.join(UPLOAD_DIR, decodeURIComponent(url.slice('/uploads/'.length)))
   await fs.rm(filePath, { force: true })
 }
