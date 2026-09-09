@@ -145,7 +145,7 @@ namespace Glank
             var panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(420f, 300f);
+            panelRect.sizeDelta = new Vector2(420f, 330f);
             panelRect.anchoredPosition = Vector2.zero;
             var panelImage = panel.AddComponent<Image>();
             panelImage.color = new Color(0.15f, 0.15f, 0.17f, 0.97f);
@@ -168,6 +168,12 @@ namespace Glank
             var laterButton = CreateButton(panel.transform, font, "後で",
                 new Vector2(0.5f, 0f), new Vector2(98f, 24f), new Vector2(180f, 40f));
             laterButton.onClick.AddListener(Hide);
+
+            // 「後で」を押して閉じた後、再度この入力欄をどう開けばいいか分からない、という
+            // 分かりにくさが報告されたため、reopenHotkeyをここに明示しておく。
+            var hint = CreateText(panel.transform, font, $"{reopenHotkey}キーでいつでも開き直せます",
+                new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(380f, 20f), 11);
+            hint.color = new Color(1f, 1f, 1f, 0.55f);
 
             _canvasRoot.SetActive(false);
         }

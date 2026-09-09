@@ -494,3 +494,14 @@ export async function removeUserAvatar() {
   }
   return res.json()
 }
+
+/** 管理者ページ用の利用状況サマリー。管理者以外は403。
+ * @returns {Promise<{totalUsers: number, totalProjects: number, totalBugs: number, users: object[], projects: object[]}>} */
+export async function fetchAdminStats() {
+  const res = await fetch(`${BASE_URL}/admin/stats`, { credentials: 'include' })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `fetchAdminStats failed: ${res.status}`)
+  }
+  return res.json()
+}

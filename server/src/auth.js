@@ -91,6 +91,22 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
   next()
 })
 
+// 管理者ページ用。GLANK_ADMIN_EMAILS（カンマ区切り）に含まれるメールアドレスのアカウントのみ通す。
+// 通常のナビゲーションからはリンクしておらず、URLを直接知っていてもこのチェックでサーバー側から弾く。
+const ADMIN_EMAILS = new Set(
+  (process.env.GLANK_ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+)
+
+export const requireAdmin = asyncHandler(async (req, res, next) => {
+  if (!ADMIN_EMAILS.has(req.user.email.toLowerCase())) {
+    return res.status(403).json({ error: 'forbidden' })
+  }
+  next()
+})
+
 export function toPublicUser(user) {
   return { email: user.email, displayName: user.displayName, imageUrl: user.imageUrl ?? null }
 }

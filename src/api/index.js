@@ -45,4 +45,5 @@ export const {
   removeUserAvatar,
   sdkDownloadUrl,
   backendUrl,
+  fetchAdminStats,
 } = impl

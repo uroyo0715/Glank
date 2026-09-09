@@ -673,3 +673,24 @@ export async function deleteReportComment(id, commentId) {
   comments = comments.filter((c) => !toRemove.has(c.id))
   return { deleted: true }
 }
+
+/** モックモードでは常に管理者として扱い、サンプルデータを返す。 */
+export async function fetchAdminStats() {
+  await delay(150)
+  return {
+    totalUsers: 3,
+    totalProjects: seedProjects.length,
+    totalBugs: seedBugs.length,
+    users: [
+      { email: currentUser.email, displayName: currentUser.displayName, createdAt: new Date().toISOString() },
+    ],
+    projects: seedProjects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      gameEngine: p.gameEngine ?? '',
+      storageMode: 'self_hosted',
+      bugCount: seedBugs.filter((b) => b.projectId === p.id).length,
+      memberCount: 1,
+    })),
+  }
+}

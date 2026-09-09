@@ -7,6 +7,7 @@ import LandingPage from './pages/LandingPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
 import AccountSettingsPage from './pages/AccountSettingsPage.jsx'
+import AdminPage from './pages/AdminPage.jsx'
 import NavMenu from './components/NavMenu.jsx'
 import UserMenu from './components/UserMenu.jsx'
 import {
@@ -108,6 +109,7 @@ function AppShell({ user, setUser }) {
   const showHelp = location.pathname === '/help'
   const showSetupGuide = location.pathname === '/setup-guide'
   const showAccountSettings = location.pathname === '/account'
+  const showAdmin = location.pathname === '/admin'
   // ヘルプをプロジェクトのバグ一覧から開いた場合、そのプロジェクトの使用エンジンに合わせて
   // Unity/Godotどちらの手順を最初に出すか決める（?engine=godot 等）。
   const helpDefaultEngine = new URLSearchParams(location.search).get('engine') === 'godot' ? 'godot' : 'unity'
@@ -556,6 +558,8 @@ function AppShell({ user, setUser }) {
         <SetupGuidePage />
       ) : showAccountSettings ? (
         <AccountSettingsPage user={user} onUserChange={setUser} />
+      ) : showAdmin ? (
+        <AdminPage />
       ) : selectedProjectId == null ? (
         projectsLoading ? (
           <div className="state-panel">読み込み中...</div>

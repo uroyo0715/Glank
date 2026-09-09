@@ -49,8 +49,10 @@ function UnityGuide() {
         <h3 className="help-substep-title">方法A（推奨）: Setup Wizardを使う</h3>
         <p>
           Unityメニューの <span className="mono">Tools &gt; Glank &gt; Setup Wizard</span> を開き、
-          バックエンドURL・API Key・プロジェクトID（この3つは、プロジェクトカードの「管理」から
-          まとめて確認できます）を入力して「セットアップ」ボタンを押すだけです。接続設定（
+          API Key・プロジェクトID（この2つは、プロジェクトを開いた画面の「管理」メニューの
+          「SDK接続情報を表示」からまとめて確認できます）を入力して「セットアップ」ボタンを押すだけです。
+          バックエンドURLは既定値が本番URLなので、通常は入力不要です（自前で別環境を使う場合のみ
+          「詳細設定」を開いて変更します）。接続設定（
           <span className="mono">GlankSettings</span>アセット）の生成と、必要なコンポーネント一式が
           配線された<span className="mono">GlankManager</span> というGameObjectのシーンへの配置、
           新Input System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
@@ -86,15 +88,16 @@ function UnityGuide() {
             <tr>
               <td className="mono">baseUrl</td>
               <td>
-                このアプリのAPIサーバーのURL。ローカル開発なら
-                <span className="mono"> http://localhost:8787/api/v1</span>
+                このアプリのAPIサーバーのURL。既定値が本番URLなので、自前で別環境
+                （ステージング・自前デプロイ等）を使う場合以外は変更不要
               </td>
             </tr>
             <tr>
               <td className="mono">apiKey</td>
               <td>
-                このプロジェクト専用のAPIキー。プロジェクトカードの「APIキーを表示」で確認できる
-                （プロジェクトごとに別の値が発行されるため、他のプロジェクトのキーは使えない）
+                このプロジェクト専用のAPIキー。プロジェクトを開いた画面の「管理」メニューの
+                「SDK接続情報を表示」で確認できる（プロジェクトごとに別の値が発行されるため、
+                他のプロジェクトのキーは使えない）
               </td>
             </tr>
             <tr>
@@ -150,6 +153,22 @@ function UnityGuide() {
           （最初から組み込み済みです）。
         </p>
         <ImagePlaceholder caption="ホットキーを押した後、Webアプリのバグ一覧に報告が表示された状態のスクリーンショット" />
+      </li>
+
+      <li>
+        <h2>6. 報告者名・プレイ中のプラットフォームを設定する</h2>
+        <p>
+          <span className="mono">GlankManager</span>には<span className="mono">GlankReporterNamePrompt</span>
+          が最初から付いており、報告者名が未設定の間はゲーム起動時に自動で入力欄（名前・プレイ中の
+          プラットフォーム）が表示されます。一度設定すると、以後の報告の「誰が」「プラットフォーム」欄に
+          その内容が使われます。
+        </p>
+        <p>
+          <strong>この入力欄は既定で<span className="mono">F9</span>キーを押せばいつでも開き直せます</strong>
+          （名前やプラットフォームを間違えた・変更したい場合も、この入力欄自体からは再度開く方法が
+          分からないため、覚えておいてください）。キーは<span className="mono">GlankReporterNamePrompt</span>
+          の<span className="mono">reopenHotkey</span>で変更できます。
+        </p>
       </li>
     </ol>
   )

@@ -434,6 +434,15 @@ async function migrateAddUserImageUrlIfNeeded() {
   await db.execute('ALTER TABLE users ADD COLUMN imageUrl TEXT')
 }
 
+// マイグレーション: 管理者ページで登録日を出すためのusers.createdAt。導入前に登録した
+// ユーザーの実際の登録日時は分からないため空文字のままにする（bugs.createdAtと同じ扱い）。
+async function migrateAddUserCreatedAtIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(users)')
+  const hasColumn = columns.some((c) => c.name === 'createdAt')
+  if (hasColumn) return
+  await db.execute("ALTER TABLE users ADD COLUMN createdAt TEXT NOT NULL DEFAULT ''")
+}
+
 await migrateAddAssigneeIfNeeded(db)
 await migrateAddParentCommentIdIfNeeded(db)
 await migrateAddInputLogVideoSyncedIfNeeded(db)
@@ -476,6 +485,7 @@ async function migrateAddApiKeyIfNeeded() {
 
 await migrateAddApiKeyIfNeeded()
 await migrateAddUserImageUrlIfNeeded()
+await migrateAddUserCreatedAtIfNeeded()
 
 // マイグレーション: プロジェクト機能導入前に作られたDBには bugs.projectId が存在しない。
 // 既存データを失わないよう、ALTER TABLEで列を追加し、初期プロジェクトへ割り当てる。

@@ -906,8 +906,8 @@ export async function findOrCreateUser({ googleId, email, name, picture }) {
   // 初回サインイン時のみ、Googleプロフィール画像を初期のアカウントアイコンとして使う
   // （以後はユーザー自身が変更するまでこのままで、Google側の画像更新を追いかけたりはしない）。
   await db.execute({
-    sql: 'INSERT INTO users (googleId, email, displayName, imageUrl) VALUES (?, ?, ?, ?)',
-    args: [googleId, email, name || email, picture || null],
+    sql: 'INSERT INTO users (googleId, email, displayName, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?)',
+    args: [googleId, email, name || email, picture || null, new Date().toISOString()],
   })
   return findUserByGoogleId(googleId)
 }
@@ -947,4 +947,39 @@ export async function getUserBySessionToken(token) {
     args: [token],
   })
   return rows[0] ?? null
+}
+
+/** 管理者ページ用の利用状況サマリー。 */
+export async function getAdminStats() {
+  const [{ rows: userCountRows }, { rows: projectCountRows }, { rows: bugCountRows }] = await Promise.all([
+    db.execute('SELECT COUNT(*) AS n FROM users'),
+    db.execute('SELECT COUNT(*) AS n FROM projects'),
+    db.execute('SELECT COUNT(*) AS n FROM bugs'),
+  ])
+
+  const { rows: users } = await db.execute(
+    'SELECT email, displayName, createdAt FROM users ORDER BY createdAt DESC, email ASC'
+  )
+  const { rows: projects } = await db.execute(`
+    SELECT p.id, p.name, p.gameEngine, p.storageMode,
+           (SELECT COUNT(*) FROM bugs WHERE bugs.projectId = p.id) AS bugCount,
+           (SELECT COUNT(*) FROM projectMembers WHERE projectMembers.projectId = p.id) AS memberCount
+    FROM projects p
+    ORDER BY p.id
+  `)
+
+  return {
+    totalUsers: Number(userCountRows[0].n),
+    totalProjects: Number(projectCountRows[0].n),
+    totalBugs: Number(bugCountRows[0].n),
+    users: users.map((u) => ({ email: u.email, displayName: u.displayName, createdAt: u.createdAt || null })),
+    projects: projects.map((p) => ({
+      id: Number(p.id),
+      name: p.name,
+      gameEngine: p.gameEngine ?? '',
+      storageMode: p.storageMode,
+      bugCount: Number(p.bugCount),
+      memberCount: Number(p.memberCount),
+    })),
+  }
 }

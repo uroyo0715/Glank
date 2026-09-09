@@ -5,6 +5,7 @@ import reportsRouter from './routes/reports.js'
 import authRouter from './routes/auth.js'
 import projectsRouter from './routes/projects.js'
 import sdkRouter from './routes/sdk.js'
+import adminRouter from './routes/admin.js'
 
 export const app = express()
 
@@ -16,6 +17,7 @@ app.use('/api/v1', authRouter)
 app.use('/api/v1', projectsRouter)
 app.use('/api/v1', reportsRouter)
 app.use('/api/v1', sdkRouter)
+app.use('/api/v1', adminRouter)
 
 // Express 4はasyncハンドラの例外を自動キャッチしないため、asyncHandler(routes/*.js参照)で
 // next(err) に転送された例外はここで受ける。無いと、例外発生時にレスポンスが返らずクライアントが
