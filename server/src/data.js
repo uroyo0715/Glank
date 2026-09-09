@@ -949,37 +949,38 @@ export async function getUserBySessionToken(token) {
   return rows[0] ?? null
 }
 
-/** 管理者ページ用の利用状況サマリー。 */
+/**
+ * 管理者ページ用の利用状況サマリー。メールアドレス・プロジェクト名等の個人・機密情報は
+ * 含めず、件数の集計のみを返す（プロジェクトの内容やユーザーの特定に使えないようにするため）。
+ */
 export async function getAdminStats() {
-  const [{ rows: userCountRows }, { rows: projectCountRows }, { rows: bugCountRows }] = await Promise.all([
+  const [
+    { rows: userCountRows },
+    { rows: projectCountRows },
+    { rows: bugCountRows },
+    { rows: engineRows },
+    { rows: storageModeRows },
+    { rows: signupMonthRows },
+  ] = await Promise.all([
     db.execute('SELECT COUNT(*) AS n FROM users'),
     db.execute('SELECT COUNT(*) AS n FROM projects'),
     db.execute('SELECT COUNT(*) AS n FROM bugs'),
+    db.execute(
+      "SELECT COALESCE(NULLIF(gameEngine, ''), 'unset') AS engine, COUNT(*) AS n FROM projects GROUP BY engine"
+    ),
+    db.execute('SELECT storageMode, COUNT(*) AS n FROM projects GROUP BY storageMode'),
+    db.execute(`
+      SELECT CASE WHEN createdAt = '' THEN 'unknown' ELSE substr(createdAt, 1, 7) END AS month, COUNT(*) AS n
+      FROM users GROUP BY month ORDER BY month
+    `),
   ])
-
-  const { rows: users } = await db.execute(
-    'SELECT email, displayName, createdAt FROM users ORDER BY createdAt DESC, email ASC'
-  )
-  const { rows: projects } = await db.execute(`
-    SELECT p.id, p.name, p.gameEngine, p.storageMode,
-           (SELECT COUNT(*) FROM bugs WHERE bugs.projectId = p.id) AS bugCount,
-           (SELECT COUNT(*) FROM projectMembers WHERE projectMembers.projectId = p.id) AS memberCount
-    FROM projects p
-    ORDER BY p.id
-  `)
 
   return {
     totalUsers: Number(userCountRows[0].n),
     totalProjects: Number(projectCountRows[0].n),
     totalBugs: Number(bugCountRows[0].n),
-    users: users.map((u) => ({ email: u.email, displayName: u.displayName, createdAt: u.createdAt || null })),
-    projects: projects.map((p) => ({
-      id: Number(p.id),
-      name: p.name,
-      gameEngine: p.gameEngine ?? '',
-      storageMode: p.storageMode,
-      bugCount: Number(p.bugCount),
-      memberCount: Number(p.memberCount),
-    })),
+    projectsByEngine: Object.fromEntries(engineRows.map((r) => [r.engine, Number(r.n)])),
+    projectsByStorageMode: Object.fromEntries(storageModeRows.map((r) => [r.storageMode, Number(r.n)])),
+    usersBySignupMonth: signupMonthRows.map((r) => ({ month: r.month, count: Number(r.n) })),
   }
 }

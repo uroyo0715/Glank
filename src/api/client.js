@@ -495,8 +495,8 @@ export async function removeUserAvatar() {
   return res.json()
 }
 
-/** 管理者ページ用の利用状況サマリー。管理者以外は403。
- * @returns {Promise<{totalUsers: number, totalProjects: number, totalBugs: number, users: object[], projects: object[]}>} */
+/** 管理者ページ用の利用状況サマリー（件数の集計のみ、メールアドレス等は含まない）。管理者以外は403。
+ * @returns {Promise<{totalUsers: number, totalProjects: number, totalBugs: number, projectsByEngine: object, projectsByStorageMode: object, usersBySignupMonth: object[]}>} */
 export async function fetchAdminStats() {
   const res = await fetch(`${BASE_URL}/admin/stats`, { credentials: 'include' })
   if (!res.ok) {

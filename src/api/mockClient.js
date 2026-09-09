@@ -677,20 +677,17 @@ export async function deleteReportComment(id, commentId) {
 /** モックモードでは常に管理者として扱い、サンプルデータを返す。 */
 export async function fetchAdminStats() {
   await delay(150)
+  const projectsByEngine = {}
+  for (const p of seedProjects) {
+    const key = p.gameEngine || 'unset'
+    projectsByEngine[key] = (projectsByEngine[key] ?? 0) + 1
+  }
   return {
     totalUsers: 3,
     totalProjects: seedProjects.length,
     totalBugs: seedBugs.length,
-    users: [
-      { email: currentUser.email, displayName: currentUser.displayName, createdAt: new Date().toISOString() },
-    ],
-    projects: seedProjects.map((p) => ({
-      id: p.id,
-      name: p.name,
-      gameEngine: p.gameEngine ?? '',
-      storageMode: 'self_hosted',
-      bugCount: seedBugs.filter((b) => b.projectId === p.id).length,
-      memberCount: 1,
-    })),
+    projectsByEngine,
+    projectsByStorageMode: { self_hosted: seedProjects.length },
+    usersBySignupMonth: [{ month: new Date().toISOString().slice(0, 7), count: 3 }],
   }
 }
