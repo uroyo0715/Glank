@@ -2914,3 +2914,86 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
+
+.admin-chart {
+  position: relative;
+}
+.admin-chart-svg {
+  width: 100%;
+  height: 220px;
+  display: block;
+  overflow: visible;
+}
+.admin-chart-gridline {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.admin-chart-axis-label {
+  font-size: 10px;
+  fill: var(--text-faint);
+}
+.admin-chart-crosshair {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.admin-chart-point {
+  transition: r 0.1s ease;
+}
+.admin-chart-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.admin-chart-tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.admin-section-note {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: -4px 0 12px;
+}
+
+.admin-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.admin-bar-label {
+  color: var(--text-secondary, var(--text));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-bar-track {
+  background: var(--surface-2);
+  border-radius: 4px;
+  height: 14px;
+  overflow: hidden;
+}
+.admin-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+.admin-bar-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}

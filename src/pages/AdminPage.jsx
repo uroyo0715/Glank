@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAdminStats } from '../api/index.js'
+import { LineChart, BarChart } from '../components/AdminCharts.jsx'
 
 function gameEngineLabel(key) {
   if (key === 'unity') return 'Unity'
@@ -12,6 +13,18 @@ function storageModeLabel(key) {
   if (key === 'self_hosted') return '自前（Turso/R2）'
   if (key === 'managed') return 'managed'
   return key
+}
+
+function statusLabel(key) {
+  if (key === 'todo') return '未対応'
+  if (key === 'in_progress') return '対応中'
+  if (key === 'review') return '確認待ち'
+  if (key === 'done') return '完了'
+  return key
+}
+
+function toBarData(record, labelFn = (k) => k) {
+  return Object.entries(record).map(([key, value]) => ({ label: labelFn(key), value }))
 }
 
 // 通常のナビゲーションからはどこにもリンクしていない（URLを直接知っている必要がある）うえ、
@@ -82,62 +95,41 @@ export default function AdminPage() {
 
       <section className="admin-section">
         <h2>月別の新規登録ユーザー数</h2>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>月</th>
-              <th>登録数</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.usersBySignupMonth.map((row) => (
-              <tr key={row.month}>
-                <td>{row.month === 'unknown' ? '不明（登録日時未記録）' : row.month}</td>
-                <td>{row.count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <LineChart data={stats.usersBySignupMonth} color="var(--accent-cyan)" />
+      </section>
+
+      <section className="admin-section">
+        <h2>月別のバグ報告数</h2>
+        <LineChart data={stats.bugsByMonth} color="var(--accent-amber)" />
       </section>
 
       <section className="admin-section">
         <h2>エンジン別プロジェクト数</h2>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>エンジン</th>
-              <th>プロジェクト数</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(stats.projectsByEngine).map(([engine, count]) => (
-              <tr key={engine}>
-                <td>{gameEngineLabel(engine === 'unset' ? '' : engine)}</td>
-                <td>{count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <BarChart data={toBarData(stats.projectsByEngine, (k) => gameEngineLabel(k === 'unset' ? '' : k))} />
       </section>
 
       <section className="admin-section">
         <h2>ストレージ方式別プロジェクト数</h2>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ストレージ方式</th>
-              <th>プロジェクト数</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(stats.projectsByStorageMode).map(([mode, count]) => (
-              <tr key={mode}>
-                <td>{storageModeLabel(mode)}</td>
-                <td>{count}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <BarChart data={toBarData(stats.projectsByStorageMode, storageModeLabel)} />
+      </section>
+
+      <section className="admin-section">
+        <h2>ステータス別バグ報告数</h2>
+        <BarChart data={toBarData(stats.bugsByStatus, statusLabel)} color="var(--accent-amber)" />
+      </section>
+
+      <section className="admin-section">
+        <h2>プラットフォーム別バグ報告数</h2>
+        <BarChart data={toBarData(stats.bugsByPlatform)} color="var(--accent-amber)" />
+      </section>
+
+      <section className="admin-section">
+        <h2>タグ別バグ報告数</h2>
+        <p className="admin-section-note">
+          「quick」はホットキー即送信、「crash」「softlock」は自動検知（CrashDetector/FreezeWatchdog）
+          経由の報告を示す。SDKの自動検知機能がどれだけ使われているかの目安になる。
+        </p>
+        <BarChart data={toBarData(stats.bugsByTag)} />
       </section>
     </main>
   )

@@ -682,12 +682,25 @@ export async function fetchAdminStats() {
     const key = p.gameEngine || 'unset'
     projectsByEngine[key] = (projectsByEngine[key] ?? 0) + 1
   }
+  const bugsByStatus = {}
+  const bugsByPlatform = {}
+  const bugsByTag = {}
+  for (const b of seedBugs) {
+    bugsByStatus[b.status] = (bugsByStatus[b.status] ?? 0) + 1
+    bugsByPlatform[b.platform] = (bugsByPlatform[b.platform] ?? 0) + 1
+    for (const tag of b.tags ?? []) bugsByTag[tag] = (bugsByTag[tag] ?? 0) + 1
+  }
+  const thisMonth = new Date().toISOString().slice(0, 7)
   return {
     totalUsers: 3,
     totalProjects: seedProjects.length,
     totalBugs: seedBugs.length,
     projectsByEngine,
     projectsByStorageMode: { self_hosted: seedProjects.length },
-    usersBySignupMonth: [{ month: new Date().toISOString().slice(0, 7), count: 3 }],
+    usersBySignupMonth: [{ month: thisMonth, count: 3 }],
+    bugsByMonth: [{ month: thisMonth, count: seedBugs.length }],
+    bugsByStatus,
+    bugsByPlatform,
+    bugsByTag,
   }
 }

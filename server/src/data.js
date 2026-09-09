@@ -953,6 +953,13 @@ export async function getUserBySessionToken(token) {
  * 管理者ページ用の利用状況サマリー。メールアドレス・プロジェクト名等の個人・機密情報は
  * 含めず、件数の集計のみを返す（プロジェクトの内容やユーザーの特定に使えないようにするため）。
  */
+function groupByMonthSql(table) {
+  return `
+    SELECT CASE WHEN createdAt = '' THEN 'unknown' ELSE substr(createdAt, 1, 7) END AS month, COUNT(*) AS n
+    FROM ${table} GROUP BY month ORDER BY month
+  `
+}
+
 export async function getAdminStats() {
   const [
     { rows: userCountRows },
@@ -961,6 +968,10 @@ export async function getAdminStats() {
     { rows: engineRows },
     { rows: storageModeRows },
     { rows: signupMonthRows },
+    { rows: bugMonthRows },
+    { rows: statusRows },
+    { rows: platformRows },
+    { rows: tagRows },
   ] = await Promise.all([
     db.execute('SELECT COUNT(*) AS n FROM users'),
     db.execute('SELECT COUNT(*) AS n FROM projects'),
@@ -969,11 +980,28 @@ export async function getAdminStats() {
       "SELECT COALESCE(NULLIF(gameEngine, ''), 'unset') AS engine, COUNT(*) AS n FROM projects GROUP BY engine"
     ),
     db.execute('SELECT storageMode, COUNT(*) AS n FROM projects GROUP BY storageMode'),
-    db.execute(`
-      SELECT CASE WHEN createdAt = '' THEN 'unknown' ELSE substr(createdAt, 1, 7) END AS month, COUNT(*) AS n
-      FROM users GROUP BY month ORDER BY month
-    `),
+    db.execute(groupByMonthSql('users')),
+    db.execute(groupByMonthSql('bugs')),
+    db.execute('SELECT status, COUNT(*) AS n FROM bugs GROUP BY status'),
+    db.execute('SELECT platform, COUNT(*) AS n FROM bugs GROUP BY platform'),
+    db.execute('SELECT tags FROM bugs'),
   ])
+
+  // tagsは1行が'["crash","visual"]'のようなJSON配列文字列で、1件のバグ報告に複数付くため、
+  // SQLのGROUP BYでは集計できず読み出してからJS側で数え上げる。
+  const tagCounts = {}
+  for (const row of tagRows) {
+    let tags
+    try {
+      tags = JSON.parse(row.tags)
+    } catch {
+      continue
+    }
+    if (!Array.isArray(tags)) continue
+    for (const tag of tags) {
+      tagCounts[tag] = (tagCounts[tag] ?? 0) + 1
+    }
+  }
 
   return {
     totalUsers: Number(userCountRows[0].n),
@@ -982,5 +1010,9 @@ export async function getAdminStats() {
     projectsByEngine: Object.fromEntries(engineRows.map((r) => [r.engine, Number(r.n)])),
     projectsByStorageMode: Object.fromEntries(storageModeRows.map((r) => [r.storageMode, Number(r.n)])),
     usersBySignupMonth: signupMonthRows.map((r) => ({ month: r.month, count: Number(r.n) })),
+    bugsByMonth: bugMonthRows.map((r) => ({ month: r.month, count: Number(r.n) })),
+    bugsByStatus: Object.fromEntries(statusRows.map((r) => [r.status, Number(r.n)])),
+    bugsByPlatform: Object.fromEntries(platformRows.map((r) => [r.platform || 'unset', Number(r.n)])),
+    bugsByTag: tagCounts,
   }
 }
