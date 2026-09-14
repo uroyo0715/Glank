@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { path: '/projects', label: 'プロジェクト一覧' },
   { path: '/help', label: 'SDK連携の使い方' },
   { path: '/setup-guide', label: '詳細セットアップガイド' },
+  { path: '/storage-setup', label: 'ストレージ設定の手順' },
 ]
 
 export default function NavMenu() {

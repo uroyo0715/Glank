@@ -706,6 +706,40 @@ body {
   color: var(--text-dim);
   margin: 4px 0 28px;
 }
+.help-toc {
+  margin: 0 0 28px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.help-toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+}
+.help-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 24px;
+}
+.help-toc li {
+  break-inside: avoid;
+  margin-bottom: 6px;
+}
+.help-toc a {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.help-toc a:hover {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
 .help-coming-soon {
   padding: 28px 24px;
   border: 1px dashed var(--border);

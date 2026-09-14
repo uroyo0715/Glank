@@ -154,7 +154,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
       <p className="storage-panel-hint">
         報告のデータベースと動画の保存先を選べます。
         {' '}
-        <Link to="/help#storage-setup" target="_blank" className="help-link">
+        <Link to="/storage-setup" target="_blank" className="help-link">
           設定方法はこちら（Turso・Cloudflare R2）
         </Link>
       </p>
