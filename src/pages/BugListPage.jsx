@@ -45,10 +45,25 @@ function ManageMenu({
   const [copiedField, setCopiedField] = useState(null)
   const rootRef = useRef(null)
 
+  // メニューを閉じるたびにSDK接続情報（Project ID・APIキー・バックエンドURL）の表示状態も
+  // リセットする。開いたままにしておくと、画面を見られたりスクリーンショット/共有された際に
+  // APIキー等がずっと見える状態になってしまうため（実際にこれが不安点として指摘された）、
+  // 毎回明示的に「表示」し直さないと見えないようにする。
+  function hideInfo() {
+    setInfoRevealed(false)
+    setShowAdvanced(false)
+    setApiKeyState('idle')
+    setApiKey(null)
+    setApiKeyError(null)
+  }
+
   useEffect(() => {
     if (!open) return
     function handlePointerDown(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+      if (rootRef.current && !rootRef.current.contains(e.target)) {
+        setOpen(false)
+        hideInfo()
+      }
     }
     document.addEventListener('pointerdown', handlePointerDown)
     return () => document.removeEventListener('pointerdown', handlePointerDown)
@@ -56,6 +71,7 @@ function ManageMenu({
 
   function select(toggleFn) {
     setOpen(false)
+    hideInfo()
     toggleFn((v) => !v)
   }
 
@@ -109,7 +125,12 @@ function ManageMenu({
       <button
         type="button"
         className={`panel-toggle manage-menu-toggle ${anyPanelOpen ? 'active' : ''}`}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => {
+            if (v) hideInfo()
+            return !v
+          })
+        }}
         aria-expanded={open}
       >
         管理
@@ -146,6 +167,12 @@ function ManageMenu({
             </button>
           ) : (
             <div className="manage-menu-connection-info">
+              <div className="manage-menu-connection-info-head">
+                <span>SDK接続情報</span>
+                <button type="button" className="help-link" onClick={hideInfo}>
+                  隠す
+                </button>
+              </div>
               <div className="manage-menu-connection-row">
                 <div className="manage-menu-connection-label">Project ID</div>
                 <div className="manage-menu-connection-value mono">{projectId}</div>
@@ -194,6 +221,9 @@ function ManageMenu({
                   <div className="manage-menu-connection-value mono">{backendUrl()}</div>
                   <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
                     {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                  </button>
+                  <button type="button" className="help-link" onClick={() => setShowAdvanced(false)}>
+                    隠す
                   </button>
                 </div>
               )}
