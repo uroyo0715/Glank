@@ -802,10 +802,12 @@ body {
   margin: 0;
 }
 .help-substep-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
   margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
 }
 .help-steps li > * + * {
   margin-top: 12px;
@@ -818,6 +820,7 @@ body {
   border-collapse: collapse;
   width: 100%;
   font-size: 13px;
+  background: var(--surface-2);
 }
 .help-table td {
   padding: 8px 10px;
@@ -826,8 +829,9 @@ body {
   color: var(--text-dim);
 }
 .help-table td:first-child {
-  width: 110px;
-  color: var(--text);
+  width: 130px;
+  color: var(--accent-cyan);
+  font-weight: 400;
   white-space: nowrap;
 }
 .help-code {

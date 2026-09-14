@@ -27,7 +27,7 @@ const UNITY_TOC_GROUPS = [
     title: '使い方・カスタマイズ',
     items: [
       { id: 'unity-step-4', label: '動画の記録方法' },
-      { id: 'unity-step-5', label: 'バグを見つけたらホットキーを押す' },
+      { id: 'unity-step-5', label: 'バグ報告の手順' },
       { id: 'unity-step-6', label: '報告者名・プレイ中のプラットフォームを設定する' },
       { id: 'unity-step-7', label: '各コンポーネントの役割と設定項目' },
     ],
@@ -159,7 +159,7 @@ function UnityGuide() {
       </li>
 
       <li id="unity-step-5">
-        <h2>5. バグを見つけたらホットキーを押す</h2>
+        <h2>5. バグ報告の手順</h2>
         <p>
           <span className="mono">BugReportTrigger</span>のホットキー（既定は
           <span className="mono">F12</span>）を押すと、直近の入力ログと動画がまとめて自動送信され、
@@ -191,9 +191,8 @@ function UnityGuide() {
         </p>
         <p>
           <strong>この入力欄は既定で<span className="mono">F9</span>キーを押せばいつでも開き直せます</strong>
-          （名前やプラットフォームを間違えた・変更したい場合も、この入力欄自体からは再度開く方法が
-          分からないため、覚えておいてください）。キーは<span className="mono">GlankReporterNamePrompt</span>
-          の<span className="mono">reopenHotkey</span>で変更できます。
+          。キーは<span className="mono">GlankReporterNamePrompt</span>の
+          <span className="mono">reopenHotkey</span>で変更できます。
         </p>
       </li>
 
