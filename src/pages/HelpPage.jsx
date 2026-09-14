@@ -46,22 +46,27 @@ function UnityGuide() {
       </li>
 
       <li>
-        <h2>3. セットアップ方法を選ぶ</h2>
+        <h2>3. セットアップする</h2>
         <p>
-          導入後のセットアップは3通りあります。基本的には<strong>方法A（Setup Wizard）</strong>が一番簡単です。
+          Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開きます。
         </p>
-
-        <h3 className="help-substep-title">方法A（推奨）: Setup Wizardを使う</h3>
         <p>
-          Unityメニューの <span className="mono">Tools &gt; Glank &gt; Setup Wizard</span> を開き、
-          API Key・プロジェクトID（この2つは、プロジェクトを開いた画面の「管理」メニューの
-          「SDK接続情報を表示」からまとめて確認できます）を入力して「セットアップ」ボタンを押すだけです。
-          バックエンドURLは既定値が本番URLなので、通常は入力不要です（自前で別環境を使う場合のみ
-          「詳細設定」を開いて変更します）。接続設定（
-          <span className="mono">GlankSettings</span>アセット）の生成と、必要なコンポーネント一式が
-          配線された<span className="mono">GlankManager</span> というGameObjectのシーンへの配置、
-          新Input System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
-          自動判定まで、まとめて行われます。
+          API Key・プロジェクトIDを入力して「セットアップ」ボタンを押すだけです。
+        </p>
+        <p>
+          この2つは、プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」から
+          まとめて確認できます。
+        </p>
+        <p>
+          バックエンドURLは既定値が本番URLなので、通常は入力不要です。
+          自前で別環境を使う場合のみ「詳細設定」を開いて変更します。
+        </p>
+        <p>
+          接続設定（<span className="mono">GlankSettings</span>アセット）の生成、
+          必要なコンポーネント一式が配線された<span className="mono">GlankManager</span>という
+          GameObjectのシーンへの配置、新Input System
+          （<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの自動判定まで、
+          まとめて行われます。
         </p>
         <img
           src="/help/SetupWizard_setting.png"
@@ -69,79 +74,98 @@ function UnityGuide() {
           className="help-screenshot"
         />
 
-        <h3 className="help-substep-title">方法B: プレハブをドラッグ&ドロップする</h3>
-        <p>
-          ウィザードを使わず導入したい場合は、SDKに同梱されている
-          <span className="mono"> Packages/Glank/Runtime/Prefabs/GlankManager.prefab</span>
-          （方法Aと同じ構成が組まれたプレハブ）をシーンにドラッグ&ドロップします。ただし、
-          このプレハブが参照している<span className="mono">GlankSettings</span>は
-          <strong>APIキー・プロジェクトIDが空のプレースホルダー</strong>です。プレースホルダーの
-          アセットを右クリック→複製し、複製した方に自分のAPIキー・プロジェクトIDを入力したうえで、
-          <strong>シーンに置いたインスタンス側</strong>の<span className="mono">BugReportTrigger</span>
-          ・<span className="mono">CrashDetector</span>・<span className="mono">FreezeWatchdog</span>
-          ・<span className="mono">GlankOfflineQueue</span>それぞれの<span className="mono">Config</span>
-          欄を、複製したアセットに差し替えてください（プレハブアセット自体を直接編集しないよう注意）。
-          設定を入力し忘れたまま実行すると、「projectIdが未設定です」という分かりやすいエラーが
-          Consoleに出て送信が中止されるので、実際の値が入っているかどうかはすぐに気付けます。
-        </p>
-        <ImagePlaceholder caption="プレハブをHierarchyにドラッグした直後と、GlankSettingsを複製して差し替えた後のInspectorの比較スクリーンショット" />
+        <details className="help-advanced-details">
+          <summary>カスタマイズしたい場合</summary>
 
-        <h3 className="help-substep-title">方法C: 手動でコンポーネントを配置する</h3>
-        <p>
-          細かくカスタマイズしたい場合向けの、従来通りの方法です。Unityのメニューから
-          <span className="mono"> Assets &gt; Create &gt; Glank &gt; Settings</span>{' '}
-          でScriptableObjectを作成し、次の3項目を設定します。
-        </p>
-        <table className="help-table">
-          <tbody>
-            <tr>
-              <td className="mono">baseUrl</td>
-              <td>
-                このアプリのAPIサーバーのURL。既定値が本番URLなので、自前で別環境
-                （ステージング・自前デプロイ等）を使う場合以外は変更不要
-              </td>
-            </tr>
-            <tr>
-              <td className="mono">apiKey</td>
-              <td>
-                このプロジェクト専用のAPIキー。プロジェクトを開いた画面の「管理」メニューの
-                「SDK接続情報を表示」で確認できる（プロジェクトごとに別の値が発行されるため、
-                他のプロジェクトのキーは使えない）
-              </td>
-            </tr>
-            <tr>
-              <td className="mono">projectId</td>
-              <td>手順1で確認したプロジェクトID</td>
-            </tr>
-          </tbody>
-        </table>
-        <p>
-          続けて、シーン内の任意のGameObjectに <span className="mono">InputLogRecorder</span> と
-          <span className="mono"> BugReportTrigger</span> の2つをアタッチします。
-          <span className="mono">BugReportTrigger</span> の <span className="mono">config</span>{' '}
-          欄に、上で作った設定を割り当ててください。
-          <span className="mono">InputLogRecorder</span> の <span className="mono">watchedKeys</span>{' '}
-          には、ログに残したい入力キーを登録します。
-        </p>
+          <h3 className="help-substep-title">プレハブをドラッグ&ドロップする</h3>
+          <p>
+            ウィザードを使わず導入したい場合は、SDKに同梱されている
+            <span className="mono">Packages/Glank/Runtime/Prefabs/GlankManager.prefab</span>
+            （Setup Wizardと同じ構成が組まれたプレハブ）をシーンにドラッグ&ドロップします。
+          </p>
+          <p>
+            ただし、このプレハブが参照している<span className="mono">GlankSettings</span>は
+            <strong>APIキー・プロジェクトIDが空のプレースホルダー</strong>です。
+            プレースホルダーのアセットを右クリック→複製し、複製した方に自分のAPIキー・
+            プロジェクトIDを入力してください。
+          </p>
+          <p>
+            そのうえで、<strong>シーンに置いたインスタンス側</strong>の
+            <span className="mono">BugReportTrigger</span>・<span className="mono">CrashDetector</span>・
+            <span className="mono">FreezeWatchdog</span>・<span className="mono">GlankOfflineQueue</span>
+            それぞれの<span className="mono">Config</span>欄を、複製したアセットに差し替えてください
+            （プレハブアセット自体を直接編集しないよう注意）。
+          </p>
+          <p>
+            設定を入力し忘れたまま実行すると、「projectIdが未設定です」という分かりやすいエラーが
+            Consoleに出て送信が中止されるので、実際の値が入っているかどうかはすぐに気付けます。
+          </p>
+
+          <h3 className="help-substep-title">手動でコンポーネントを配置する</h3>
+          <p>
+            細かくカスタマイズしたい場合向けの、従来通りの方法です。Unityのメニューから
+            <span className="mono">Assets &gt; Create &gt; Glank &gt; Settings</span>で
+            ScriptableObjectを作成し、次の3項目を設定します。
+          </p>
+          <table className="help-table">
+            <tbody>
+              <tr>
+                <td className="mono">baseUrl</td>
+                <td>
+                  このアプリのAPIサーバーのURL。既定値が本番URLなので、自前で別環境
+                  （ステージング・自前デプロイ等）を使う場合以外は変更不要
+                </td>
+              </tr>
+              <tr>
+                <td className="mono">apiKey</td>
+                <td>
+                  このプロジェクト専用のAPIキー。プロジェクトを開いた画面の「管理」メニューの
+                  「SDK接続情報を表示」で確認できる（プロジェクトごとに別の値が発行されるため、
+                  他のプロジェクトのキーは使えない）
+                </td>
+              </tr>
+              <tr>
+                <td className="mono">projectId</td>
+                <td>手順1で確認したプロジェクトID</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            続けて、シーン内の任意のGameObjectに<span className="mono">InputLogRecorder</span>と
+            <span className="mono">BugReportTrigger</span>の2つをアタッチします。
+          </p>
+          <p>
+            <span className="mono">BugReportTrigger</span>の<span className="mono">config</span>欄に、
+            上で作った設定を割り当ててください。
+          </p>
+          <p>
+            <span className="mono">InputLogRecorder</span>の<span className="mono">watchedKeys</span>には、
+            ログに残したい入力キーを登録します。
+          </p>
+        </details>
       </li>
 
       <li>
         <h2>4. 動画の取得方法を選ぶ</h2>
         <p>
-          <strong>推奨: </strong>
-          <span className="mono">InstantReplayVideoRecorder</span> を追加すると、ゲーム自身が
-          直近n秒のプレイをリングバッファで保持しておき、バグ報告のタイミングで
+          <strong>推奨:</strong> <span className="mono">InstantReplayVideoRecorder</span>を追加すると、
+          ゲーム自身が直近n秒のプレイをリングバッファで保持しておき、バグ報告のタイミングで
           プラットフォームネイティブのハードウェアエンコーダーでmp4として書き出します。
-          プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。導入手順は
-          <span className="mono">unity-sdk/README.md</span>の「動画録画について」を参照してください。
+        </p>
+        <p>
+          プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。
+          導入手順は<span className="mono">unity-sdk/README.md</span>の「動画録画について」を
+          参照してください。
         </p>
         <p>
           これを追加しない場合でも、Windowsの<strong>Xbox Game Bar</strong>（背景録画）や
           <strong>NVIDIA ShadowPlay</strong>、<strong>AMD ReLive</strong>
           といったOS標準のインスタントリプレイ機能を利用する
-          <span className="mono">ReplayFolderWatcher</span>
-          がフォールバックとして標準で組み込まれており、追加コードは不要です。ただしこの場合、
-          プレイヤー側で事前にOSの録画機能を有効にしておく必要があります。
+          <span className="mono">ReplayFolderWatcher</span>がフォールバックとして標準で組み込まれており、
+          追加コードは不要です。
+        </p>
+        <p>
+          ただしこの場合、プレイヤー側で事前にOSの録画機能を有効にしておく必要があります。
         </p>
       </li>
 
@@ -149,17 +173,21 @@ function UnityGuide() {
         <h2>5. バグを見つけたらホットキーを押す</h2>
         <p>
           <span className="mono">BugReportTrigger</span>のホットキー（既定は
-          <span className="mono"> F12</span>）を押すと、直近の入力ログと動画がまとめて自動送信され、
+          <span className="mono">F12</span>）を押すと、直近の入力ログと動画がまとめて自動送信され、
           このWebアプリのプロジェクト内バグ一覧に「未対応」として表示されます。
+        </p>
+        <p>
           <span className="mono">ReplayFolderWatcher</span>のみを使っている場合は、ホットキーを押す前に
           <span className="mono">Win + Alt + G</span>を押してOS側に直近の録画を保存しておいてください。
         </p>
         <p>
           タイトルやタグをQA担当者に入力させてから送信したい場合は、
           <span className="mono">GlankReportPromptUI</span>を使うと、ホットキー即送信の代わりに
-          簡易フォームを開けます。方法A・Bで導入した場合、送信に失敗しても
-          <span className="mono">GlankOfflineQueue</span>が自動で退避・再送してくれます
-          （最初から組み込み済みです）。
+          簡易フォームを開けます。
+        </p>
+        <p>
+          Setup Wizardで導入した場合、送信に失敗しても<span className="mono">GlankOfflineQueue</span>
+          が自動で退避・再送してくれます（最初から組み込み済みです）。
         </p>
         <ImagePlaceholder caption="ホットキーを押した後、Webアプリのバグ一覧に報告が表示された状態のスクリーンショット" />
       </li>
@@ -229,12 +257,16 @@ function StorageGuide() {
             <a href="https://turso.tech/" target="_blank" rel="noreferrer" className="help-external-link">
               Tursoのダッシュボード
             </a>
-            にアクセスし、アカウント作成後「Create Database」から新しいデータベースを1つ作成します
-            （Windows環境ではTurso CLIのインストーラーが対応していないため、Webダッシュボードでの
-            作成を推奨します）。作成したデータベースの詳細ページで、以下の2つを取得して
-            ストレージ設定フォームに入力してください（自前でホストしているlibsql互換サーバー
-            （<span className="mono">sqld</span>等）を使う場合は、そのサーバーのURL・トークンを
-            同じ欄に入力すれば動きます）。
+            にアクセスし、アカウント作成後「Create Database」から新しいデータベースを1つ作成します。
+          </p>
+          <p>
+            Windows環境ではTurso CLIのインストーラーが対応していないため、Webダッシュボードでの
+            作成を推奨します。作成したデータベースの詳細ページで、以下の2つを取得して
+            ストレージ設定フォームに入力してください。
+          </p>
+          <p>
+            自前でホストしているlibsql互換サーバー（<span className="mono">sqld</span>等）を使う場合は、
+            そのサーバーのURL・トークンを同じ欄に入力すれば動きます。
           </p>
           <table className="help-table">
             <tbody>
@@ -262,11 +294,15 @@ function StorageGuide() {
             <a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer" className="help-external-link">
               Cloudflareダッシュボード
             </a>
-            の「R2」からバケットを1つ作成し、バケットの設定でパブリックアクセス（
-            <span className="mono">r2.dev</span> のサブドメイン、または独自ドメイン）を有効にします。
-            続けて「R2 API トークン」を発行し、以下をストレージ設定フォームに入力してください
-            （R2以外のS3互換ストレージを使う場合は、そのサービスが案内するエンドポイントURL・
-            アクセスキー・バケット名・公開URLを同じ欄に入力すれば動きます）。
+            の「R2」からバケットを1つ作成し、バケットの設定でパブリックアクセス
+            （<span className="mono">r2.dev</span>のサブドメイン、または独自ドメイン）を有効にします。
+          </p>
+          <p>
+            続けて「R2 API トークン」を発行し、以下をストレージ設定フォームに入力してください。
+          </p>
+          <p>
+            R2以外のS3互換ストレージを使う場合は、そのサービスが案内するエンドポイントURL・
+            アクセスキー・バケット名・公開URLを同じ欄に入力すれば動きます。
           </p>
           <table className="help-table">
             <tbody>
