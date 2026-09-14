@@ -807,7 +807,9 @@ body {
 .help-screenshot {
   display: block;
   margin-top: 12px;
-  max-width: 100%;
+  /* 元画像の解像度が低い場合、コンテナ幅いっぱいまで引き伸ばすとぼやけて見えるため、
+     実用上見やすい幅で頭打ちにする（画像自体を綺麗にするものではない点に注意）。 */
+  max-width: min(100%, 640px);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
