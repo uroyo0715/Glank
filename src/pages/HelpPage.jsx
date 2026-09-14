@@ -28,7 +28,7 @@ const UNITY_TOC_GROUPS = [
     items: [
       { id: 'unity-step-4', label: '動画の記録方法' },
       { id: 'unity-step-5', label: 'バグ報告の手順' },
-      { id: 'unity-step-6', label: '報告者名・プレイ中のプラットフォームを設定する' },
+      { id: 'unity-step-6', label: '報告者名・プラットフォームの設定' },
       { id: 'unity-step-7', label: '各コンポーネントの役割と設定項目' },
     ],
   },
@@ -182,7 +182,7 @@ function UnityGuide() {
       </li>
 
       <li id="unity-step-6">
-        <h2>6. 報告者名・プレイ中のプラットフォームを設定する</h2>
+        <h2>6. 報告者名・プラットフォームの設定</h2>
         <p>
           <span className="mono">GlankManager</span>には<span className="mono">GlankReporterNamePrompt</span>
           が最初から付いており、報告者名が未設定の間はゲーム起動時に自動で入力欄（名前・プレイ中の
