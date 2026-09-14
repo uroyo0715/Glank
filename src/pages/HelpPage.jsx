@@ -34,6 +34,16 @@ const UNITY_TOC_GROUPS = [
   },
 ]
 
+// TOCリンクを普通の<a href="#...">にすると、クリックのたびにブラウザ履歴が1件積まれてしまい、
+// 右上の「戻る」ボタン（history.back相当）を押しても前のページに戻らず、目次間を
+// 行ったり来たりするだけになる（実際にこの不具合が起きた）。履歴を汚さないよう、
+// クリック自体はJSで処理してスクロールし、URLのハッシュはreplaceState（履歴を積まない）で更新する。
+function handleTocClick(e, id) {
+  e.preventDefault()
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  window.history.replaceState(null, '', `#${id}`)
+}
+
 function UnityToc() {
   let counter = 0
   return (
@@ -47,7 +57,7 @@ function UnityToc() {
               counter += 1
               return (
                 <li key={item.id}>
-                  <a href={`#${item.id}`}>
+                  <a href={`#${item.id}`} onClick={(e) => handleTocClick(e, item.id)}>
                     {counter}. {item.label}
                   </a>
                 </li>
