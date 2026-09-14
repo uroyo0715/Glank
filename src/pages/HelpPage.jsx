@@ -14,29 +14,48 @@ function SdkDownloadButton({ engine, label }) {
   )
 }
 
-const UNITY_TOC_ITEMS = [
-  { id: 'unity-step-1', label: 'Glankでプロジェクトを作成する' },
-  { id: 'unity-step-2', label: 'Unity側にGlank SDKを導入する' },
-  { id: 'unity-step-3', label: 'バグ報告機能をセットアップする' },
-  { id: 'unity-step-4', label: '動画の取得方法を選ぶ' },
-  { id: 'unity-step-5', label: 'バグを見つけたらホットキーを押す' },
-  { id: 'unity-step-6', label: '報告者名・プレイ中のプラットフォームを設定する' },
-  { id: 'unity-step-7', label: '各コンポーネントの役割と設定項目' },
+const UNITY_TOC_GROUPS = [
+  {
+    title: '導入手順',
+    items: [
+      { id: 'unity-step-1', label: 'Glankでプロジェクトを作成する' },
+      { id: 'unity-step-2', label: 'Unity側にGlank SDKを導入する' },
+      { id: 'unity-step-3', label: 'バグ報告機能をセットアップする' },
+    ],
+  },
+  {
+    title: '使い方・カスタマイズ',
+    items: [
+      { id: 'unity-step-4', label: '動画の記録方法' },
+      { id: 'unity-step-5', label: 'バグを見つけたらホットキーを押す' },
+      { id: 'unity-step-6', label: '報告者名・プレイ中のプラットフォームを設定する' },
+      { id: 'unity-step-7', label: '各コンポーネントの役割と設定項目' },
+    ],
+  },
 ]
 
 function UnityToc() {
+  let counter = 0
   return (
     <nav className="help-toc" aria-label="目次">
       <div className="help-toc-title">目次</div>
-      <ol>
-        {UNITY_TOC_ITEMS.map((item, i) => (
-          <li key={item.id}>
-            <a href={`#${item.id}`}>
-              {i + 1}. {item.label}
-            </a>
-          </li>
-        ))}
-      </ol>
+      {UNITY_TOC_GROUPS.map((group) => (
+        <div className="help-toc-group" key={group.title}>
+          <div className="help-toc-group-title">{group.title}</div>
+          <ol>
+            {group.items.map((item) => {
+              counter += 1
+              return (
+                <li key={item.id}>
+                  <a href={`#${item.id}`}>
+                    {counter}. {item.label}
+                  </a>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+      ))}
     </nav>
   )
 }
@@ -108,25 +127,34 @@ function UnityGuide() {
       <h2 className="help-group-title">使い方・カスタマイズ</h2>
       <ol className="help-steps">
       <li id="unity-step-4">
-        <h2>4. 動画の取得方法を選ぶ</h2>
+        <h2>4. 動画の記録方法</h2>
         <p>
-          <strong>推奨:</strong> <span className="mono">InstantReplayVideoRecorder</span>を追加すると、
-          ゲーム自身が直近n秒のプレイをリングバッファで保持しておき、バグ報告のタイミングで
-          プラットフォームネイティブのハードウェアエンコーダーでmp4として書き出します。
-        </p>
-        <p>
-          プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。
-          導入には外部パッケージ（CyberAgentのInstantReplay）が必要になります。
-        </p>
-        <p>
-          これを追加しない場合でも、Windowsの<strong>Xbox Game Bar</strong>（背景録画）や
+          追加の設定をしなくても、Windowsの<strong>Xbox Game Bar</strong>（背景録画）や
           <strong>NVIDIA ShadowPlay</strong>、<strong>AMD ReLive</strong>
           といったOS標準のインスタントリプレイ機能を利用する
-          <span className="mono">ReplayFolderWatcher</span>がフォールバックとして標準で組み込まれており、
-          追加コードは不要です。
+          <span className="mono">ReplayFolderWatcher</span>が既定で組み込まれています。
         </p>
         <p>
           ただしこの場合、プレイヤー側で事前にOSの録画機能を有効にしておく必要があります。
+        </p>
+        <p>
+          <strong>任意:</strong> <span className="mono">InstantReplayVideoRecorder</span>を追加すると、
+          ゲーム自身が直近n秒のプレイをリングバッファで保持しておき、バグ報告のタイミングで
+          プラットフォームネイティブのハードウェアエンコーダーでmp4として書き出します。
+          プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。
+        </p>
+        <p>
+          外部パッケージ（CyberAgentのInstantReplay）を導入していない間は、
+          <span className="mono">InstantReplayVideoRecorder</span>自体が使えません
+          （コンポーネントのチェックが外れているのではなく、パッケージ未導入の間は
+          コンポーネントとして存在しない状態です）。パッケージを導入してSetup Wizardを実行すると、
+          チェックが付いた状態で自動的に追加されます。
+        </p>
+        <p>
+          両方をシーンに置いても問題ありません。<span className="mono">InstantReplayVideoRecorder</span>
+          があればそちらが優先して使われ、無い場合だけ<span className="mono">ReplayFolderWatcher</span>
+          にフォールバックする仕組みのため、報告が重複して2件送信されることはありません
+          （ホットキー1回につき送信は必ず1回です）。
         </p>
       </li>
 
