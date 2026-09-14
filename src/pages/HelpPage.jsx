@@ -21,10 +21,15 @@ function UnityGuide() {
         <h2>1. このWebアプリでプロジェクトを作成する</h2>
         <p>
           プロジェクト一覧画面の「新規プロジェクト」から、タイトル・ティザー画像（任意）・
-          使用ゲームエンジン（Unity）を指定して作成します。作成されたプロジェクトカードに表示される
-          <span className="mono">ID: 3</span> のような番号が、Unity側の設定で使うプロジェクトIDです。
+          使用ゲームエンジン（Unity）を指定して作成します。作成したプロジェクトを開き、
+          右上の「管理」メニューから「SDK接続情報を表示」を選ぶと、Unity側の設定で使う
+          プロジェクトID・API Key・バックエンドURLがまとめて確認できます。
         </p>
-        <ImagePlaceholder caption="プロジェクトカードに表示されるIDの位置がわかるスクリーンショット" />
+        <img
+          src="/help/SDKinfo_place.png"
+          alt="「管理」メニューの「SDK接続情報を表示」でProject ID等が確認できる画面のスクリーンショット"
+          className="help-screenshot"
+        />
       </li>
 
       <li>

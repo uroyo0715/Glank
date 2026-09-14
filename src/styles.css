@@ -804,6 +804,13 @@ body {
   font-size: 12px;
   line-height: 1.6;
 }
+.help-screenshot {
+  display: block;
+  margin-top: 12px;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
 .sdk-download-button {
   display: inline-flex;
   align-items: center;
