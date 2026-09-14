@@ -155,7 +155,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         報告のデータベースと動画の保存先を選べます。
         {' '}
         <Link to="/help#storage-setup" target="_blank" className="help-link">
-          設定方法はこちら（推奨: Turso・Cloudflare R2）
+          設定方法はこちら（Turso・Cloudflare R2）
         </Link>
       </p>
       {status.configuredByName && (
@@ -247,7 +247,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         <div className="storage-config-forms">
           <form className="storage-config-form" onSubmit={handleTursoSubmit}>
             <div className="storage-config-form-head">
-              <span>データベース（libsql互換。推奨: Turso）</span>
+              <span>Turso（データベース）</span>
               <span className={`storage-status-badge ${status.tursoConfigured ? 'ok' : ''}`}>
                 {status.tursoConfigured ? '設定済み' : '未設定'}
               </span>
@@ -272,7 +272,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
 
           <form className="storage-config-form" onSubmit={handleR2Submit}>
             <div className="storage-config-form-head">
-              <span>動画・画像ストレージ（S3互換。推奨: Cloudflare R2）</span>
+              <span>Cloudflare R2（動画・画像ストレージ）</span>
               <span className={`storage-status-badge ${status.r2Configured ? 'ok' : ''}`}>
                 {status.r2Configured ? '設定済み' : '未設定'}
               </span>

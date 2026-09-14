@@ -192,7 +192,7 @@ function GodotGuide() {
 function StorageGuide() {
   return (
     <section id="storage-setup" className="help-storage-section">
-      <h1>ストレージ設定（推奨: Turso・Cloudflare R2）の手順</h1>
+      <h1>ストレージ設定（Turso・Cloudflare R2）の手順</h1>
       <p className="help-lead">
         プロジェクトごとの報告データベースと動画・画像の保存先には、自分のアカウントを使う
         （<span className="mono">self_hosted</span>）方式を使います。プロジェクトのバグ一覧画面の
@@ -215,7 +215,7 @@ function StorageGuide() {
         </li>
 
         <li>
-          <h2>2. データベース（推奨: Turso）を用意する</h2>
+          <h2>2. Turso（データベース）を用意する</h2>
           <p>
             <a href="https://turso.tech/" target="_blank" rel="noreferrer" className="help-external-link">
               Tursoのダッシュボード
