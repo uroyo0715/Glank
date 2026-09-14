@@ -111,8 +111,7 @@ function UnityGuide() {
         </p>
         <p>
           プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。
-          導入手順は<span className="mono">unity-sdk/README.md</span>の「動画録画について」を
-          参照してください。
+          導入には外部パッケージ（CyberAgentのInstantReplay）が必要になります。
         </p>
         <p>
           これを追加しない場合でも、Windowsの<strong>Xbox Game Bar</strong>（背景録画）や
@@ -380,11 +379,6 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
               Setup Wizardを使ってもうまく動かない場合は、
               <Link to="/setup-guide">詳細セットアップガイド</Link>
               のトラブルシューティングを参照してください（配線図・原因の切り分け付き）。
-            </p>
-
-            <p className="help-footer-note">
-              より詳しい技術仕様は <span className="mono">unity-sdk/README.md</span> と
-              <span className="mono"> docs/api-spec.md</span> を参照してください。
             </p>
           </>
         )}
