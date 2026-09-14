@@ -180,23 +180,19 @@ function ManageMenu({
                 </button>
               </div>
               <div className="manage-menu-connection-row">
-                <div className="manage-menu-connection-label">Project ID</div>
-                {fieldVisible.projectId ? (
+                <div className="manage-menu-connection-label">バックエンドURL</div>
+                {fieldVisible.backendUrl ? (
                   <>
-                    <div className="manage-menu-connection-value mono">{projectId}</div>
-                    <button
-                      type="button"
-                      className="help-link"
-                      onClick={copyValue('projectId', String(projectId))}
-                    >
-                      {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
+                    <div className="manage-menu-connection-value mono">{backendUrl()}</div>
+                    <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
+                      {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
                     </button>
                   </>
                 ) : (
                   <div className="manage-menu-connection-value mono">••••••••</div>
                 )}
-                <button type="button" className="help-link" onClick={() => toggleFieldVisible('projectId')}>
-                  {fieldVisible.projectId ? '隠す' : '表示'}
+                <button type="button" className="help-link" onClick={() => toggleFieldVisible('backendUrl')}>
+                  {fieldVisible.backendUrl ? '隠す' : '表示'}
                 </button>
               </div>
               <div className="manage-menu-connection-row">
@@ -232,19 +228,23 @@ function ManageMenu({
                 </button>
               </div>
               <div className="manage-menu-connection-row">
-                <div className="manage-menu-connection-label">バックエンドURL</div>
-                {fieldVisible.backendUrl ? (
+                <div className="manage-menu-connection-label">Project ID</div>
+                {fieldVisible.projectId ? (
                   <>
-                    <div className="manage-menu-connection-value mono">{backendUrl()}</div>
-                    <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
-                      {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                    <div className="manage-menu-connection-value mono">{projectId}</div>
+                    <button
+                      type="button"
+                      className="help-link"
+                      onClick={copyValue('projectId', String(projectId))}
+                    >
+                      {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
                     </button>
                   </>
                 ) : (
                   <div className="manage-menu-connection-value mono">••••••••</div>
                 )}
-                <button type="button" className="help-link" onClick={() => toggleFieldVisible('backendUrl')}>
-                  {fieldVisible.backendUrl ? '隠す' : '表示'}
+                <button type="button" className="help-link" onClick={() => toggleFieldVisible('projectId')}>
+                  {fieldVisible.projectId ? '隠す' : '表示'}
                 </button>
               </div>
             </div>
