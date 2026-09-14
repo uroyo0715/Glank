@@ -73,76 +73,6 @@ function UnityGuide() {
           alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key / Project ID入力欄とセットアップボタン）"
           className="help-screenshot"
         />
-
-        <details className="help-advanced-details">
-          <summary>カスタマイズしたい場合</summary>
-
-          <h3 className="help-substep-title">プレハブをドラッグ&ドロップする</h3>
-          <p>
-            ウィザードを使わず導入したい場合は、SDKに同梱されている
-            <span className="mono">Packages/Glank/Runtime/Prefabs/GlankManager.prefab</span>
-            （Setup Wizardと同じ構成が組まれたプレハブ）をシーンにドラッグ&ドロップします。
-          </p>
-          <p>
-            ただし、このプレハブが参照している<span className="mono">GlankSettings</span>は
-            <strong>APIキー・プロジェクトIDが空のプレースホルダー</strong>です。
-            プレースホルダーのアセットを右クリック→複製し、複製した方に自分のAPIキー・
-            プロジェクトIDを入力してください。
-          </p>
-          <p>
-            そのうえで、<strong>シーンに置いたインスタンス側</strong>の
-            <span className="mono">BugReportTrigger</span>・<span className="mono">CrashDetector</span>・
-            <span className="mono">FreezeWatchdog</span>・<span className="mono">GlankOfflineQueue</span>
-            それぞれの<span className="mono">Config</span>欄を、複製したアセットに差し替えてください
-            （プレハブアセット自体を直接編集しないよう注意）。
-          </p>
-          <p>
-            設定を入力し忘れたまま実行すると、「projectIdが未設定です」という分かりやすいエラーが
-            Consoleに出て送信が中止されるので、実際の値が入っているかどうかはすぐに気付けます。
-          </p>
-
-          <h3 className="help-substep-title">手動でコンポーネントを配置する</h3>
-          <p>
-            細かくカスタマイズしたい場合向けの、従来通りの方法です。Unityのメニューから
-            <span className="mono">Assets &gt; Create &gt; Glank &gt; Settings</span>で
-            ScriptableObjectを作成し、次の3項目を設定します。
-          </p>
-          <table className="help-table">
-            <tbody>
-              <tr>
-                <td className="mono">baseUrl</td>
-                <td>
-                  このアプリのAPIサーバーのURL。既定値が本番URLなので、自前で別環境
-                  （ステージング・自前デプロイ等）を使う場合以外は変更不要
-                </td>
-              </tr>
-              <tr>
-                <td className="mono">apiKey</td>
-                <td>
-                  このプロジェクト専用のAPIキー。プロジェクトを開いた画面の「管理」メニューの
-                  「SDK接続情報を表示」で確認できる（プロジェクトごとに別の値が発行されるため、
-                  他のプロジェクトのキーは使えない）
-                </td>
-              </tr>
-              <tr>
-                <td className="mono">projectId</td>
-                <td>手順1で確認したプロジェクトID</td>
-              </tr>
-            </tbody>
-          </table>
-          <p>
-            続けて、シーン内の任意のGameObjectに<span className="mono">InputLogRecorder</span>と
-            <span className="mono">BugReportTrigger</span>の2つをアタッチします。
-          </p>
-          <p>
-            <span className="mono">BugReportTrigger</span>の<span className="mono">config</span>欄に、
-            上で作った設定を割り当ててください。
-          </p>
-          <p>
-            <span className="mono">InputLogRecorder</span>の<span className="mono">watchedKeys</span>には、
-            ログに残したい入力キーを登録します。
-          </p>
-        </details>
       </li>
 
       <li>
@@ -206,6 +136,158 @@ function UnityGuide() {
           分からないため、覚えておいてください）。キーは<span className="mono">GlankReporterNamePrompt</span>
           の<span className="mono">reopenHotkey</span>で変更できます。
         </p>
+      </li>
+
+      <li>
+        <h2>7. 各コンポーネントの役割と設定項目</h2>
+        <p>
+          Setup Wizardが配置する<span className="mono">GlankManager</span>には、
+          役割の異なるコンポーネントがまとめてアタッチされています。動作を変更したい場合は、
+          対応するコンポーネントのInspectorで下記の項目を編集してください。
+        </p>
+
+        <h3 className="help-substep-title">
+          <span className="mono">GlankSettings</span>（接続設定）
+        </h3>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">baseUrl</td>
+              <td>接続先のバックエンドURL。既定値は本番URLで、通常は変更不要</td>
+            </tr>
+            <tr>
+              <td className="mono">apiKey / projectId</td>
+              <td>プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」で確認できる</td>
+            </tr>
+            <tr>
+              <td className="mono">autoDetectionEnabled</td>
+              <td>
+                下記<span className="mono">CrashDetector</span>・
+                <span className="mono">FreezeWatchdog</span>による自動検知/自動報告のON/OFF。既定OFF
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">BugReportTrigger</span>（ホットキーでの報告送信）
+        </h3>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">reportHotkey</td>
+              <td>バグ報告を送信するときに押すキー。既定は<span className="mono">F12</span></td>
+            </tr>
+            <tr>
+              <td className="mono">promptUI</td>
+              <td>
+                設定すると、ホットキーを押した際に仮タイトルで即送信する代わりに、
+                <span className="mono">GlankReportPromptUI</span>のフォームを開くようになる
+              </td>
+            </tr>
+            <tr>
+              <td className="mono">offlineQueue</td>
+              <td>
+                設定すると、送信に失敗した報告を<span className="mono">GlankOfflineQueue</span>が
+                自動で退避・再送する
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">CrashDetector</span>（クラッシュの自動検知）
+        </h3>
+        <p>
+          <span className="mono">GlankSettings.autoDetectionEnabled</span>がONの間だけ動作する
+          （既定OFF）。
+        </p>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">treatAllErrorsAsFatal</td>
+              <td>
+                通常はUnityの未処理例外だけを検知するが、ONにすると<span className="mono">
+                Debug.LogError</span>等のエラーログもすべて致命的として自動報告する。既定OFF
+              </td>
+            </tr>
+            <tr>
+              <td className="mono">cooldownSeconds</td>
+              <td>連続クラッシュで自動報告が乱発しないための最短間隔（秒）。既定30秒</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">FreezeWatchdog</span>（フリーズの自動検知）
+        </h3>
+        <p>
+          こちらも<span className="mono">autoDetectionEnabled</span>がONの間だけ動作する。
+        </p>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">freezeThresholdSeconds</td>
+              <td>この秒数フレームが進まなかったらフリーズとみなす。既定10秒</td>
+            </tr>
+            <tr>
+              <td className="mono">pollIntervalSeconds</td>
+              <td>フリーズを監視する間隔（秒）。既定1秒</td>
+            </tr>
+            <tr>
+              <td className="mono">cooldownSeconds</td>
+              <td>連続フリーズで自動報告が乱発しないための最短間隔（秒）。既定60秒</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">GlankOfflineQueue</span>（送信失敗時の再送）
+        </h3>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">retryIntervalSeconds</td>
+              <td>送信に失敗した報告の再送を試みる間隔（秒）。既定60秒</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">InputLogRecorder</span>（入力ログの記録）
+        </h3>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">watchedKeys</td>
+              <td>入力ログに残したいキーの一覧（キー・表示グリフ・ラベル）</td>
+            </tr>
+            <tr>
+              <td className="mono">bufferSeconds</td>
+              <td>何秒分の入力履歴を保持するか。既定10秒</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 className="help-substep-title">
+          <span className="mono">GlankReporterNamePrompt</span>（報告者名の入力欄）
+        </h3>
+        <table className="help-table">
+          <tbody>
+            <tr>
+              <td className="mono">showOnStartIfUnset</td>
+              <td>報告者名が未設定の間、ゲーム起動時に自動で入力欄を表示するかどうか。既定ON</td>
+            </tr>
+            <tr>
+              <td className="mono">reopenHotkey</td>
+              <td>入力欄をいつでも開き直せるキー。既定は<span className="mono">F9</span></td>
+            </tr>
+            <tr>
+              <td className="mono">pauseGameWhileOpen</td>
+              <td>入力欄が開いている間、<span className="mono">Time.timeScale</span>を0にするかどうか。既定ON</td>
+            </tr>
+          </tbody>
+        </table>
       </li>
     </ol>
   )

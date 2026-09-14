@@ -753,24 +753,6 @@ body {
   color: var(--text);
   margin: 0 0 8px;
 }
-.help-advanced-details {
-  margin-top: 20px;
-  padding-top: 4px;
-  border-top: 1px dashed var(--border);
-}
-.help-advanced-details summary {
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dim);
-  padding: 10px 0;
-}
-.help-advanced-details[open] summary {
-  color: var(--text);
-}
-.help-advanced-details > *:not(summary) {
-  margin-left: 2px;
-}
 .help-steps li > * + * {
   margin-top: 12px;
 }
