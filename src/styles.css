@@ -759,6 +759,17 @@ body {
 .help-coming-soon p:last-child {
   margin-bottom: 0;
 }
+.help-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 32px 0 14px;
+}
+.help-group-title:first-child {
+  margin-top: 0;
+}
 .help-steps {
   list-style: none;
   margin: 0;

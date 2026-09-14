@@ -15,9 +15,9 @@ function SdkDownloadButton({ engine, label }) {
 }
 
 const UNITY_TOC_ITEMS = [
-  { id: 'unity-step-1', label: 'このWebアプリでプロジェクトを作成する' },
+  { id: 'unity-step-1', label: 'Glankでプロジェクトを作成する' },
   { id: 'unity-step-2', label: 'Unity側にGlank SDKを導入する' },
-  { id: 'unity-step-3', label: 'セットアップする' },
+  { id: 'unity-step-3', label: 'バグ報告機能をセットアップする' },
   { id: 'unity-step-4', label: '動画の取得方法を選ぶ' },
   { id: 'unity-step-5', label: 'バグを見つけたらホットキーを押す' },
   { id: 'unity-step-6', label: '報告者名・プレイ中のプラットフォームを設定する' },
@@ -43,9 +43,11 @@ function UnityToc() {
 
 function UnityGuide() {
   return (
-    <ol className="help-steps">
+    <>
+      <h2 className="help-group-title">導入手順</h2>
+      <ol className="help-steps">
       <li id="unity-step-1">
-        <h2>1. このWebアプリでプロジェクトを作成する</h2>
+        <h2>1. Glankでプロジェクトを作成する</h2>
         <p>
           プロジェクト一覧画面の「新規プロジェクト」から、タイトル・ティザー画像（任意）・
           使用ゲームエンジン（Unity）を指定して作成します。作成したプロジェクトを開き、
@@ -73,7 +75,7 @@ function UnityGuide() {
       </li>
 
       <li id="unity-step-3">
-        <h2>3. セットアップする</h2>
+        <h2>3. バグ報告機能をセットアップする</h2>
         <p>
           Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開きます。
         </p>
@@ -101,7 +103,10 @@ function UnityGuide() {
           className="help-screenshot"
         />
       </li>
+      </ol>
 
+      <h2 className="help-group-title">使い方・カスタマイズ</h2>
+      <ol className="help-steps">
       <li id="unity-step-4">
         <h2>4. 動画の取得方法を選ぶ</h2>
         <p>
@@ -315,7 +320,8 @@ function UnityGuide() {
           </tbody>
         </table>
       </li>
-    </ol>
+      </ol>
+    </>
   )
 }
 
