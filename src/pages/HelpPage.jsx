@@ -63,7 +63,11 @@ function UnityGuide() {
           新Input System（<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの
           自動判定まで、まとめて行われます。
         </p>
-        <ImagePlaceholder caption="Setup Wizardのウィンドウ（バックエンドURL / API Key / Project ID入力欄とセットアップボタン）のスクリーンショット" />
+        <img
+          src="/help/SetupWizard_setting.png"
+          alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key / Project ID入力欄とセットアップボタン）"
+          className="help-screenshot"
+        />
 
         <h3 className="help-substep-title">方法B: プレハブをドラッグ&ドロップする</h3>
         <p>
