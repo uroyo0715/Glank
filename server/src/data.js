@@ -2,7 +2,7 @@ import { db, generateApiKey } from './db.js'
 import { encryptJson, decryptJson } from './crypto.js'
 
 // 種類（tag）に既定のプリセットは無く、全プロジェクト共通のラベル変換テーブルも持たない
-// （プロジェクトごとに「入力項目の管理」で追加した項目や自由記述をそのままラベルとして使う）。
+// （プロジェクトごとに「検索項目の管理」で追加した項目や自由記述をそのままラベルとして使う）。
 export const TAG_LABELS = {}
 
 export const PRIORITY_LABELS = {
@@ -133,7 +133,7 @@ export async function listBugs(
 }
 
 /** カンバン/テーブルの絞り込みUI用に、プロジェクト内で実際に使われているビルド・報告者・対応者・タグの一覧を返す。
- * tagsは「入力項目の管理」で隠していないプリセットに加え、実際の報告で使われた自由記述のタグも
+ * tagsは「検索項目の管理」で隠していないプリセットに加え、実際の報告で使われた自由記述のタグも
  * ここに出てくるため、絞り込みチップに新しく付けたタグがすぐ反映される。 */
 export async function listReportFacets(client, projectId) {
   const [buildsResult, whosResult, assigneesResult, tagsResult] = await Promise.all([

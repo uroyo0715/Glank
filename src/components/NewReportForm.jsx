@@ -29,7 +29,7 @@ export default function NewReportForm({
   const [error, setError] = useState(null)
   const [whoOptions, setWhoOptions] = useState([])
 
-  // 「入力項目の管理」で明示的に登録したプリセットに加えて、このプロジェクトで実際に
+  // 「検索項目の管理」で明示的に登録したプリセットに加えて、このプロジェクトで実際に
   // これまで使われたことのあるタグ（reportFacets.tags）もリストから選べるようにする
   // （そうしないと、毎回同じタグを自由入力欄に手打ちし直すことになって不便なため）。
   const tagOptions = [

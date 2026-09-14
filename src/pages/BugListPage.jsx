@@ -17,7 +17,7 @@ function priorityLabel(key) {
   return PRIORITY_OPTIONS.find((p) => p.key === key)?.label ?? key
 }
 
-// 「メンバー」「ストレージ設定」「入力項目の管理」「SDK接続情報」をまとめる管理メニュー。
+// 「メンバー」「ストレージ設定」「検索項目の管理」「SDK接続情報」をまとめる管理メニュー。
 // ヘッダーに個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つの
 // ドロップダウンに集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
 // SDK接続情報（バックエンドURL・Project ID・API Key）はSetup Wizard/プレハブに入力する3項目で、
@@ -165,7 +165,7 @@ function ManageMenu({
             className={`manage-menu-item ${showFieldOptions ? 'active' : ''}`}
             onClick={() => select(setShowFieldOptions)}
           >
-            入力項目の管理
+            検索項目の管理
           </button>
           {!infoRevealed ? (
             <button type="button" className="manage-menu-item" onClick={revealInfo}>
