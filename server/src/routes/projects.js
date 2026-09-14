@@ -352,13 +352,16 @@ router.patch(
     }
 
     if (r2 != null) {
-      const required = ['accountId', 'accessKeyId', 'secretAccessKey', 'bucket', 'publicUrl']
+      // R2に限らず、S3互換であればどのストレージでも使える（Cloudflare R2/AWS S3/Backblaze B2/
+      // MinIO等）。endpointにその接続先のURLを入れる（R2の場合は
+      // https://<Account ID>.r2.cloudflarestorage.com）。
+      const required = ['endpoint', 'accessKeyId', 'secretAccessKey', 'bucket', 'publicUrl']
       const missing = required.filter((key) => !r2[key])
       if (missing.length > 0) {
         return res.status(400).json({ error: `r2 missing fields: ${missing.join(', ')}` })
       }
       update.r2ConfigEnc = encryptR2Config({
-        accountId: r2.accountId,
+        endpoint: r2.endpoint,
         accessKeyId: r2.accessKeyId,
         secretAccessKey: r2.secretAccessKey,
         bucket: r2.bucket,

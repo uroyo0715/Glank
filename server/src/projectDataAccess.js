@@ -138,7 +138,10 @@ export function encryptTursoConfig({ url, authToken }) {
 
 /** @param {{accountId, accessKeyId, secretAccessKey, bucket, publicUrl}} config */
 export function encryptR2Config(config) {
-  return encryptJson(config)
+  // publicUrlの末尾にスラッシュが付いていると、saveFile()側で`${publicUrl}/${filename}`を
+  // 組み立てる際に二重スラッシュのURLになり、画像・動画が表示されない可能性があるため、
+  // 保存時点で正規化しておく。
+  return encryptJson({ ...config, publicUrl: config.publicUrl?.replace(/\/+$/, '') ?? config.publicUrl })
 }
 
 /** 保存済みprojectの行から、フロントに返してよい「設定済みかどうか」のステータスだけを作る（秘密は含めない）。 */

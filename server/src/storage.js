@@ -8,16 +8,27 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client
 
 const UPLOAD_DIR = path.join(import.meta.dirname, '..', 'uploads')
 
-// R2クライアントは接続情報ごとにキャッシュする（プロジェクトごとに毎リクエスト作り直さない）。
-const s3ClientCache = new Map() // accountId+accessKeyId -> S3Client
+// S3互換であればCloudflare R2に限らず使える（AWS S3・Backblaze B2・MinIO等）。
+// config.endpointを直接使い、無ければ従来のR2専用設定（accountIdからR2のURLを組み立てる方式）に
+// フォールバックする（すでに保存されている既存プロジェクトの接続情報との互換性のため）。
+function resolveS3Endpoint(config) {
+  return config.endpoint || `https://${config.accountId}.r2.cloudflarestorage.com`
+}
+
+// S3クライアントは接続情報ごとにキャッシュする（プロジェクトごとに毎リクエスト作り直さない）。
+const s3ClientCache = new Map() // endpoint+accessKeyId -> S3Client
 
 function getS3Client(config) {
-  const cacheKey = `${config.accountId}:${config.accessKeyId}`
+  const endpoint = resolveS3Endpoint(config)
+  const cacheKey = `${endpoint}:${config.accessKeyId}`
   let client = s3ClientCache.get(cacheKey)
   if (!client) {
     client = new S3Client({
       region: 'auto',
-      endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+      endpoint,
+      // R2以外の多くのS3互換ストレージ（MinIO等）はバケット名をサブドメインにする
+      // virtual-hosted-style非対応のため、より互換性の高いpath-styleに統一する。
+      forcePathStyle: true,
       credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey },
     })
     s3ClientCache.set(cacheKey, client)

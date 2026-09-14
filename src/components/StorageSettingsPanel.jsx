@@ -8,7 +8,7 @@ import {
 } from '../api/index.js'
 
 const EMPTY_TURSO = { url: '', authToken: '' }
-const EMPTY_R2 = { accountId: '', accessKeyId: '', secretAccessKey: '', bucket: '', publicUrl: '' }
+const EMPTY_R2 = { endpoint: '', accessKeyId: '', secretAccessKey: '', bucket: '', publicUrl: '' }
 
 export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdateStorage }) {
   const [status, setStatus] = useState(null)
@@ -155,7 +155,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         報告のデータベースと動画の保存先を選べます。
         {' '}
         <Link to="/help#storage-setup" target="_blank" className="help-link">
-          Turso・R2の設定方法はこちら
+          設定方法はこちら（推奨: Turso・Cloudflare R2）
         </Link>
       </p>
       {status.configuredByName && (
@@ -185,7 +185,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
 
       {isSelfHosted && !status.tursoConfigured && (
         <div className="storage-blocking-hint">
-          データベース（Turso）が未設定のため、このプロジェクトの報告機能はまだ使えません。下のフォームから設定してください。
+          データベースが未設定のため、このプロジェクトの報告機能はまだ使えません。下のフォームから設定してください。
         </div>
       )}
 
@@ -193,8 +193,8 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         <div className="storage-saved-configs">
           <div className="members-panel-label">保存済みの設定から呼び出す</div>
           <p className="storage-panel-hint">
-            自分が名前を付けて保存したTurso・R2の接続情報だけが表示されます（他のメンバーが保存したものは
-            呼び出せません）。
+            自分が名前を付けて保存したデータベース・ストレージの接続情報だけが表示されます
+            （他のメンバーが保存したものは呼び出せません）。
           </p>
           <ul className="storage-saved-configs-list">
             {savedConfigs.map((c) => (
@@ -247,7 +247,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         <div className="storage-config-forms">
           <form className="storage-config-form" onSubmit={handleTursoSubmit}>
             <div className="storage-config-form-head">
-              <span>Turso（データベース）</span>
+              <span>データベース（libsql互換。推奨: Turso）</span>
               <span className={`storage-status-badge ${status.tursoConfigured ? 'ok' : ''}`}>
                 {status.tursoConfigured ? '設定済み' : '未設定'}
               </span>
@@ -266,22 +266,22 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
             />
             {tursoError && <div className="project-form-error">{tursoError}</div>}
             <button type="submit" disabled={tursoSaving || !tursoFields.url || !tursoFields.authToken}>
-              {tursoSaving ? '保存中...' : 'Tursoの接続情報を保存'}
+              {tursoSaving ? '保存中...' : 'データベースの接続情報を保存'}
             </button>
           </form>
 
           <form className="storage-config-form" onSubmit={handleR2Submit}>
             <div className="storage-config-form-head">
-              <span>R2（動画・画像ストレージ）</span>
+              <span>動画・画像ストレージ（S3互換。推奨: Cloudflare R2）</span>
               <span className={`storage-status-badge ${status.r2Configured ? 'ok' : ''}`}>
                 {status.r2Configured ? '設定済み' : '未設定'}
               </span>
             </div>
             <input
               type="text"
-              placeholder="Account ID"
-              value={r2Fields.accountId}
-              onChange={(e) => setR2Fields((f) => ({ ...f, accountId: e.target.value }))}
+              placeholder="エンドポイントURL（R2の場合: https://<Account ID>.r2.cloudflarestorage.com）"
+              value={r2Fields.endpoint}
+              onChange={(e) => setR2Fields((f) => ({ ...f, endpoint: e.target.value }))}
             />
             <input
               type="text"
@@ -312,7 +312,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
               type="submit"
               disabled={
                 r2Saving ||
-                !r2Fields.accountId ||
+                !r2Fields.endpoint ||
                 !r2Fields.accessKeyId ||
                 !r2Fields.secretAccessKey ||
                 !r2Fields.bucket ||
