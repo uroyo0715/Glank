@@ -37,7 +37,9 @@ function ManageMenu({
 }) {
   const [open, setOpen] = useState(false)
   const [infoRevealed, setInfoRevealed] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  // Project ID・APIキー・バックエンドURLはそれぞれ個別に隠せる（1項目だけ見せて残りは隠す、
+  // といった使い方ができるように）。
+  const [fieldVisible, setFieldVisible] = useState({ projectId: false, apiKey: false, backendUrl: false })
   const [apiKeyState, setApiKeyState] = useState('idle') // 'idle' | 'loading' | 'shown' | 'error'
   const [apiKey, setApiKey] = useState(null)
   const [apiKeyError, setApiKeyError] = useState(null)
@@ -45,13 +47,17 @@ function ManageMenu({
   const [copiedField, setCopiedField] = useState(null)
   const rootRef = useRef(null)
 
+  function toggleFieldVisible(field) {
+    setFieldVisible((v) => ({ ...v, [field]: !v[field] }))
+  }
+
   // メニューを閉じるたびにSDK接続情報（Project ID・APIキー・バックエンドURL）の表示状態も
   // リセットする。開いたままにしておくと、画面を見られたりスクリーンショット/共有された際に
   // APIキー等がずっと見える状態になってしまうため（実際にこれが不安点として指摘された）、
   // 毎回明示的に「表示」し直さないと見えないようにする。
   function hideInfo() {
     setInfoRevealed(false)
-    setShowAdvanced(false)
+    setFieldVisible({ projectId: false, apiKey: false, backendUrl: false })
     setApiKeyState('idle')
     setApiKey(null)
     setApiKeyError(null)
@@ -175,13 +181,22 @@ function ManageMenu({
               </div>
               <div className="manage-menu-connection-row">
                 <div className="manage-menu-connection-label">Project ID</div>
-                <div className="manage-menu-connection-value mono">{projectId}</div>
-                <button
-                  type="button"
-                  className="help-link"
-                  onClick={copyValue('projectId', String(projectId))}
-                >
-                  {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
+                {fieldVisible.projectId ? (
+                  <>
+                    <div className="manage-menu-connection-value mono">{projectId}</div>
+                    <button
+                      type="button"
+                      className="help-link"
+                      onClick={copyValue('projectId', String(projectId))}
+                    >
+                      {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
+                    </button>
+                  </>
+                ) : (
+                  <div className="manage-menu-connection-value mono">••••••••</div>
+                )}
+                <button type="button" className="help-link" onClick={() => toggleFieldVisible('projectId')}>
+                  {fieldVisible.projectId ? '隠す' : '表示'}
                 </button>
               </div>
               <div className="manage-menu-connection-row">
@@ -190,9 +205,18 @@ function ManageMenu({
                 {apiKeyState === 'error' && <div className="project-form-error">{apiKeyError}</div>}
                 {apiKeyState === 'shown' && (
                   <>
-                    <div className="manage-menu-connection-value mono">{apiKey}</div>
-                    <button type="button" className="help-link" onClick={copyValue('apiKey', apiKey)}>
-                      {copiedField === 'apiKey' ? 'コピーしました' : 'コピー'}
+                    {fieldVisible.apiKey ? (
+                      <>
+                        <div className="manage-menu-connection-value mono">{apiKey}</div>
+                        <button type="button" className="help-link" onClick={copyValue('apiKey', apiKey)}>
+                          {copiedField === 'apiKey' ? 'コピーしました' : 'コピー'}
+                        </button>
+                      </>
+                    ) : (
+                      <div className="manage-menu-connection-value mono">••••••••</div>
+                    )}
+                    <button type="button" className="help-link" onClick={() => toggleFieldVisible('apiKey')}>
+                      {fieldVisible.apiKey ? '隠す' : '表示'}
                     </button>
                   </>
                 )}
@@ -207,26 +231,22 @@ function ManageMenu({
                   {regenerating ? 'APIキーを再発行中...' : 'APIキーを再発行'}
                 </button>
               </div>
-              {!showAdvanced ? (
-                <button
-                  type="button"
-                  className="help-link manage-menu-advanced-toggle"
-                  onClick={() => setShowAdvanced(true)}
-                >
-                  詳細設定を表示
+              <div className="manage-menu-connection-row">
+                <div className="manage-menu-connection-label">バックエンドURL</div>
+                {fieldVisible.backendUrl ? (
+                  <>
+                    <div className="manage-menu-connection-value mono">{backendUrl()}</div>
+                    <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
+                      {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
+                    </button>
+                  </>
+                ) : (
+                  <div className="manage-menu-connection-value mono">••••••••</div>
+                )}
+                <button type="button" className="help-link" onClick={() => toggleFieldVisible('backendUrl')}>
+                  {fieldVisible.backendUrl ? '隠す' : '表示'}
                 </button>
-              ) : (
-                <div className="manage-menu-connection-row">
-                  <div className="manage-menu-connection-label">バックエンドURL</div>
-                  <div className="manage-menu-connection-value mono">{backendUrl()}</div>
-                  <button type="button" className="help-link" onClick={copyValue('backendUrl', backendUrl())}>
-                    {copiedField === 'backendUrl' ? 'コピーしました' : 'コピー'}
-                  </button>
-                  <button type="button" className="help-link" onClick={() => setShowAdvanced(false)}>
-                    隠す
-                  </button>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>
