@@ -8,7 +8,6 @@ import {
   deleteAllBugsForProject,
   isProjectMember,
   listProjectMembers,
-  addProjectMembers,
   removeProjectMember,
   countProjectMembers,
   getProjectRaw,
@@ -26,6 +25,11 @@ import {
   deleteSavedStorageConfig,
   getProjectApiKey,
   regenerateProjectApiKey,
+  getAccountPlanInfo,
+  getProjectPlanInfo,
+  addProjectMembersWithLimit,
+  getProjectNotificationStatus,
+  updateProjectNotifications,
 } from '../data.js'
 import { requireAuth } from '../auth.js'
 import { saveImage, deleteFile } from '../storage.js'
@@ -65,6 +69,16 @@ router.post(
     }
     if (gameEngine != null && !isValidGameEngine(gameEngine)) {
       return res.status(400).json({ error: `unknown gameEngine: ${gameEngine}` })
+    }
+
+    // プロジェクト数の上限はアカウント（このプロジェクトの「オーナー」になる本人）のプラン次第
+    // （server/src/plans.js）。上限ちょうどまでは作成でき、それを超える1つ目で拒否する。
+    const accountPlan = await getAccountPlanInfo(req.user.email)
+    if (accountPlan.projectsUsed >= accountPlan.limits.maxProjects) {
+      return res.status(403).json({
+        error: `${accountPlan.limits.label}プランはプロジェクトを${accountPlan.limits.maxProjects}つまでしか作成できません。アップグレードが必要です`,
+        code: 'plan_limit_exceeded',
+      })
     }
 
     // 新規プロジェクトは既定でstorageMode='self_hosted'・未設定のため、この時点ではまだ
@@ -245,8 +259,19 @@ router.post(
       return res.status(400).json({ error: 'emails must be a non-empty array' })
     }
 
-    const added = await addProjectMembers(projectId, emails)
-    res.status(201).json({ added, members: await listProjectMembers(projectId) })
+    // メンバー数の上限は、このプロジェクトの「オーナー」のプラン次第（server/src/plans.js）。
+    const { limits } = await getProjectPlanInfo(projectId)
+    const result = await addProjectMembersWithLimit(projectId, emails, limits.maxMembersPerProject)
+    if (result.error === 'limit_exceeded') {
+      return res.status(403).json({
+        error:
+          `${limits.label}プランは1プロジェクトあたりメンバーを${limits.maxMembersPerProject}人までしか` +
+          '招待できません。アップグレードが必要です',
+        code: 'plan_limit_exceeded',
+      })
+    }
+
+    res.status(201).json({ added: result.added, members: await listProjectMembers(projectId) })
   })
 )
 
@@ -543,6 +568,79 @@ router.delete(
     }
     const updated = await removeProjectCustomOption(projectId, field, value.trim())
     res.json(updated.customFieldOptions)
+  })
+)
+
+// --- プラン（server/src/plans.js） ---
+// 決済機能はまだ無く、planの値自体はserver/scripts/set-plan.mjsで運営が手動で切り替える。
+// ここではプロジェクト一覧・メンバー管理画面での「あと何個/何人まで」表示と、Pro限定機能の
+// 出し分けのための現在値を返す。
+
+router.get(
+  '/account/plan',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    res.json(await getAccountPlanInfo(req.user.email))
+  })
+)
+
+router.get(
+  '/projects/:id/plan',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const projectId = Number(req.params.id)
+    if (!(await isProjectMember(projectId, req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+    res.json(await getProjectPlanInfo(projectId))
+  })
+)
+
+// --- Slack/Discord通知連携（Pro限定） ---
+// 新規報告時の実際の送信はserver/src/notify.jsから行う（POST /reports・/reports/manual経由）。
+
+router.get(
+  '/projects/:id/notifications',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const projectId = Number(req.params.id)
+    if (!(await isProjectMember(projectId, req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+    const { limits } = await getProjectPlanInfo(projectId)
+    const status = await getProjectNotificationStatus(projectId)
+    res.json({ ...status, proFeatures: limits.proFeatures })
+  })
+)
+
+router.patch(
+  '/projects/:id/notifications',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const projectId = Number(req.params.id)
+    if (!(await isProjectMember(projectId, req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+    const { limits } = await getProjectPlanInfo(projectId)
+    if (!limits.proFeatures) {
+      return res.status(403).json({
+        error: 'Slack/Discord通知連携はProプラン限定の機能です。アップグレードが必要です',
+        code: 'plan_feature_locked',
+      })
+    }
+
+    const { slackWebhookUrl, discordWebhookUrl } = req.body ?? {}
+    if (slackWebhookUrl === undefined && discordWebhookUrl === undefined) {
+      return res.status(400).json({ error: 'slackWebhookUrl or discordWebhookUrl is required' })
+    }
+    for (const url of [slackWebhookUrl, discordWebhookUrl]) {
+      if (url != null && typeof url !== 'string') {
+        return res.status(400).json({ error: 'webhook URLs must be strings (or null to clear)' })
+      }
+    }
+
+    await updateProjectNotifications(projectId, { slackWebhookUrl, discordWebhookUrl })
+    res.json(await getProjectNotificationStatus(projectId))
   })
 )
 

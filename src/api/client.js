@@ -507,3 +507,68 @@ export async function fetchAdminStats() {
   }
   return res.json()
 }
+
+// --- プラン（server/src/plans.js） ---
+
+/** ログイン中のアカウントのプラン・使用状況。
+ * @returns {Promise<{plan: string, limits: object, projectsUsed: number, projectsMax: number | null}>} */
+export async function fetchAccountPlan() {
+  const res = await fetch(`${BASE_URL}/account/plan`, { credentials: 'include' })
+  if (!res.ok) throw new Error(`fetchAccountPlan failed: ${res.status}`)
+  return res.json()
+}
+
+/** @returns {Promise<{plan: string, limits: object, membersUsed: number, membersMax: number | null,
+ *   videoRetentionDays: number, proFeatures: boolean}>} */
+export async function fetchProjectPlan(projectId) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/plan`, { credentials: 'include' })
+  if (!res.ok) throw new Error(`fetchProjectPlan failed: ${res.status}`)
+  return res.json()
+}
+
+// --- Slack/Discord通知連携（Pro限定） ---
+
+/** @returns {Promise<{slackConfigured: boolean, discordConfigured: boolean, proFeatures: boolean}>} */
+export async function fetchProjectNotificationStatus(projectId) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/notifications`, { credentials: 'include' })
+  if (!res.ok) throw new Error(`fetchProjectNotificationStatus failed: ${res.status}`)
+  return res.json()
+}
+
+/** slackWebhookUrl/discordWebhookUrlはnullを渡すとその項目を解除する。Proでなければ403。
+ * @returns {Promise<{slackConfigured: boolean, discordConfigured: boolean}>} */
+export async function updateProjectNotifications(projectId, { slackWebhookUrl, discordWebhookUrl } = {}) {
+  const res = await fetch(`${BASE_URL}/projects/${projectId}/notifications`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ slackWebhookUrl, discordWebhookUrl }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `updateProjectNotifications failed: ${res.status}`)
+  }
+  return res.json()
+}
+
+// --- エクスポート（Pro限定） ---
+
+/** バグ一覧をCSV/PDFでダウンロードする（フィルターはGET /reportsと同じ形）。Proでなければ403。 */
+export async function exportReports(projectId, filters = {}, format = 'csv') {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters)) {
+    if (value != null && value !== '') params.set(key, value)
+  }
+  params.set('projectId', projectId)
+  params.set('format', format)
+  const res = await fetch(`${BASE_URL}/reports/export?${params}`, { credentials: 'include' })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `exportReports failed: ${res.status}`)
+  }
+  const blob = await res.blob()
+  const disposition = res.headers.get('Content-Disposition') ?? ''
+  const match = disposition.match(/filename="([^"]+)"/)
+  const filename = match ? match[1] : `glank-reports-${projectId}.${format}`
+  return { blob, filename }
+}

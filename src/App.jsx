@@ -24,6 +24,10 @@ import {
   updateProjectStorage,
   fetchProjectApiKey,
   regenerateProjectApiKey,
+  fetchProjectPlan,
+  fetchProjectNotificationStatus,
+  updateProjectNotifications,
+  exportReports,
   updateProjectFieldOptions,
   addProjectCustomOption,
   removeProjectCustomOption,
@@ -41,6 +45,7 @@ import {
   loginWithGoogle,
   logout,
   me,
+  fetchAccountPlan,
 } from './api/index.js'
 import { STATUS_COLUMNS, PRIORITY_OPTIONS } from './data/mockBugs.js'
 
@@ -119,6 +124,7 @@ function AppShell({ user, setUser }) {
   const [projects, setProjects] = useState([])
   const [projectsLoading, setProjectsLoading] = useState(true)
   const [projectsError, setProjectsError] = useState(null)
+  const [accountPlan, setAccountPlan] = useState(null)
 
   const [bugs, setBugs] = useState([])
   const [bugsLoading, setBugsLoading] = useState(true)
@@ -179,6 +185,14 @@ function AppShell({ user, setUser }) {
       cancelled = true
     }
   }, [user, reloadToken])
+
+  // プロジェクト一覧画面の「あと何個作れるか」表示用。作成・削除で件数が変わるたびに取り直す。
+  useEffect(() => {
+    if (!user) return
+    fetchAccountPlan()
+      .then(setAccountPlan)
+      .catch(() => {}) // 表示できなくても致命的ではないので静かに諦める
+  }, [user, reloadToken, projects.length])
 
   function handleCreateProject(name, imageFile, gameEngine) {
     return createProject(name, imageFile, gameEngine).then((project) => {
@@ -582,6 +596,7 @@ function AppShell({ user, setUser }) {
             onRemoveImage={handleRemoveProjectImage}
             onFetchApiKey={fetchProjectApiKey}
             onRegenerateApiKey={regenerateProjectApiKey}
+            accountPlan={accountPlan}
           />
         )
       ) : selectedId != null ? (
@@ -645,6 +660,10 @@ function AppShell({ user, setUser }) {
           onRemoveCustomOption={(field, value) => handleRemoveCustomOption(selectedProjectId, field, value)}
           onFetchApiKey={fetchProjectApiKey}
           onRegenerateApiKey={regenerateProjectApiKey}
+          onFetchPlan={fetchProjectPlan}
+          onFetchNotificationStatus={fetchProjectNotificationStatus}
+          onUpdateNotifications={updateProjectNotifications}
+          onExportReports={exportReports}
           query={query}
           setQuery={setQuery}
           statusFilter={statusFilter}

@@ -497,6 +497,32 @@ body {
   font-size: 28px;
   line-height: 1;
 }
+.project-card-add-locked {
+  cursor: not-allowed;
+  opacity: 0.5;
+  padding: 14px;
+  text-align: center;
+}
+.project-card-add-locked-note {
+  font-size: 11px;
+  padding: 0 8px;
+}
+.plan-usage-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.plan-usage-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--accent-cyan);
+  font-size: 11px;
+  font-weight: 600;
+}
 .project-card-new-form {
   padding: 14px;
   gap: 10px;
@@ -1332,6 +1358,29 @@ body {
 .manage-menu-item.active {
   color: var(--accent-amber);
   font-weight: 700;
+}
+.manage-menu-item-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--accent-cyan);
+  font-size: 10px;
+  font-weight: 700;
+}
+.manage-menu-export {
+  justify-content: space-between;
+  cursor: default;
+}
+.manage-menu-export-buttons {
+  display: flex;
+  gap: 10px;
+}
+.manage-menu-export-buttons .help-link {
+  font-size: 12px;
+}
+.manage-menu-export-error {
+  padding: 0 10px 8px;
 }
 
 /* ---- Members panel ---- */

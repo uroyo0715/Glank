@@ -1,5 +1,6 @@
 import { db, generateApiKey } from './db.js'
 import { encryptJson, decryptJson } from './crypto.js'
+import { getPlanLimits, isValidPlan, DEFAULT_PLAN } from './plans.js'
 
 // 種類（tag）に既定のプリセットは無く、全プロジェクト共通のラベル変換テーブルも持たない
 // （プロジェクトごとに「検索項目の管理」で追加した項目や自由記述をそのままラベルとして使う）。
@@ -166,6 +167,29 @@ export async function listReportFacets(client, projectId) {
 export async function getBugById(client, id) {
   const { rows } = await client.execute({ sql: 'SELECT * FROM bugs WHERE id = ?', args: [id] })
   return rows[0] ? await rowToFullBug(client, rows[0]) : null
+}
+
+/**
+ * 動画保存期間（プランごとの日数）を過ぎた報告を列挙する。videoUrl/videoBytesが空・0の
+ * ものや、createdAt未記録（空文字。導入前の古いデータ）のものは対象にしない
+ * （いつのデータか分からないものを誤って消さないため）。
+ * @returns {Promise<{id: number, videoUrl: string, videoBytes: number}[]>}
+ */
+export async function listBugsWithExpiredVideos(client, projectId, cutoffIso) {
+  const { rows } = await client.execute({
+    sql: `SELECT id, videoUrl, videoBytes FROM bugs
+          WHERE projectId = ? AND videoUrl != '' AND createdAt != '' AND createdAt < ?`,
+    args: [projectId, cutoffIso],
+  })
+  return rows.map((r) => ({ id: Number(r.id), videoUrl: r.videoUrl, videoBytes: Number(r.videoBytes) }))
+}
+
+/** 動画ファイル削除後に呼ぶ。報告自体（タイトル・入力ログ等）は残したまま、動画への参照だけ外す。 */
+export async function clearBugVideo(client, id) {
+  await client.execute({
+    sql: "UPDATE bugs SET videoUrl = '', videoBytes = 0 WHERE id = ?",
+    args: [id],
+  })
 }
 
 export async function updateBugStatus(client, id, status) {
@@ -511,6 +535,12 @@ export async function listProjectsForUser(email) {
   return rows.map(rowToProject)
 }
 
+/** 動画保存期間の自動削除ジョブ用。全プロジェクトを対象に回すため、絞り込み無しで全件返す。 */
+export async function listAllProjectIds() {
+  const { rows } = await db.execute('SELECT id FROM projects')
+  return rows.map((r) => Number(r.id))
+}
+
 /** APIレスポンス用の公開シェイプ（bugCountのみ）。storageMode等の内部情報は含めない。 */
 export async function getProjectById(id) {
   const { rows } = await db.execute({
@@ -521,6 +551,17 @@ export async function getProjectById(id) {
   return rows[0] ? rowToProject(rows[0]) : null
 }
 
+/** 内部専用。email未登録（招待されただけでまだログインしていない等）ならfreeとして扱う。 */
+async function getUserPlanByEmail(email) {
+  if (!email) return DEFAULT_PLAN
+  const { rows } = await db.execute({
+    sql: 'SELECT plan FROM users WHERE email = ?',
+    args: [normalizeEmail(email)],
+  })
+  const plan = rows[0]?.plan
+  return isValidPlan(plan) ? plan : DEFAULT_PLAN
+}
+
 /**
  * ストレージ接続先の解決・設定API向けに、暗号化済み接続情報を含む生の行を返す内部専用関数。
  * ルート側からそのままレスポンスに使ってはいけない（projectDataAccess.jsのtoStorageStatus()を通すこと）。
@@ -529,18 +570,24 @@ export async function getProjectRaw(id) {
   const { rows } = await db.execute({ sql: 'SELECT * FROM projects WHERE id = ?', args: [id] })
   if (!rows[0]) return null
   const row = rows[0]
+  const ownerPlan = await getUserPlanByEmail(row.ownerEmail)
   return {
     id: Number(row.id),
     name: row.name,
     imageUrl: row.imageUrl,
     storageMode: row.storageMode,
-    isManagedAllowed: Boolean(row.isManagedAllowed),
+    ownerEmail: row.ownerEmail,
+    // Pro契約中はisManagedAllowedの手動フラグが立っていなくても常にmanagedを選べる
+    // （既存のisManagedAllowedゲートの仕組みはそのまま残し、Proの場合だけ自動でORする）。
+    isManagedAllowed: Boolean(row.isManagedAllowed) || ownerPlan === 'pro',
     tursoConfigEnc: row.tursoConfigEnc,
     r2ConfigEnc: row.r2ConfigEnc,
     storageConfiguredByEmail: row.storageConfiguredByEmail,
     storageConfiguredByName: row.storageConfiguredByName,
     storageConfiguredFromSavedConfig: Boolean(row.storageConfiguredFromSavedConfig),
     apiKeyEnc: row.apiKeyEnc,
+    slackWebhookUrlEnc: row.slackWebhookUrlEnc,
+    discordWebhookUrlEnc: row.discordWebhookUrlEnc,
   }
 }
 
@@ -782,6 +829,24 @@ export async function countProjectMembers(projectId) {
   return Number(rows[0].n)
 }
 
+/**
+ * プランの上限を超えないことを確認したうえでメンバーを追加する。
+ * 既にメンバーのemailは上限判定に二重カウントしない（addProjectMembersと同じくINSERT OR IGNORE相当）。
+ * @returns {Promise<{ added: string[] } | { error: 'limit_exceeded', current: number, max: number }>}
+ */
+export async function addProjectMembersWithLimit(projectId, emails, maxMembers) {
+  const existing = await listProjectMembers(projectId)
+  const existingEmails = new Set(existing.map((m) => m.email))
+  const normalized = [...new Set(emails.map(normalizeEmail).filter(Boolean))]
+  const newEmails = normalized.filter((e) => !existingEmails.has(e))
+  const resultingTotal = existingEmails.size + newEmails.length
+  if (resultingTotal > maxMembers) {
+    return { error: 'limit_exceeded', current: existingEmails.size, max: maxMembers }
+  }
+  const added = await addProjectMembers(projectId, normalized)
+  return { added }
+}
+
 /** @returns {Promise<boolean>} 実際に削除できたか（もともとメンバーでなければfalse） */
 export async function removeProjectMember(projectId, email) {
   const result = await db.execute({
@@ -789,6 +854,117 @@ export async function removeProjectMember(projectId, email) {
     args: [projectId, normalizeEmail(email)],
   })
   return result.rowsAffected > 0
+}
+
+// --- サブスクリプションプラン（server/src/plans.js参照） ---
+// プランはGoogleアカウント（users.plan）単位。「プロジェクト数」の上限はアカウントが
+// オーナーであるプロジェクトの数、「メンバー数上限・動画保存日数・Pro機能」はそのプロジェクトの
+// オーナーのプランを参照する（projects.ownerEmail）。決済はまだ無いため、planの変更は
+// server/scripts/set-plan.mjsで運営が手動で行う。
+
+/** @returns {Promise<string>} 'free' | 'micro' | 'pro'。未登録ユーザーはfree扱い。 */
+export async function getUserPlan(email) {
+  return getUserPlanByEmail(email)
+}
+
+/** @returns {Promise<{email: string, plan: string} | null>} ユーザーが存在しなければnull */
+export async function setUserPlan(email, plan) {
+  if (!isValidPlan(plan)) throw new Error(`invalid plan: ${plan}`)
+  const normalized = normalizeEmail(email)
+  const result = await db.execute({
+    sql: 'UPDATE users SET plan = ? WHERE email = ?',
+    args: [plan, normalized],
+  })
+  if (result.rowsAffected === 0) return null
+  return { email: normalized, plan }
+}
+
+/** このアカウントが「オーナー」であるプロジェクトの数（Freeプランの上限判定に使う）。 */
+export async function countProjectsOwnedBy(email) {
+  const { rows } = await db.execute({
+    sql: 'SELECT COUNT(*) AS n FROM projects WHERE ownerEmail = ?',
+    args: [normalizeEmail(email)],
+  })
+  return Number(rows[0].n)
+}
+
+/** 指定プロジェクトの「オーナーのプラン」。ownerEmail未設定（古いデータ等）ならfree扱い。 */
+export async function getProjectOwnerPlan(projectId) {
+  const { rows } = await db.execute({
+    sql: 'SELECT ownerEmail FROM projects WHERE id = ?',
+    args: [projectId],
+  })
+  return getUserPlanByEmail(rows[0]?.ownerEmail)
+}
+
+/** アカウント単位のプラン・使用状況。プロジェクト一覧画面の表示用。 */
+export async function getAccountPlanInfo(email) {
+  const plan = await getUserPlanByEmail(email)
+  const limits = getPlanLimits(plan)
+  const projectsUsed = await countProjectsOwnedBy(email)
+  return {
+    plan,
+    limits,
+    projectsUsed,
+    projectsMax: Number.isFinite(limits.maxProjects) ? limits.maxProjects : null,
+  }
+}
+
+/** プロジェクト単位のプラン・使用状況。メンバー管理画面等の表示用。 */
+export async function getProjectPlanInfo(projectId) {
+  const plan = await getProjectOwnerPlan(projectId)
+  const limits = getPlanLimits(plan)
+  const membersUsed = await countProjectMembers(projectId)
+  return {
+    plan,
+    limits,
+    membersUsed,
+    membersMax: Number.isFinite(limits.maxMembersPerProject) ? limits.maxMembersPerProject : null,
+    videoRetentionDays: limits.videoRetentionDays,
+    proFeatures: limits.proFeatures,
+  }
+}
+
+// --- Slack/Discord通知連携（Pro限定） ---
+// Webhook URLはR2/Turso接続情報と同じくAES-256-GCMで暗号化して保存する
+// （crypto.js。プロジェクトの秘密情報という点で扱いを揃える）。
+
+/** @param {{slackWebhookUrl?: string | null, discordWebhookUrl?: string | null}} update 渡した項目だけ更新。nullでその項目を解除。 */
+export async function updateProjectNotifications(id, { slackWebhookUrl, discordWebhookUrl } = {}) {
+  const sets = []
+  const args = []
+  if (slackWebhookUrl !== undefined) {
+    sets.push('slackWebhookUrlEnc = ?')
+    args.push(slackWebhookUrl ? encryptJson(slackWebhookUrl) : null)
+  }
+  if (discordWebhookUrl !== undefined) {
+    sets.push('discordWebhookUrlEnc = ?')
+    args.push(discordWebhookUrl ? encryptJson(discordWebhookUrl) : null)
+  }
+  if (sets.length === 0) return getProjectRaw(id)
+  args.push(id)
+  await db.execute({ sql: `UPDATE projects SET ${sets.join(', ')} WHERE id = ?`, args })
+  return getProjectRaw(id)
+}
+
+/** 設定済みかどうかのbooleanだけを返す（秘密の値自体はレスポンスに含めない）。 */
+export async function getProjectNotificationStatus(id) {
+  const project = await getProjectRaw(id)
+  if (!project) return null
+  return {
+    slackConfigured: Boolean(project.slackWebhookUrlEnc),
+    discordConfigured: Boolean(project.discordWebhookUrlEnc),
+  }
+}
+
+/** 通知送信時にのみ使う、復号済みのWebhook URL。ルートからそのままレスポンスに使ってはいけない。 */
+export async function getProjectNotificationWebhooksDecrypted(id) {
+  const project = await getProjectRaw(id)
+  if (!project) return { slackWebhookUrl: null, discordWebhookUrl: null }
+  return {
+    slackWebhookUrl: project.slackWebhookUrlEnc ? decryptJson(project.slackWebhookUrlEnc) : null,
+    discordWebhookUrl: project.discordWebhookUrlEnc ? decryptJson(project.discordWebhookUrlEnc) : null,
+  }
 }
 
 // isManagedAllowed=1をデフォルトにしている理由: 元々は複数チームへの有料販売を想定した
@@ -809,8 +985,8 @@ export async function createProject({ name, imageUrl, gameEngine, creatorEmail }
   }
 
   const result = await db.execute({
-    sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc) VALUES (?, ?, ?, 1, ?)',
-    args: [name, imageUrl ?? null, gameEngine ?? '', apiKeyEnc],
+    sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc, ownerEmail) VALUES (?, ?, ?, 1, ?, ?)',
+    args: [name, imageUrl ?? null, gameEngine ?? '', apiKeyEnc, normalizeEmail(creatorEmail)],
   })
   const projectId = result.lastInsertRowid
   await addProjectMembers(projectId, [creatorEmail])

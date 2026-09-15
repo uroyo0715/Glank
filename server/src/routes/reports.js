@@ -16,6 +16,7 @@ import {
   listBugComments,
   createBugComment,
   deleteBugComment,
+  getProjectPlanInfo,
 } from '../data.js'
 import { decryptJson } from '../crypto.js'
 import { requireAuth } from '../auth.js'
@@ -27,6 +28,8 @@ import {
   checkManagedStorageQuota,
   addManagedStorageUsage,
 } from '../projectDataAccess.js'
+import { notifyNewReport } from '../notify.js'
+import { bugsToCsv, bugsToPdf } from '../export.js'
 
 const router = express.Router()
 
@@ -110,6 +113,57 @@ router.get(
     const resolved = await requireProjectDbClient(res, Number(projectId))
     if (!resolved) return
     res.json(await listReportFacets(resolved.client, Number(projectId)))
+  })
+)
+
+// Pro限定のエクスポート機能。GET /reportsと同じフィルター条件で絞り込んだ一覧を
+// そのままCSV/PDFで出力する（フィルター済みの一覧をそのまま出す、という要件のため
+// クエリパラメータの扱いはGET /reportsと揃えてある）。
+router.get(
+  '/reports/export',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const { projectId, status, tag, priority, platform, build, who, assignee, q } = req.query
+    const format = req.query.format === 'pdf' ? 'pdf' : 'csv'
+    if (!projectId) {
+      return res.status(400).json({ error: 'projectId is required' })
+    }
+    if (!(await isProjectMember(Number(projectId), req.user.email))) {
+      return res.status(404).json({ error: 'not found' })
+    }
+
+    const { limits } = await getProjectPlanInfo(Number(projectId))
+    if (!limits.proFeatures) {
+      return res.status(403).json({
+        error: 'エクスポート機能はProプラン限定の機能です。アップグレードが必要です',
+        code: 'plan_feature_locked',
+      })
+    }
+
+    const resolved = await requireProjectDbClient(res, Number(projectId))
+    if (!resolved) return
+    const bugs = await listBugs(resolved.client, {
+      projectId: Number(projectId),
+      status,
+      tag,
+      priority,
+      platform,
+      build,
+      who,
+      assignee,
+      q,
+    })
+
+    if (format === 'pdf') {
+      const pdf = await bugsToPdf(bugs, { projectName: resolved.project.name })
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader('Content-Disposition', `attachment; filename="glank-reports-${projectId}.pdf"`)
+      res.send(pdf)
+    } else {
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+      res.setHeader('Content-Disposition', `attachment; filename="glank-reports-${projectId}.csv"`)
+      res.send(bugsToCsv(bugs))
+    }
   })
 )
 
@@ -399,6 +453,9 @@ router.post(
       inputs: Array.isArray(metadata.inputs) ? metadata.inputs : [],
     })
     res.status(201).json(bug)
+    // Slack/Discord通知（Pro限定）はレスポンスを遅らせたくないので、応答後にfire-and-forget。
+    // 送信失敗はnotify.js内でログするだけで、報告の作成自体には影響させない。
+    notifyNewReport(project, bug).catch(() => {})
   })
 )
 
@@ -443,6 +500,7 @@ router.post(
       inputs: [],
     })
     res.status(201).json(bug)
+    notifyNewReport(resolved.project, bug).catch(() => {})
   })
 )
 

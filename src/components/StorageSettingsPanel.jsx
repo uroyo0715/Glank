@@ -147,6 +147,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
   }
 
   const isSelfHosted = status.storageMode === 'self_hosted'
+  const isManaged = status.storageMode === 'managed'
 
   return (
     <div className="storage-panel">
@@ -174,11 +175,19 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
           self_hosted（自前）
         </label>
         <label
-          className="storage-mode-option disabled"
-          title="今後提供予定の機能です"
+          className={`storage-mode-option ${isManaged ? 'active' : ''} ${
+            status.isManagedAllowed ? '' : 'disabled'
+          }`}
+          title={status.isManagedAllowed ? undefined : 'Proプラン限定の機能です'}
         >
-          <input type="radio" name="storageMode" checked={false} disabled />
-          managed（Glank共有・近日提供予定）
+          <input
+            type="radio"
+            name="storageMode"
+            checked={isManaged}
+            disabled={modeSaving || !status.isManagedAllowed}
+            onChange={() => handleModeChange('managed')}
+          />
+          managed（Glank共有{status.isManagedAllowed ? '' : '・Proプラン限定'}）
         </label>
       </div>
       {modeError && <div className="project-form-error">{modeError}</div>}

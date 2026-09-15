@@ -5,6 +5,7 @@ import MembersPanel from '../components/MembersPanel.jsx'
 import NewReportForm from '../components/NewReportForm.jsx'
 import StorageSettingsPanel from '../components/StorageSettingsPanel.jsx'
 import FieldOptionsPanel from '../components/FieldOptionsPanel.jsx'
+import NotificationSettingsPanel from '../components/NotificationSettingsPanel.jsx'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
 import { formatCreatedAt } from '../utils/formatDate.js'
 import { backendUrl } from '../api/index.js'
@@ -30,12 +31,19 @@ function ManageMenu({
   setShowStorage,
   showFieldOptions,
   setShowFieldOptions,
+  showNotifications,
+  setShowNotifications,
   storageBlocked,
   projectId,
   onFetchApiKey,
   onRegenerateApiKey,
+  projectPlan,
+  onExportReports,
+  exportFilters,
 }) {
   const [open, setOpen] = useState(false)
+  const [exporting, setExporting] = useState(null) // null | 'csv' | 'pdf'
+  const [exportError, setExportError] = useState(null)
   const [infoRevealed, setInfoRevealed] = useState(false)
   // Project ID・APIキー・バックエンドURLはそれぞれ個別に隠せる（1項目だけ見せて残りは隠す、
   // といった使い方ができるように）。
@@ -124,7 +132,25 @@ function ManageMenu({
       .finally(() => setRegenerating(false))
   }
 
-  const anyPanelOpen = showMembers || showStorage || showFieldOptions
+  function handleExport(format) {
+    setExporting(format)
+    setExportError(null)
+    onExportReports(projectId, exportFilters, format)
+      .then(({ blob, filename }) => {
+        // Blobをファイルとして保存させる。ダウンロード後すぐにURLを破棄してよい
+        // （<a>要素はDOMに追加しなくてもclick()できる）。
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        link.click()
+        URL.revokeObjectURL(url)
+      })
+      .catch((err) => setExportError(err.message ?? String(err)))
+      .finally(() => setExporting(null))
+  }
+
+  const anyPanelOpen = showMembers || showStorage || showFieldOptions || showNotifications
 
   return (
     <div className="manage-menu" ref={rootRef}>
@@ -167,6 +193,32 @@ function ManageMenu({
           >
             検索項目の管理
           </button>
+          <button
+            type="button"
+            className={`manage-menu-item ${showNotifications ? 'active' : ''}`}
+            onClick={() => select(setShowNotifications)}
+          >
+            通知設定
+            {projectPlan && !projectPlan.proFeatures && (
+              <span className="manage-menu-item-badge">Pro</span>
+            )}
+          </button>
+          <div className="manage-menu-item manage-menu-export">
+            <span>エクスポート</span>
+            {projectPlan && !projectPlan.proFeatures ? (
+              <span className="manage-menu-item-badge">Pro</span>
+            ) : (
+              <span className="manage-menu-export-buttons">
+                <button type="button" className="help-link" onClick={() => handleExport('csv')} disabled={exporting != null}>
+                  {exporting === 'csv' ? '出力中...' : 'CSV'}
+                </button>
+                <button type="button" className="help-link" onClick={() => handleExport('pdf')} disabled={exporting != null}>
+                  {exporting === 'pdf' ? '出力中...' : 'PDF'}
+                </button>
+              </span>
+            )}
+          </div>
+          {exportError && <div className="project-form-error manage-menu-export-error">{exportError}</div>}
           {!infoRevealed ? (
             <button type="button" className="manage-menu-item" onClick={revealInfo}>
               SDK接続情報を表示
@@ -277,6 +329,10 @@ export default function BugListPage({
   onRemoveCustomOption,
   onFetchApiKey,
   onRegenerateApiKey,
+  onFetchPlan,
+  onFetchNotificationStatus,
+  onUpdateNotifications,
+  onExportReports,
   query,
   setQuery,
   statusFilter,
@@ -295,6 +351,22 @@ export default function BugListPage({
 }) {
   const [view, setView] = useState('table') // 'table' | 'kanban'
   const [showMembers, setShowMembers] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [projectPlan, setProjectPlan] = useState(null)
+
+  // 管理メニューの「通知設定」「エクスポート」をPro限定でロック表示するための現在のプラン。
+  useEffect(() => {
+    if (!onFetchPlan) return
+    let cancelled = false
+    onFetchPlan(projectId)
+      .then((result) => {
+        if (!cancelled) setProjectPlan(result)
+      })
+      .catch(() => {}) // 表示できなくても致命的ではないので静かに諦める
+    return () => {
+      cancelled = true
+    }
+  }, [projectId, onFetchPlan])
   const [showNewReport, setShowNewReport] = useState(false)
   const [showStorage, setShowStorage] = useState(false)
   const [showFieldOptions, setShowFieldOptions] = useState(false)
@@ -304,6 +376,16 @@ export default function BugListPage({
   const filtered = bugs
   // ステータスの絞り込みで外されたタブはボード表示でも列ごと非表示にする（カードだけでなく）。
   const visibleStatusColumns = STATUS_COLUMNS.filter((col) => statusFilter.includes(col.key))
+
+  // エクスポートに渡すフィルター。App.jsxがGET /reportsに渡す組み立て方と揃えてある
+  // （サーバー側のクエリパラメータは単一値のみ対応のため、複数選択時は絞り込まず全件を出す）。
+  const exportFilters = { q: query.trim() || undefined }
+  if (statusFilter.length === 1) exportFilters.status = statusFilter[0]
+  if (tagFilter.length === 1) exportFilters.tag = tagFilter[0]
+  if (priorityFilter.length === 1) exportFilters.priority = priorityFilter[0]
+  if (buildFilter) exportFilters.build = buildFilter
+  if (whoFilter) exportFilters.who = whoFilter
+  if (assigneeFilter) exportFilters.assignee = assigneeFilter
 
   // self_hostedでTurso未設定の間は、報告機能そのものが使えない（要件）。
   const storageBlocked =
@@ -329,10 +411,15 @@ export default function BugListPage({
               setShowStorage={setShowStorage}
               showFieldOptions={showFieldOptions}
               setShowFieldOptions={setShowFieldOptions}
+              showNotifications={showNotifications}
+              setShowNotifications={setShowNotifications}
               storageBlocked={storageBlocked}
               projectId={projectId}
               onFetchApiKey={onFetchApiKey}
               onRegenerateApiKey={onRegenerateApiKey}
+              projectPlan={projectPlan}
+              onExportReports={onExportReports}
+              exportFilters={exportFilters}
             />
             <SegmentedToggle
               value={view}
@@ -361,6 +448,14 @@ export default function BugListPage({
           customFieldOptions={customFieldOptions}
           onAddCustomOption={onAddCustomOption}
           onRemoveCustomOption={onRemoveCustomOption}
+        />
+      )}
+
+      {showNotifications && (
+        <NotificationSettingsPanel
+          projectId={projectId}
+          onFetchStatus={onFetchNotificationStatus}
+          onUpdateNotifications={onUpdateNotifications}
         />
       )}
 
@@ -396,6 +491,7 @@ export default function BugListPage({
               onFetchMembers={onFetchMembers}
               onAddMembers={onAddMembers}
               onRemoveMember={onRemoveMember}
+              onFetchPlan={onFetchPlan}
             />
           )}
 

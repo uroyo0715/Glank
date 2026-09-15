@@ -704,3 +704,71 @@ export async function fetchAdminStats() {
     bugsByTag,
   }
 }
+
+// --- プラン（server/src/plans.jsのミラー。数値がずれたら両方直すこと） ---
+const MOCK_PLAN_LIMITS = {
+  free: { label: 'Free', maxProjects: 1, maxMembersPerProject: 3, videoRetentionDays: 14, proFeatures: false },
+  micro: { label: 'Micro', maxProjects: 3, maxMembersPerProject: 10, videoRetentionDays: 30, proFeatures: false },
+  pro: {
+    label: 'Pro',
+    maxProjects: Infinity,
+    maxMembersPerProject: Infinity,
+    videoRetentionDays: 90,
+    proFeatures: true,
+  },
+}
+// バックエンド未接続のモックモードでは決済も無いため、既定はfreeにしておく
+// （Pro表示を見たい場合はここを一時的に'pro'に変えて確認する）。
+let mockAccountPlan = 'free'
+const mockNotificationStatus = { slackConfigured: false, discordConfigured: false }
+
+export async function fetchAccountPlan() {
+  await delay(80)
+  const limits = MOCK_PLAN_LIMITS[mockAccountPlan]
+  return {
+    plan: mockAccountPlan,
+    limits,
+    projectsUsed: seedProjects.length,
+    projectsMax: Number.isFinite(limits.maxProjects) ? limits.maxProjects : null,
+  }
+}
+
+export async function fetchProjectPlan(projectId) {
+  await delay(80)
+  const limits = MOCK_PLAN_LIMITS[mockAccountPlan]
+  const membersUsed = (membersByProject.get(Number(projectId)) ?? []).length
+  return {
+    plan: mockAccountPlan,
+    limits,
+    membersUsed,
+    membersMax: Number.isFinite(limits.maxMembersPerProject) ? limits.maxMembersPerProject : null,
+    videoRetentionDays: limits.videoRetentionDays,
+    proFeatures: limits.proFeatures,
+  }
+}
+
+export async function fetchProjectNotificationStatus() {
+  await delay(80)
+  return { ...mockNotificationStatus, proFeatures: MOCK_PLAN_LIMITS[mockAccountPlan].proFeatures }
+}
+
+export async function updateProjectNotifications(projectId, { slackWebhookUrl, discordWebhookUrl } = {}) {
+  await delay(150)
+  if (!MOCK_PLAN_LIMITS[mockAccountPlan].proFeatures) {
+    throw new Error('Slack/Discord通知連携はProプラン限定の機能です。アップグレードが必要です')
+  }
+  if (slackWebhookUrl !== undefined) mockNotificationStatus.slackConfigured = Boolean(slackWebhookUrl)
+  if (discordWebhookUrl !== undefined) mockNotificationStatus.discordConfigured = Boolean(discordWebhookUrl)
+  return { ...mockNotificationStatus }
+}
+
+export async function exportReports(projectId, filters = {}, format = 'csv') {
+  await delay(150)
+  if (!MOCK_PLAN_LIMITS[mockAccountPlan].proFeatures) {
+    throw new Error('エクスポート機能はProプラン限定の機能です。アップグレードが必要です')
+  }
+  const header = 'ID,タイトル,状況\n'
+  const rows = seedBugs.map((b) => `${b.id},${b.title},${b.status}`).join('\n')
+  const blob = new Blob([header + rows], { type: format === 'pdf' ? 'application/pdf' : 'text/csv' })
+  return { blob, filename: `glank-reports-${projectId}.${format}` }
+}

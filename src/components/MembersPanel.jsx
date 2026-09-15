@@ -7,11 +7,12 @@ function parseEmails(raw) {
     .filter(Boolean)
 }
 
-export default function MembersPanel({ projectId, onFetchMembers, onAddMembers, onRemoveMember }) {
+export default function MembersPanel({ projectId, onFetchMembers, onAddMembers, onRemoveMember, onFetchPlan }) {
   const [members, setMembers] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [showEmail, setShowEmail] = useState(false) // 既定は表示名表示
+  const [plan, setPlan] = useState(null)
 
   const [emailsInput, setEmailsInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -38,6 +39,21 @@ export default function MembersPanel({ projectId, onFetchMembers, onAddMembers, 
       cancelled = true
     }
   }, [projectId, onFetchMembers])
+
+  useEffect(() => {
+    if (!onFetchPlan) return
+    let cancelled = false
+    onFetchPlan(projectId)
+      .then((result) => {
+        if (!cancelled) setPlan(result)
+      })
+      .catch(() => {}) // 表示できなくても致命的ではないので静かに諦める
+    return () => {
+      cancelled = true
+    }
+  }, [projectId, onFetchPlan])
+
+  const atMemberLimit = plan?.membersMax != null && (members?.length ?? 0) >= plan.membersMax
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -76,6 +92,13 @@ export default function MembersPanel({ projectId, onFetchMembers, onAddMembers, 
             {showEmail ? '表示名で表示' : 'メールで表示'}
           </button>
         </div>
+        {plan && (
+          <div className="plan-usage-line">
+            <span className="plan-usage-badge">{plan.limits.label}</span>
+            メンバー: {members?.length ?? 0}
+            {plan.membersMax != null ? ` / ${plan.membersMax}` : '（無制限）'}
+          </div>
+        )}
         {loading ? (
           <div className="members-panel-hint">読み込み中...</div>
         ) : loadError ? (
@@ -107,17 +130,26 @@ export default function MembersPanel({ projectId, onFetchMembers, onAddMembers, 
 
       <form className="members-invite-form" onSubmit={handleSubmit}>
         <div className="members-panel-label">メンバーを招待</div>
-        <textarea
-          className="members-invite-textarea"
-          placeholder={'メールアドレスを改行またはカンマ区切りで入力\n例:\nalice@example.com\nbob@example.com'}
-          value={emailsInput}
-          onChange={(e) => setEmailsInput(e.target.value)}
-          rows={4}
-        />
-        {submitError && <div className="project-form-error">{submitError}</div>}
-        <button type="submit" disabled={submitting || parseEmails(emailsInput).length === 0}>
-          {submitting ? '追加中...' : '追加'}
-        </button>
+        {atMemberLimit ? (
+          <div className="storage-blocking-hint">
+            {plan.limits.label}プランは1プロジェクトあたりメンバーを{plan.membersMax}人までしか
+            招待できません。アップグレードが必要です。
+          </div>
+        ) : (
+          <>
+            <textarea
+              className="members-invite-textarea"
+              placeholder={'メールアドレスを改行またはカンマ区切りで入力\n例:\nalice@example.com\nbob@example.com'}
+              value={emailsInput}
+              onChange={(e) => setEmailsInput(e.target.value)}
+              rows={4}
+            />
+            {submitError && <div className="project-form-error">{submitError}</div>}
+            <button type="submit" disabled={submitting || parseEmails(emailsInput).length === 0}>
+              {submitting ? '追加中...' : '追加'}
+            </button>
+          </>
+        )}
       </form>
     </div>
   )

@@ -12,6 +12,7 @@ export default function ProjectsPage({
   onDelete,
   onUpdateProject,
   onRemoveImage,
+  accountPlan,
 }) {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
@@ -173,6 +174,13 @@ export default function ProjectsPage({
             </button>
           </div>
         </div>
+        {accountPlan && (
+          <div className="plan-usage-line">
+            <span className="plan-usage-badge">{accountPlan.limits.label}</span>
+            プロジェクト: {accountPlan.projectsUsed}
+            {accountPlan.projectsMax != null ? ` / ${accountPlan.projectsMax}` : '（無制限）'}
+          </div>
+        )}
       </div>
 
       {imageSkippedNotice && (
@@ -354,6 +362,14 @@ export default function ProjectsPage({
                 </button>
               </div>
             </form>
+          ) : accountPlan && accountPlan.projectsMax != null && accountPlan.projectsUsed >= accountPlan.projectsMax ? (
+            <div className="project-card project-card-add project-card-add-locked" title="アップグレードが必要です">
+              <div className="project-card-add-icon">+</div>
+              <div className="project-card-name">新規プロジェクト</div>
+              <div className="project-card-add-locked-note">
+                {accountPlan.limits.label}プランの上限（{accountPlan.projectsMax}件）に達しています
+              </div>
+            </div>
           ) : (
             <button className="project-card project-card-add" onClick={() => setCreating(true)}>
               <div className="project-card-add-icon">+</div>

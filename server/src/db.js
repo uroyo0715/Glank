@@ -534,6 +534,58 @@ async function migrateBackfillProjectMembers() {
 
 await migrateBackfillProjectMembers()
 
+// マイグレーション: サブスクリプションプラン(free/micro/pro)導入。プランはGoogleアカウント単位
+// （projectsではなくusers）に持たせる。プロジェクト数の上限はアカウント単位の概念であり、
+// メンバー数上限・動画保存期間・Pro限定機能はプロジェクトの「オーナー」のプランを参照する
+// （下のmigrateAddProjectOwnerEmailIfNeeded参照）。既存ユーザーは全員free扱いから始まる。
+async function migrateAddUserPlanIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(users)')
+  const hasColumn = columns.some((c) => c.name === 'plan')
+  if (hasColumn) return
+  await db.execute("ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'")
+}
+
+await migrateAddUserPlanIfNeeded()
+
+// マイグレーション: プランを判定する基準となる「プロジェクトのオーナー」を導入。
+// これまでprojectsにもprojectMembersにも「作成者」を区別する概念が無かったため、
+// 既存プロジェクトは「一番最初にメンバーとして追加された（addedAtが最も古い）人」を
+// オーナーとみなしてバックフィルする（本来の作成者と一致するはずだが、確実な記録ではないため
+// あくまで推定）。以降の新規プロジェクトはcreateProject()が作成者のメールをそのまま入れる。
+async function migrateAddProjectOwnerEmailIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(projects)')
+  const hasColumn = columns.some((c) => c.name === 'ownerEmail')
+  if (hasColumn) return
+  await db.execute('ALTER TABLE projects ADD COLUMN ownerEmail TEXT')
+
+  const { rows: projects } = await db.execute('SELECT id FROM projects WHERE ownerEmail IS NULL')
+  for (const project of projects) {
+    const { rows: earliestMember } = await db.execute({
+      sql: 'SELECT email FROM projectMembers WHERE projectId = ? ORDER BY addedAt ASC LIMIT 1',
+      args: [project.id],
+    })
+    if (earliestMember[0]) {
+      await db.execute({
+        sql: 'UPDATE projects SET ownerEmail = ? WHERE id = ?',
+        args: [earliestMember[0].email, project.id],
+      })
+    }
+  }
+}
+
+await migrateAddProjectOwnerEmailIfNeeded()
+
+// マイグレーション: Pro限定のSlack/Discord通知連携用に、Webhook URLを暗号化して保存する列を追加する。
+async function migrateAddNotificationWebhooksIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(projects)')
+  const hasColumn = columns.some((c) => c.name === 'slackWebhookUrlEnc')
+  if (hasColumn) return
+  await db.execute('ALTER TABLE projects ADD COLUMN slackWebhookUrlEnc TEXT')
+  await db.execute('ALTER TABLE projects ADD COLUMN discordWebhookUrlEnc TEXT')
+}
+
+await migrateAddNotificationWebhooksIfNeeded()
+
 const SEED_BUGS = [
   {
     title: '崖から落ちた直後にゲームがフリーズする',
