@@ -70,6 +70,54 @@ export default function App() {
     return loginWithGoogle().then(setUser)
   }
 
+  // ログイン前後でコンポーネントツリーの分岐点（BrowserRouterに入るかどうか）を変えない。
+  // 以前はログイン前だけBrowserRouterの外でLandingPageを直接returnしていたため、URLが
+  // 「/」でも「/projects」でも同じ中身が表示されてしまっていた（URLと表示内容が不一致）。
+  // 常にRouter配下で分岐することで、「/」＝公開ページ、「/projects」以下＝認証必須ページ、
+  // という対応をURLレベルで保証する（検索エンジンにも「/」だけをインデックスさせられる）。
+  return (
+    <BrowserRouter>
+      <RootRouter user={user} setUser={setUser} authChecked={authChecked} onGoogleLogin={handleGoogleLogin} />
+    </BrowserRouter>
+  )
+}
+
+/** <meta name="robots">を書き換える。「/」だけをインデックス対象にし、認証必須ページ（"/projects"以下）はnoindexにする。 */
+function setRobotsMeta(content) {
+  let tag = document.querySelector('meta[name="robots"]')
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute('name', 'robots')
+    document.head.appendChild(tag)
+  }
+  tag.setAttribute('content', content)
+}
+
+// 「/」と「/projects以下」の分岐点。ログイン状態に応じて、URLを実際に書き換えて
+// リダイレクトする（表示内容だけ差し替えるのではなく、ブラウザの戻る/進むやSEO判定が
+// 正しく機能するようURL自体を一致させる）。
+function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isRoot = location.pathname === '/'
+
+  useEffect(() => {
+    setRobotsMeta(isRoot ? 'index, follow' : 'noindex, nofollow')
+  }, [isRoot])
+
+  useEffect(() => {
+    if (!authChecked) return
+    if (isRoot && user) {
+      // ログイン済みユーザーが「/」に来た場合のみ「/projects」へ寄せる
+      // （未ログインユーザーは「/」でLandingPageを見られる状態を維持する）。
+      navigate('/projects', { replace: true })
+    } else if (!isRoot && !user) {
+      // 認証必須ページに未ログインでアクセスした場合はLandingPageの中身をそのまま出さず、
+      // 「/」へリダイレクトする。
+      navigate('/', { replace: true })
+    }
+  }, [authChecked, isRoot, user, navigate])
+
   if (!authChecked) {
     return (
       <div className="app-shell">
@@ -78,15 +126,16 @@ export default function App() {
     )
   }
 
-  if (!user) {
-    return <LandingPage onGoogleLogin={handleGoogleLogin} />
+  if (isRoot) {
+    // ログイン済みの場合は上のuseEffectで/projectsへリダイレクトされる途中なので、
+    // 遷移が終わるまでLandingPageを一瞬でも出さないようにする。
+    if (user) return null
+    return <LandingPage onGoogleLogin={onGoogleLogin} />
   }
 
-  return (
-    <BrowserRouter>
-      <AppShell user={user} setUser={setUser} />
-    </BrowserRouter>
-  )
+  if (!user) return null // 「/」へのリダイレクト待ち
+
+  return <AppShell user={user} setUser={setUser} />
 }
 
 // ブラウザの戻る/進むが自然に機能するよう、画面(プロジェクト一覧/バグ一覧/バグ詳細/ヘルプ)を
@@ -99,10 +148,8 @@ function AppShell({ user, setUser }) {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // ルート("/")は直接表示せず、常にプロジェクト一覧のURLへ正規化する。
-  useEffect(() => {
-    if (location.pathname === '/') navigate('/projects', { replace: true })
-  }, [location.pathname, navigate])
+  // 「/」（未ログイン時のLandingPage表示、ログイン時の/projectsへのリダイレクト）は
+  // 呼び出し元のRootRouterが処理する。AppShellは常に非ルートの認証済みパスでのみ描画される。
 
   const reportMatch = matchPath(REPORT_PATH, location.pathname)
   const listMatch = !reportMatch ? matchPath(LIST_PATH, location.pathname) : null
