@@ -106,7 +106,7 @@ function InputSystemFlowchart() {
 }
 
 const TRIGGER_FIELDS = [
-  { name: 'Config', desc: 'GlankSettingsアセット（baseUrl / apiKey / projectId）。必須。projectIdが0（未設定）のままだと、送信時にエラーログを出して中止される。' },
+  { name: 'Config', desc: 'GlankSettingsアセット（baseUrl / apiKey）。必須。apiKeyが未設定のままだと、送信時にエラーログを出して中止される。' },
   {
     name: 'Input Log Recorder',
     desc: 'レガシー版InputLogRecorderを使う場合のみ割り当てる。新Input System版を使う場合は空のままでよい（GlankNewInputSystemBridge経由でCaptureInputLogに配線されるため）。',
@@ -144,10 +144,10 @@ export default function SetupGuidePage() {
           <h2>1. うまく動かないときのチェックリスト</h2>
           <ul className="setup-checklist">
             <li>
-              <strong>「GlankSettings.projectIdが未設定です」というエラーが出る</strong> —
+              <strong>「GlankSettings.apiKeyが未設定です」というエラーが出る</strong> —
               <span className="mono">GlankManager.prefab</span>をそのままドラッグ&ドロップしただけの状態。
-              このプレハブが参照している<span className="mono">GlankSettings</span>はAPIキー・
-              プロジェクトIDが空のプレースホルダーになっているため、意図的にこのエラーで止まる。
+              このプレハブが参照している<span className="mono">GlankSettings</span>はAPIキーが
+              空のプレースホルダーになっているため、意図的にこのエラーで止まる。
               プレースホルダーを複製し、値を入力したうえで、シーン上の<strong>インスタンス側</strong>の
               各コンポーネントの<span className="mono">Config</span>欄を差し替える（詳しくは
               「SDK連携の使い方」の「方法B」を参照）。

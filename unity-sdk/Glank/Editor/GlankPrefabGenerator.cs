@@ -15,7 +15,7 @@ namespace Glank.Editor
     /// 生成された.prefab/.assetファイル（と対応する.metaファイル）をリポジトリにコミットする必要がある。
     ///
     /// 重要: プレハブが参照するGlankSettings（<see cref="PlaceholderSettingsFileName"/>）は、
-    /// 実行するたびにapiKey/projectIdを必ず空にリセットする。動作確認等で実際のAPIキーを
+    /// 実行するたびにapiKeyを必ず空にリセットする。動作確認等で実際のAPIキーを
     /// 入力したGlankSettingsアセットを誤ってプレハブに紐付けたまま配布してしまう事故を防ぐため、
     /// 「既存のアセットがあれば使い回す」ことは絶対にしない。
     /// </summary>
@@ -74,10 +74,10 @@ namespace Glank.Editor
                 EditorUtility.DisplayDialog(
                     "Glank",
                     $"{prefabPath} を再生成しました。\n" +
-                    $"参照先の{placeholderSettingsPath}はapiKey/projectIdともに空の状態です。\n\n" +
+                    $"参照先の{placeholderSettingsPath}はapiKeyが空の状態です。\n\n" +
                     "このプレハブをそのままドラッグ&ドロップしただけでは動作しません" +
-                    "（BugReportTriggerがprojectId未設定を検知してエラーログを出し、送信を中止します）。" +
-                    "利用者は参照先のGlankSettingsに自分のAPIキー・プロジェクトIDを入力する必要があります。",
+                    "（BugReportTriggerがapiKey未設定を検知してエラーログを出し、送信を中止します）。" +
+                    "利用者は参照先のGlankSettingsに自分のAPIキーを入力する必要があります。",
                     "OK");
             }
             finally
@@ -166,14 +166,13 @@ namespace Glank.Editor
 
             placeholder.baseUrl = "https://glank.onrender.com/api/v1";
             placeholder.apiKey = "";
-            placeholder.projectId = 0;
             placeholder.autoDetectionEnabled = false;
             EditorUtility.SetDirty(placeholder);
             AssetDatabase.SaveAssets();
 
             // 上記の代入自体がバグっていた場合に配布物へ実値が紛れ込むことがないよう、
             // 保存前の最終防衛ラインとして明示的に検証する。
-            if (!string.IsNullOrEmpty(placeholder.apiKey) || placeholder.projectId != 0)
+            if (!string.IsNullOrEmpty(placeholder.apiKey))
             {
                 Debug.LogError("[Glank] プレースホルダーGlankSettingsのリセットに失敗しました。プレハブの再生成を中止してください。");
             }

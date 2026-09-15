@@ -17,7 +17,7 @@ namespace Glank.Editor
         /// プロジェクト内に既存のGlankSettingsがあればそれを更新し、無ければ
         /// <see cref="DefaultSettingsFolder"/> に新規作成する。
         /// </summary>
-        public static GlankSettings CreateOrUpdateSettings(string baseUrl, string apiKey, int projectId)
+        public static GlankSettings CreateOrUpdateSettings(string baseUrl, string apiKey)
         {
             GlankSettings settings = FindExistingSettings();
 
@@ -35,7 +35,6 @@ namespace Glank.Editor
             Undo.RecordObject(settings, "Update Glank Settings");
             settings.baseUrl = baseUrl;
             settings.apiKey = apiKey;
-            settings.projectId = projectId;
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssets();
             return settings;

@@ -1,4 +1,4 @@
-// プランごとの動画保存期間（Free:14日 / Micro:30日 / Pro:90日、server/src/plans.js参照）を
+// プランごとの動画保存期間（Free:14日 / Basic:30日 / Pro:90日、server/src/plans.js参照）を
 // 過ぎた報告の動画を自動削除するジョブ。報告そのもの（タイトル・タグ・入力ログ等）は残し、
 // 動画ファイルとbugs.videoUrlの参照だけを消す。
 //

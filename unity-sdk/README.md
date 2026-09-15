@@ -12,7 +12,7 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 導入後のセットアップは3通りある。どれか1つでよい。
 
 1. **Setup Wizard（推奨）**: Unityメニューの `Tools > Glank > Setup Wizard` を開き、
-   APIキー・プロジェクトIDを入力して「セットアップ」ボタンを押すだけ。`GlankSettings`
+   APIキーを入力して「セットアップ」ボタンを押すだけ。`GlankSettings`
    アセットの生成と、必要なコンポーネント一式が配線された `GlankManager` の
    シーンへの配置、新Input System（`com.unity.inputsystem`）を使っているかどうかの
    自動判定まで行う。詳細は下記「Setup Wizard」を参照。
@@ -24,14 +24,13 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 
 ## 構成
 
-- `GlankSettings.cs` — APIサーバーのURL・APIキー・報告先プロジェクトIDを持つ
-  ScriptableObject。`BugReportTrigger`・`CrashDetector`・`FreezeWatchdog`・
-  `GlankOfflineQueue` はすべてこの1つのアセットを共有する（手動セットアップの場合は
-  `Assets > Create > Glank > Settings` で作成する。`baseUrl`は既定値が本番バックエンドの
-  URLなので、自前で別環境（ステージング・自前デプロイ等）を使う場合以外は変更不要。
-  `projectId` はWebアプリのプロジェクト一覧画面でカードに表示されている番号を設定する
-  （プロジェクトを跨いだ複数ゲーム運用を想定していないため、通常はゲームごとに固定値でよい）。
-  Setup Wizardまたはプレハブを使う場合はこの手順は不要）。
+- `GlankSettings.cs` — APIサーバーのURL・APIキーを持つScriptableObject。`BugReportTrigger`・
+  `CrashDetector`・`FreezeWatchdog`・`GlankOfflineQueue` はすべてこの1つのアセットを共有する
+  （手動セットアップの場合は`Assets > Create > Glank > Settings` で作成する。`baseUrl`は
+  既定値が本番バックエンドのURLなので、自前で別環境（ステージング・自前デプロイ等）を
+  使う場合以外は変更不要。`apiKey`はプロジェクトごとに発行される値で、報告先のプロジェクトも
+  このキーだけで特定される（別途プロジェクトIDを指定する必要はない）。Webアプリのプロジェクト
+  カードの「APIキーを表示」から確認できる。Setup Wizardまたはプレハブを使う場合はこの手順は不要）。
 - `InputLogRecorder.cs` — 直近nバッファ秒分の入力をリングバッファで保持し続けるMonoBehaviour。
   監視するキーを `watchedKeys`（`KeyCode` + Glank上の表示グリフ + ラベル）に登録する。
   レガシー `Input` クラスを使う（新Input Systemを使う場合は下記
@@ -83,7 +82,7 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
 
 Unityメニューの `Tools > Glank > Setup Wizard` を開くと、以下をまとめて自動で行うウィンドウが表示される。
 
-1. API Key・Project IDを入力する（バックエンドURLは既定値が本番URLなので、通常は入力不要。
+1. API Keyを入力する（バックエンドURLは既定値が本番URLなので、通常は入力不要。
    自前で別環境を使う場合のみ「詳細設定」を開いて変更する）。
 2. 「セットアップ」ボタンを押すと:
    - プロジェクト内に`GlankSettings`アセットが無ければ`Assets/Glank/GlankSettings.asset`に
@@ -109,13 +108,12 @@ Unityメニューの `Tools > Glank > Setup Wizard` を開くと、以下をま�
 ウィザードを使わずに導入したい場合向けに、上記と同じ構成が組まれた
 `<パッケージルート>/Runtime/Prefabs/GlankManager.prefab` を同梱している。シーンに
 ドラッグ&ドロップし、アタッチされている`GlankSettings`（`GlankSettings_PLACEHOLDER_DO_NOT_FILL_IN.asset`。
-ファイル名の通りapiKey・projectIdともに空のプレースホルダー）に自分のAPIキー・プロジェクトIDを
-入力するだけで動く。
+ファイル名の通りapiKeyが空のプレースホルダー）に自分のAPIキーを入力するだけで動く。
 
-**プレハブをそのままドラッグ&ドロップしただけでは動かない。** `projectId`が未設定（0）の間、
-`BugReportTrigger`は送信を行わず、`GlankSettings.projectIdが未設定です`という分かりやすいエラーを
+**プレハブをそのままドラッグ&ドロップしただけでは動かない。** `apiKey`が未設定の間、
+`BugReportTrigger`は送信を行わず、`GlankSettings.apiKeyが未設定です`という分かりやすいエラーを
 コンソールに出す（ホットキーを押しても何も起きないだけ、という気付きにくい失敗にはならない）。
-これは意図した挙動で、SDK開発時の動作確認に使った実際のAPIキー・プロジェクトIDが誤って
+これは意図した挙動で、SDK開発時の動作確認に使った実際のAPIキーが誤って
 プレハブに紐付いたまま配布されることはない（`<パッケージルート>/Runtime/Prefabs/`配下の
 プレースホルダーアセットは、同梱プレハブを再生成するたびに強制的に空へリセットされる。
 詳細は`GlankPrefabGenerator.cs`のコメント参照）。

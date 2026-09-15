@@ -1,7 +1,13 @@
 import { createClient } from '@libsql/client'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { encryptJson } from './crypto.js'
+import { encryptJson, decryptJson } from './crypto.js'
+
+/** APIキーからプロジェクトを直接引けるようにするための検索用ハッシュ（不可逆。SHA-256）。
+ * apiKeyEncはIVがランダムなAES-256-GCM暗号化のため、そのままでは検索キーに使えない。 */
+export function hashApiKey(apiKey) {
+  return crypto.createHash('sha256').update(apiKey).digest('hex')
+}
 
 // 本番はTurso（TURSO_DATABASE_URL/TURSO_AUTH_TOKENを設定）、それ以外（開発・テスト）は
 // ローカルのsqliteファイルを使う。どちらも同じ@libsql/client経由なのでアプリ側のコードは
@@ -121,7 +127,8 @@ await db.executeMultiple(`
     r2ConfigEnc TEXT,
     hiddenFieldOptions TEXT NOT NULL DEFAULT '{}',
     customFieldOptions TEXT NOT NULL DEFAULT '{}',
-    apiKeyEnc TEXT
+    apiKeyEnc TEXT,
+    apiKeyHash TEXT
   );
 
   ${BUG_TABLES_SCHEMA}
@@ -469,9 +476,10 @@ async function migrateAddApiKeyIfNeeded() {
   if (missing.length === 0) return
   try {
     for (const row of missing) {
+      const apiKey = generateApiKey()
       await db.execute({
-        sql: 'UPDATE projects SET apiKeyEnc = ? WHERE id = ?',
-        args: [encryptJson(generateApiKey()), row.id],
+        sql: 'UPDATE projects SET apiKeyEnc = ?, apiKeyHash = ? WHERE id = ?',
+        args: [encryptJson(apiKey), hashApiKey(apiKey), row.id],
       })
     }
   } catch (err) {
@@ -484,6 +492,42 @@ async function migrateAddApiKeyIfNeeded() {
 }
 
 await migrateAddApiKeyIfNeeded()
+
+// マイグレーション: SDKからの報告送信(POST /reports)がProject IDを送らずAPIキーだけで
+// プロジェクトを特定できるようにするため、検索用のapiKeyHash列を追加する。apiKeyEncは
+// ランダムIVのAES-256-GCM暗号化のためそのまま検索キーには使えない（同じ平文でも暗号文が
+// 毎回変わる）ので、決定的なSHA-256ハッシュを別途持たせる。既存プロジェクトはapiKeyEncを
+// 復号してハッシュを計算し直す（鍵の値自体は変えない）。
+async function migrateAddApiKeyHashIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(projects)')
+  const hasColumn = columns.some((c) => c.name === 'apiKeyHash')
+  if (!hasColumn) {
+    await db.execute('ALTER TABLE projects ADD COLUMN apiKeyHash TEXT')
+  }
+
+  const { rows: missing } = await db.execute(
+    'SELECT id, apiKeyEnc FROM projects WHERE apiKeyHash IS NULL AND apiKeyEnc IS NOT NULL'
+  )
+  for (const row of missing) {
+    try {
+      const apiKey = decryptJson(row.apiKeyEnc)
+      await db.execute({
+        sql: 'UPDATE projects SET apiKeyHash = ? WHERE id = ?',
+        args: [hashApiKey(apiKey), row.id],
+      })
+    } catch (err) {
+      console.error(
+        `[Glank] プロジェクト${row.id}のapiKeyHashバックフィルに失敗しました（GLANK_ENCRYPTION_KEY不一致の可能性）:`,
+        err.message
+      )
+    }
+  }
+
+  // 検索・一意性制約用のインデックス（NULLは複数許容されるのでSQLiteのUNIQUE INDEXで問題ない）。
+  await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_apiKeyHash ON projects(apiKeyHash)')
+}
+
+await migrateAddApiKeyHashIfNeeded()
 await migrateAddUserImageUrlIfNeeded()
 await migrateAddUserCreatedAtIfNeeded()
 
@@ -534,7 +578,7 @@ async function migrateBackfillProjectMembers() {
 
 await migrateBackfillProjectMembers()
 
-// マイグレーション: サブスクリプションプラン(free/micro/pro)導入。プランはGoogleアカウント単位
+// マイグレーション: サブスクリプションプラン(free/basic/pro)導入。プランはGoogleアカウント単位
 // （projectsではなくusers）に持たせる。プロジェクト数の上限はアカウント単位の概念であり、
 // メンバー数上限・動画保存期間・Pro限定機能はプロジェクトの「オーナー」のプランを参照する
 // （下のmigrateAddProjectOwnerEmailIfNeeded参照）。既存ユーザーは全員free扱いから始まる。
@@ -546,6 +590,14 @@ async function migrateAddUserPlanIfNeeded() {
 }
 
 await migrateAddUserPlanIfNeeded()
+
+// マイグレーション: 'micro'プランを'basic'に改名した（server/src/plans.js）。既存に'micro'のまま
+// 残っている行があれば追従させる（運営が動作確認用にCLIで切り替えていた場合の想定）。
+async function migrateRenameMicroPlanToBasic() {
+  await db.execute("UPDATE users SET plan = 'basic' WHERE plan = 'micro'")
+}
+
+await migrateRenameMicroPlanToBasic()
 
 // マイグレーション: プランを判定する基準となる「プロジェクトのオーナー」を導入。
 // これまでprojectsにもprojectMembersにも「作成者」を区別する概念が無かったため、
@@ -585,6 +637,62 @@ async function migrateAddNotificationWebhooksIfNeeded() {
 }
 
 await migrateAddNotificationWebhooksIfNeeded()
+
+// マイグレーション: 「お試し用プロジェクト」(GlankSampleGame)を渡したかどうかを記録する列。
+// 名前で「持っているか」を毎回判定すると、ユーザーが試した後に削除しても次のデプロイ（起動）で
+// また作られてしまう（実際にこの懸念が指摘された）。一度渡したら二度と作らないよう、
+// 渡したこと自体を恒久的なフラグとして持たせる（削除は「もう要らない」という意思表示として
+// 尊重する）。
+async function migrateAddSampleProjectProvisionedIfNeeded() {
+  const { rows: columns } = await db.execute('PRAGMA table_info(users)')
+  const hasColumn = columns.some((c) => c.name === 'sampleProjectProvisioned')
+  if (hasColumn) return
+  await db.execute('ALTER TABLE users ADD COLUMN sampleProjectProvisioned INTEGER NOT NULL DEFAULT 0')
+}
+
+await migrateAddSampleProjectProvisionedIfNeeded()
+
+// マイグレーション: 導入前から居た既存ユーザーに、まだ渡していなければ「お試し用プロジェクト」を
+// 1回だけ渡す。新規サインイン後はdata.jsのfindOrCreateUser()内でensureSampleProjectForUser()が
+// 対応するため、これは既存ユーザー向けの一度きりのバックフィル専用。data.js側はdb.jsに依存している
+// ため、ここから逆にdata.jsの関数を呼ぶと循環importになる。生SQLで完結させる
+// （createProjectの中身を直接展開している）。
+const SAMPLE_PROJECT_NAME = 'GlankSampleGame'
+async function migrateBackfillSampleProjectForExistingUsers() {
+  const { rows: users } = await db.execute(
+    'SELECT email FROM users WHERE sampleProjectProvisioned = 0'
+  )
+  for (const user of users) {
+    const email = user.email
+    let apiKeyEnc = null
+    let apiKeyHash = null
+    try {
+      const apiKey = generateApiKey()
+      apiKeyEnc = encryptJson(apiKey)
+      apiKeyHash = hashApiKey(apiKey)
+    } catch (err) {
+      console.error(
+        '[Glank] お試し用プロジェクトのAPIキー発行に失敗しました（GLANK_ENCRYPTION_KEY未設定の可能性）:',
+        err.message
+      )
+    }
+    const result = await db.execute({
+      sql: `INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc, apiKeyHash, ownerEmail)
+            VALUES (?, NULL, 'unity', 1, ?, ?, ?)`,
+      args: [SAMPLE_PROJECT_NAME, apiKeyEnc, apiKeyHash, email],
+    })
+    await db.execute({
+      sql: 'INSERT OR IGNORE INTO projectMembers (projectId, email, addedAt) VALUES (?, ?, ?)',
+      args: [result.lastInsertRowid, email, new Date().toISOString()],
+    })
+    await db.execute({
+      sql: 'UPDATE users SET sampleProjectProvisioned = 1 WHERE email = ?',
+      args: [email],
+    })
+  }
+}
+
+await migrateBackfillSampleProjectForExistingUsers()
 
 const SEED_BUGS = [
   {

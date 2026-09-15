@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Glank.Editor
 {
     /// <summary>
-    /// Tools &gt; Glank &gt; Setup Wizard。APIキー・プロジェクトIDを入力して「セットアップ」を押すと、
+    /// Tools &gt; Glank &gt; Setup Wizard。APIキーを入力して「セットアップ」を押すと、
     /// GlankSettingsアセットの生成と、配線済みの"GlankManager"のシーンへの配置を自動で行う。
     /// 新Input Systemを使っているかどうかの判定は、GlankSetupUtility側の
     /// <c>#if ENABLE_INPUT_SYSTEM</c>（プロジェクト全体に自動設定されるスクリプティング定義）で行う。
@@ -14,7 +14,6 @@ namespace Glank.Editor
     {
         private string _baseUrl = "https://glank.onrender.com/api/v1";
         private string _apiKey = "";
-        private int _projectId;
         private bool _showAdvanced;
 
         [MenuItem("Tools/Glank/Setup Wizard")]
@@ -28,7 +27,6 @@ namespace Glank.Editor
             {
                 window._baseUrl = existing.baseUrl;
                 window._apiKey = existing.apiKey;
-                window._projectId = existing.projectId;
             }
         }
 
@@ -37,7 +35,7 @@ namespace Glank.Editor
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Glank セットアップ", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "APIキーとプロジェクトIDを入力して「セットアップ」を押すと、GlankSettingsアセットの生成と、" +
+                "APIキーを入力して「セットアップ」を押すと、GlankSettingsアセットの生成と、" +
                 "必要なコンポーネント一式が配線されたGlankManagerのシーンへの配置を自動で行います。" +
                 "既にGlankSettingsが存在する場合は、それを更新します。",
                 MessageType.Info);
@@ -45,10 +43,9 @@ namespace Glank.Editor
             EditorGUILayout.Space(12);
             _apiKey = EditorGUILayout.TextField(
                 new GUIContent("API Key", "POST /reportsに付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、" +
+                    "報告先のプロジェクトもこのキーだけで特定される。" +
                     "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる"),
                 _apiKey);
-            _projectId = EditorGUILayout.IntField(
-                new GUIContent("Project ID", "報告先のGlankプロジェクトID。Web側のプロジェクト画面で確認できる"), _projectId);
 
             EditorGUILayout.Space(4);
             _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "詳細設定");
@@ -77,12 +74,12 @@ namespace Glank.Editor
 #endif
 
             EditorGUILayout.Space(12);
-            if (_projectId <= 0)
+            if (string.IsNullOrEmpty(_apiKey))
             {
-                EditorGUILayout.HelpBox("Project IDを1以上で入力してください。", MessageType.Warning);
+                EditorGUILayout.HelpBox("API Keyを入力してください。", MessageType.Warning);
             }
 
-            using (new EditorGUI.DisabledScope(_projectId <= 0))
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_apiKey)))
             {
                 if (GUILayout.Button("セットアップ", GUILayout.Height(32)))
                 {
@@ -93,7 +90,7 @@ namespace Glank.Editor
 
         private void RunSetup()
         {
-            var settings = GlankSetupUtility.CreateOrUpdateSettings(_baseUrl, _apiKey, _projectId);
+            var settings = GlankSetupUtility.CreateOrUpdateSettings(_baseUrl, _apiKey);
             var manager = GlankSetupUtility.CreateGlankManager(settings);
             EditorSceneManager.MarkSceneDirty(manager.scene);
             Selection.activeGameObject = manager;

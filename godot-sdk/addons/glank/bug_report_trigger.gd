@@ -77,7 +77,6 @@ func submit_report(
 		capture_input_log.call() if capture_input_log.is_valid() else input_log_recorder.capture()
 	)
 	var metadata := {
-		"projectId": config.project_id,
 		"title": title,
 		"tags": tags,
 		"desc": desc,

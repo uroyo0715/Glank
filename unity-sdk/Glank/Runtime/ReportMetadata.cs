@@ -9,7 +9,6 @@ namespace Glank
     [Serializable]
     public class ReportMetadata
     {
-        public int projectId;
         public string title;
         public string[] tags; // 例: {"crash"} または {"crash", "visual"}（1件の報告に複数の種類を付けられる）
         public string desc;

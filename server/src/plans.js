@@ -6,14 +6,14 @@
 export const PLAN_LIMITS = {
   free: {
     label: 'Free',
-    maxProjects: 1,
+    maxProjects: 2,
     maxMembersPerProject: 3,
     videoRetentionDays: 14,
     proFeatures: false,
   },
-  micro: {
-    label: 'Micro',
-    maxProjects: 3,
+  basic: {
+    label: 'Basic',
+    maxProjects: 5,
     maxMembersPerProject: 10,
     videoRetentionDays: 30,
     proFeatures: false,

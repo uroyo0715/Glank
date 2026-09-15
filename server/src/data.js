@@ -1,4 +1,4 @@
-import { db, generateApiKey } from './db.js'
+import { db, generateApiKey, hashApiKey } from './db.js'
 import { encryptJson, decryptJson } from './crypto.js'
 import { getPlanLimits, isValidPlan, DEFAULT_PLAN } from './plans.js'
 
@@ -592,6 +592,21 @@ export async function getProjectRaw(id) {
 }
 
 /**
+ * SDKからの報告送信(POST /reports)がProject IDを送らなくても、X-Glank-Keyヘッダーの
+ * APIキーだけでプロジェクトを直接特定できるようにする（APIキーは既にプロジェクトごとに
+ * 一意なため、Project IDを別途要求するのは冗長という指摘を受けて導入）。
+ * 戻り値の形はgetProjectRawと同じ。見つからなければnull。
+ */
+export async function getProjectByApiKey(apiKey) {
+  const { rows } = await db.execute({
+    sql: 'SELECT id FROM projects WHERE apiKeyHash = ?',
+    args: [hashApiKey(apiKey)],
+  })
+  if (!rows[0]) return null
+  return getProjectRaw(Number(rows[0].id))
+}
+
+/**
  * SDK認証用のプロジェクト固有APIキー（平文）を返す。存在しない場合はnull
  * （通常は起動時のマイグレーションで全プロジェクトに発行済みのはずだが、
  * GLANK_ENCRYPTION_KEY未設定でバックフィルが未完了の場合に起こりうる）。
@@ -606,8 +621,8 @@ export async function getProjectApiKey(id) {
 export async function regenerateProjectApiKey(id) {
   const apiKey = generateApiKey()
   await db.execute({
-    sql: 'UPDATE projects SET apiKeyEnc = ? WHERE id = ?',
-    args: [encryptJson(apiKey), id],
+    sql: 'UPDATE projects SET apiKeyEnc = ?, apiKeyHash = ? WHERE id = ?',
+    args: [encryptJson(apiKey), hashApiKey(apiKey), id],
   })
   return apiKey
 }
@@ -862,7 +877,7 @@ export async function removeProjectMember(projectId, email) {
 // オーナーのプランを参照する（projects.ownerEmail）。決済はまだ無いため、planの変更は
 // server/scripts/set-plan.mjsで運営が手動で行う。
 
-/** @returns {Promise<string>} 'free' | 'micro' | 'pro'。未登録ユーザーはfree扱い。 */
+/** @returns {Promise<string>} 'free' | 'basic' | 'pro'。未登録ユーザーはfree扱い。 */
 export async function getUserPlan(email) {
   return getUserPlanByEmail(email)
 }
@@ -975,22 +990,57 @@ export async function createProject({ name, imageUrl, gameEngine, creatorEmail }
   // APIキーの暗号化にはGLANK_ENCRYPTION_KEYが必要。未設定の場合、ここで例外を投げてしまうと
   // 画像保存等とは無関係なプロジェクト作成自体が丸ごと失敗してしまう（実際にこれで
   // internal server errorになり、プロジェクトが作成できなくなったことがあった）。
-  // 未設定ならapiKeyEncはnullのままにし、起動時のマイグレーション(migrateAddApiKeyIfNeeded)が
-  // 鍵設定後に後から発行する。
+  // 未設定ならapiKeyEnc/apiKeyHashはnullのままにし、起動時のマイグレーション
+  // (migrateAddApiKeyIfNeeded)が鍵設定後に後から発行する。
   let apiKeyEnc = null
+  let apiKeyHash = null
   try {
-    apiKeyEnc = encryptJson(generateApiKey())
+    const apiKey = generateApiKey()
+    apiKeyEnc = encryptJson(apiKey)
+    apiKeyHash = hashApiKey(apiKey)
   } catch (err) {
     console.error('[Glank] プロジェクト作成時のAPIキー発行に失敗しました（GLANK_ENCRYPTION_KEY未設定の可能性）:', err)
   }
 
   const result = await db.execute({
-    sql: 'INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc, ownerEmail) VALUES (?, ?, ?, 1, ?, ?)',
-    args: [name, imageUrl ?? null, gameEngine ?? '', apiKeyEnc, normalizeEmail(creatorEmail)],
+    sql: `INSERT INTO projects (name, imageUrl, gameEngine, isManagedAllowed, apiKeyEnc, apiKeyHash, ownerEmail)
+          VALUES (?, ?, ?, 1, ?, ?, ?)`,
+    args: [name, imageUrl ?? null, gameEngine ?? '', apiKeyEnc, apiKeyHash, normalizeEmail(creatorEmail)],
   })
   const projectId = result.lastInsertRowid
   await addProjectMembers(projectId, [creatorEmail])
   return getProjectById(projectId)
+}
+
+// 誰でもすぐバグ報告を試せるよう、アカウントごとに用意する「お試し用プロジェクト」。
+// Twitter等から流れてきた人が、自分のゲームにSDKを組み込む前に、まず動くところを
+// 見られるようにするための導入用プロジェクト（Unity側のサンプルはあとで別途配置する）。
+export const SAMPLE_PROJECT_NAME = 'GlankSampleGame'
+
+/**
+ * 一度渡したら二度と作らない（べき等）。「持っているかどうか」を毎回プロジェクト名で
+ * 判定すると、ユーザーが試した後に削除しても次回また作られてしまうため、渡したこと自体を
+ * users.sampleProjectProvisionedに恒久的なフラグとして記録する（削除は「もう要らない」という
+ * 意思表示として尊重し、二度と復活させない）。
+ */
+export async function ensureSampleProjectForUser(email) {
+  const normalized = normalizeEmail(email)
+  const { rows } = await db.execute({
+    sql: 'SELECT sampleProjectProvisioned FROM users WHERE email = ?',
+    args: [normalized],
+  })
+  if (rows[0]?.sampleProjectProvisioned) return
+
+  await createProject({
+    name: SAMPLE_PROJECT_NAME,
+    imageUrl: null,
+    gameEngine: 'unity',
+    creatorEmail: normalized,
+  })
+  await db.execute({
+    sql: 'UPDATE users SET sampleProjectProvisioned = 1 WHERE email = ?',
+    args: [normalized],
+  })
 }
 
 /** ティザー画像を作成後に差し替える/外す。imageUrlにnullを渡すと画像なしに戻す。 */
@@ -1085,6 +1135,10 @@ export async function findOrCreateUser({ googleId, email, name, picture }) {
     sql: 'INSERT INTO users (googleId, email, displayName, imageUrl, createdAt) VALUES (?, ?, ?, ?, ?)',
     args: [googleId, email, name || email, picture || null, new Date().toISOString()],
   })
+  // 初回サインイン時に「お試し用プロジェクト」を渡しておく。プラン上限の判定は通常の
+  // プロジェクト作成と同じくオーナー（このアカウント）のプロジェクト数としてカウントされる
+  // （試した後、要らなくなれば削除して自分のプロジェクト用に枠を空けられる）。
+  await ensureSampleProjectForUser(email)
   return findUserByGoogleId(googleId)
 }
 

@@ -5,7 +5,8 @@ const PLANS = [
   {
     key: 'free',
     label: 'Free',
-    maxProjects: '1',
+    cta: 'Freeで始める',
+    maxProjects: '2',
     maxMembersPerProject: '3',
     videoRetentionDays: '14日',
     customFields: true,
@@ -14,9 +15,10 @@ const PLANS = [
     managedStorage: false,
   },
   {
-    key: 'micro',
-    label: 'Micro',
-    maxProjects: '3',
+    key: 'basic',
+    label: 'Basic',
+    cta: 'Basicで始める',
+    maxProjects: '5',
     maxMembersPerProject: '10',
     videoRetentionDays: '30日',
     customFields: true,
@@ -27,6 +29,7 @@ const PLANS = [
   {
     key: 'pro',
     label: 'Pro',
+    cta: 'Proで始める',
     maxProjects: '無制限',
     maxMembersPerProject: '無制限',
     videoRetentionDays: '90日',
@@ -129,8 +132,16 @@ export default function LandingPage({ onGoogleLogin }) {
               <tr>
                 <th></th>
                 {PLANS.map((p) => (
-                  <th key={p.key} className={p.key === 'pro' ? 'landing-pricing-highlight' : ''}>
-                    {p.label}
+                  <th key={p.key}>
+                    <div className="landing-pricing-col-name">{p.label}</div>
+                    <button
+                      type="button"
+                      className="landing-pricing-col-cta"
+                      onClick={handleLogin}
+                      disabled={submitting}
+                    >
+                      {submitting ? '接続中...' : p.cta}
+                    </button>
                   </th>
                 ))}
               </tr>
@@ -140,7 +151,7 @@ export default function LandingPage({ onGoogleLogin }) {
                 <tr key={row.key}>
                   <td className="landing-pricing-row-label">{row.label}</td>
                   {PLANS.map((p) => (
-                    <td key={p.key} className={p.key === 'pro' ? 'landing-pricing-highlight' : ''}>
+                    <td key={p.key}>
                       {row.boolean ? (
                         p[row.key] ? (
                           <span className="landing-pricing-check">○</span>
@@ -157,9 +168,6 @@ export default function LandingPage({ onGoogleLogin }) {
             </tbody>
           </table>
         </div>
-        <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
-          {submitting ? '接続中...' : 'Googleではじめる'}
-        </button>
       </section>
     </div>
   )

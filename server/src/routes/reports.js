@@ -17,8 +17,8 @@ import {
   createBugComment,
   deleteBugComment,
   getProjectPlanInfo,
+  getProjectByApiKey,
 } from '../data.js'
-import { decryptJson } from '../crypto.js'
 import { requireAuth } from '../auth.js'
 import { saveVideo, deleteFile } from '../storage.js'
 import { asyncHandler } from '../asyncHandler.js'
@@ -36,26 +36,6 @@ const router = express.Router()
 // メモリに受けてから storage.js 経由で保存先へ書き込む。保存先をS3等へ
 // 差し替える際もここは変更不要（storage.js の実装だけ差し替える）。
 const upload = multer({ storage: multer.memoryStorage() })
-
-// 以前はサーバー全体で1つの共有シークレット（環境変数GLANK_API_KEY）しか無く、
-// リクエストのprojectIdを書き換えるだけで別プロジェクトに報告を送り込めてしまっていた。
-// projectIdはこの時点（multerがmetadataを解析した後）でしか分からないため、
-// POST /reportsハンドラ内でprojectごとのapiKeyEncと突き合わせて認証する
-// （ミドルウェアとしては切り出さない）。
-function checkProjectApiKey(req, res, project) {
-  const provided = req.get('X-Glank-Key')
-  if (!project.apiKeyEnc) {
-    // マイグレーションでの自動発行に失敗した等、想定外の状態。呼び出し側の問題ではないので
-    // 401ではなく500にして、サーバー側の設定不備であることが分かるようにする。
-    res.status(500).json({ error: 'API key not provisioned for this project (server misconfiguration)' })
-    return false
-  }
-  if (provided !== decryptJson(project.apiKeyEnc)) {
-    res.status(401).json({ error: 'invalid or missing X-Glank-Key' })
-    return false
-  }
-  return true
-}
 
 // projectIdからそのプロジェクトのバグデータ用DBクライアントを解決する。
 // self_hostedでまだTursoが未設定なら409で「使えない」ことを明示する（要件5）。
@@ -387,17 +367,7 @@ router.post(
       return res.status(400).json({ error: 'metadata must be valid JSON' })
     }
 
-    const required = [
-      'projectId',
-      'title',
-      'tags',
-      'desc',
-      'who',
-      'build',
-      'platform',
-      'fps',
-      'durationFrames',
-    ]
+    const required = ['title', 'tags', 'desc', 'who', 'build', 'platform', 'fps', 'durationFrames']
     const missing = required.filter((key) => metadata[key] == null)
     if (missing.length > 0) {
       return res.status(400).json({ error: `missing fields: ${missing.join(', ')}` })
@@ -405,11 +375,17 @@ router.post(
     if (!isValidTags(metadata.tags)) {
       return res.status(400).json({ error: 'tags must be a non-empty array of strings' })
     }
-    const project = await getProjectRaw(metadata.projectId)
-    if (!project) {
-      return res.status(400).json({ error: `unknown projectId: ${metadata.projectId}` })
+    // APIキーはプロジェクトごとに一意なため、これだけでどのプロジェクト宛かが特定できる
+    // （以前はmetadata.projectIdも別途要求していたが、キーと矛盾した値を送られると混乱の元になる
+    // うえ、SDK側の設定項目も減らせるため、キーからの特定一本に統一した）。
+    const providedKey = req.get('X-Glank-Key')
+    if (!providedKey) {
+      return res.status(401).json({ error: 'invalid or missing X-Glank-Key' })
     }
-    if (!checkProjectApiKey(req, res, project)) return
+    const project = await getProjectByApiKey(providedKey)
+    if (!project) {
+      return res.status(401).json({ error: 'invalid or missing X-Glank-Key' })
+    }
     const priority = metadata.priority || 'medium'
     if (!PRIORITY_LABELS[priority]) {
       return res.status(400).json({ error: `unknown priority: ${priority}` })
@@ -435,7 +411,7 @@ router.post(
     if (storageTarget.managed) await addManagedStorageUsage(project.id, bytes)
 
     const bug = await createBug(dbAccess.client, {
-      projectId: metadata.projectId,
+      projectId: project.id,
       title: metadata.title,
       tags: metadata.tags,
       desc: metadata.desc,

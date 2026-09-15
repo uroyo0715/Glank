@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { fetchAdminStats, fetchMyAdminPlan, updateMyAdminPlan } from '../api/index.js'
 import { LineChart, BarChart } from '../components/AdminCharts.jsx'
 
-const PLAN_OPTIONS = ['free', 'micro', 'pro']
+const PLAN_OPTIONS = ['free', 'basic', 'pro']
 
 function planLabel(key) {
   if (key === 'free') return 'Free'
-  if (key === 'micro') return 'Micro'
+  if (key === 'basic') return 'Basic'
   if (key === 'pro') return 'Pro'
   return key
 }

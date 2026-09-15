@@ -10,7 +10,7 @@
   格闘ゲーム風フレームデータという見た目のコンセプトにも合う。
   秒への変換は「表示時にfpsで割る」の一方向にし、保存・送信・比較は常にフレーム単位で行う。
 - 録画1本＝1つの「セッション」。fpsはセッション単位で固定値を記録する（可変フレームレート環境でも録画時に固定fpsへ正規化してSDK側で送る想定。可変対応は将来課題）。
-- 認証: Unity/Godot SDKからの送信は、プロジェクトごとに発行されるAPIキー（`X-Glank-Key`ヘッダー、`projects.apiKeyEnc`）と照合する方式で確定（実装済み）。以前は環境変数`GLANK_API_KEY`によるサーバー全体共通の単一キーだったが、`projectId`を書き換えるだけで別プロジェクトに送信できてしまう問題があったため、プロジェクトごとに分離した。Web側の閲覧・操作は個人ログイン（セッションCookie）を必須とする方式で確定（実装済み、`server/src/auth.js`）。ユーザーはプロトタイプ用の固定シードのみで、本番導入時はユーザー管理の仕組みを別途設計する。
+- 認証: Unity/Godot SDKからの送信は、プロジェクトごとに発行されるAPIキー（`X-Glank-Key`ヘッダー）を`projects.apiKeyHash`（SHA-256、検索用の不可逆ハッシュ）と照合し、一致したプロジェクトへ報告する方式で確定（実装済み）。以前は環境変数`GLANK_API_KEY`によるサーバー全体共通の単一キーで、送信元の`projectId`と組み合わせて認可していたが、`projectId`を書き換えるだけで別プロジェクトに送信できてしまう問題があったため、プロジェクトごとにキーを分離した。さらにその後、APIキー自体がプロジェクトを一意に特定できるため`projectId`をmetadataに含める必要自体が無いことに気付き、`POST /reports`のリクエストからは`projectId`を廃止した（詳細は3.4節）。Web側の閲覧・操作は個人ログイン（セッションCookie）を必須とする方式で確定（実装済み、`server/src/auth.js`）。ユーザーはプロトタイプ用の固定シードのみで、本番導入時はユーザー管理の仕組みを別途設計する。
 - 動画・画像の保存先: `server/src/storage.js`に保存処理を分離しており、プロジェクトごとの`storageMode`
   （`self_hosted`固定。`managed`は将来提供予定でUI上は選択不可）に応じてCloudflare R2
   （S3互換API、`@aws-sdk/client-s3`経由）に保存する（実装済み）。R2の接続情報未設定時のみ
@@ -317,7 +317,6 @@ Fields:
 
 ```ts
 interface ReportMetadata {
-  projectId: number
   title: string
   tags: string[] // 空配列は不可（最低1つ必要）
   desc: string
@@ -334,7 +333,9 @@ interface ReportMetadata {
 
 Response: `201 Created`、作成された`Bug`（`status`は`todo`固定で開始）。
 
-ヘッダー: `X-Glank-Key: <project_api_key>`（必須）
+ヘッダー: `X-Glank-Key: <project_api_key>`（必須）。報告先のプロジェクトはこのキー
+（`projects.apiKeyHash`との照合）だけで特定するため、`projectId`をmetadataに含める必要はない
+（キーとプロジェクトIDを別々に一致させる必要がなくなり、書き換えによる誤爆の余地も無くなる）。
 
 ### 3.4.5 `POST /reports/manual`（Web UIからの手動作成）
 

@@ -21,7 +21,7 @@ function priorityLabel(key) {
 // 「メンバー」「ストレージ設定」「検索項目の管理」「SDK接続情報」をまとめる管理メニュー。
 // ヘッダーに個別ボタンをそのまま並べると項目数が多く折り返して見苦しくなるため、1つの
 // ドロップダウンに集約する（開閉ロジックはNavMenu.jsxの外側クリックで閉じる実装と同じ）。
-// SDK接続情報（バックエンドURL・Project ID・API Key）はSetup Wizard/プレハブに入力する3項目で、
+// SDK接続情報（バックエンドURL・API Key）はSetup Wizard/プレハブに入力する項目で、
 // プロジェクトを開いてSDKをセットアップする流れの中で見たいものなので、プロジェクト一覧の
 // カードではなくこちらに置く。
 function ManageMenu({
@@ -45,9 +45,9 @@ function ManageMenu({
   const [exporting, setExporting] = useState(null) // null | 'csv' | 'pdf'
   const [exportError, setExportError] = useState(null)
   const [infoRevealed, setInfoRevealed] = useState(false)
-  // Project ID・APIキー・バックエンドURLはそれぞれ個別に隠せる（1項目だけ見せて残りは隠す、
+  // APIキー・バックエンドURLはそれぞれ個別に隠せる（1項目だけ見せて残りは隠す、
   // といった使い方ができるように）。
-  const [fieldVisible, setFieldVisible] = useState({ projectId: false, apiKey: false, backendUrl: false })
+  const [fieldVisible, setFieldVisible] = useState({ apiKey: false, backendUrl: false })
   const [apiKeyState, setApiKeyState] = useState('idle') // 'idle' | 'loading' | 'shown' | 'error'
   const [apiKey, setApiKey] = useState(null)
   const [apiKeyError, setApiKeyError] = useState(null)
@@ -59,13 +59,13 @@ function ManageMenu({
     setFieldVisible((v) => ({ ...v, [field]: !v[field] }))
   }
 
-  // メニューを閉じるたびにSDK接続情報（Project ID・APIキー・バックエンドURL）の表示状態も
+  // メニューを閉じるたびにSDK接続情報（APIキー・バックエンドURL）の表示状態も
   // リセットする。開いたままにしておくと、画面を見られたりスクリーンショット/共有された際に
   // APIキー等がずっと見える状態になってしまうため（実際にこれが不安点として指摘された）、
   // 毎回明示的に「表示」し直さないと見えないようにする。
   function hideInfo() {
     setInfoRevealed(false)
-    setFieldVisible({ projectId: false, apiKey: false, backendUrl: false })
+    setFieldVisible({ apiKey: false, backendUrl: false })
     setApiKeyState('idle')
     setApiKey(null)
     setApiKeyError(null)
@@ -277,26 +277,6 @@ function ManageMenu({
                   disabled={regenerating || apiKeyState !== 'shown'}
                 >
                   {regenerating ? 'APIキーを再発行中...' : 'APIキーを再発行'}
-                </button>
-              </div>
-              <div className="manage-menu-connection-row">
-                <div className="manage-menu-connection-label">Project ID</div>
-                {fieldVisible.projectId ? (
-                  <>
-                    <div className="manage-menu-connection-value mono">{projectId}</div>
-                    <button
-                      type="button"
-                      className="help-link"
-                      onClick={copyValue('projectId', String(projectId))}
-                    >
-                      {copiedField === 'projectId' ? 'コピーしました' : 'コピー'}
-                    </button>
-                  </>
-                ) : (
-                  <div className="manage-menu-connection-value mono">••••••••</div>
-                )}
-                <button type="button" className="help-link" onClick={() => toggleFieldVisible('projectId')}>
-                  {fieldVisible.projectId ? '隠す' : '表示'}
                 </button>
               </div>
             </div>

@@ -107,18 +107,16 @@ namespace Glank
                 return;
             }
 
-            // projectId未設定（0）のまま送信すると、サーバー側に存在しないプロジェクトへの報告や、
-            // 意図しない他プロジェクトへの誤爆になりかねない。配布用プレハブ（GlankManager.prefab）は
-            // apiKey/projectIdが空のプレースホルダーGlankSettingsを参照しているため、導入しただけで
-            // 中身を設定し忘れた場合にここで気付けるようにする。
-            if (config.projectId <= 0)
+            // apiKey未設定のまま送信すると、サーバー側でプロジェクトを特定できずエラーになる。
+            // 配布用プレハブ（GlankManager.prefab）はapiKeyが空のプレースホルダーGlankSettingsを
+            // 参照しているため、導入しただけで中身を設定し忘れた場合にここで気付けるようにする。
+            if (string.IsNullOrEmpty(config.apiKey))
             {
                 Debug.LogError(
-                    "[Glank] GlankSettings.projectIdが未設定です（0のまま）。報告を送信しませんでした。" +
+                    "[Glank] GlankSettings.apiKeyが未設定です。報告を送信しませんでした。" +
                     "Setup Wizard（Tools > Glank > Setup Wizard）を実行するか、GlankSettingsアセットに" +
-                    "Web側のプロジェクト画面で確認できるプロジェクトIDを入力してください。" +
-                    "GlankManagerプレハブをそのまま導入した場合、参照先はAPIキー・プロジェクトID未設定の" +
-                    "プレースホルダーです。"
+                    "Webアプリのプロジェクトカードの「APIキーを表示」から確認できるAPIキーを入力してください。" +
+                    "GlankManagerプレハブをそのまま導入した場合、参照先はAPIキー未設定のプレースホルダーです。"
                 );
                 return;
             }
@@ -128,7 +126,6 @@ namespace Glank
             var snapshot = CaptureInputLog != null ? CaptureInputLog.Invoke() : inputLogRecorder.Capture();
             var metadata = new ReportMetadata
             {
-                projectId = config.projectId,
                 title = title,
                 tags = tags,
                 desc = desc,

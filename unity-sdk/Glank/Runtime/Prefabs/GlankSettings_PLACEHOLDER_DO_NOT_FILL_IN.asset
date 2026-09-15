@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: GlankSettings_PLACEHOLDER_DO_NOT_FILL_IN
   m_EditorClassIdentifier: Glank.Runtime::Glank.GlankSettings
   baseUrl: https://glank.onrender.com/api/v1
-  apiKey: 
-  projectId: 0
+  apiKey:
   autoDetectionEnabled: 0

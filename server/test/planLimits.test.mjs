@@ -17,49 +17,52 @@ async function makeUser(email, plan) {
   if (plan) await setUserPlan(email, plan)
 }
 
-test('free plan: exactly 1 project is allowed, a 2nd would exceed the limit', async () => {
+test('free plan: the auto-created sample project already counts toward the 2-project limit', async () => {
   const email = 'free-projects@example.com'
-  await makeUser(email) // 既定でfree
+  await makeUser(email) // findOrCreateUserでGlankSampleGameが1件自動作成される（既定でfree）
 
   let info = await getAccountPlanInfo(email)
   assert.equal(info.plan, 'free')
-  assert.equal(info.projectsMax, 1)
-  assert.equal(info.projectsUsed, 0)
-  assert.equal(info.projectsUsed >= info.limits.maxProjects, false, '0件目は上限未満（作成できる）')
+  assert.equal(info.projectsMax, 2)
+  assert.equal(info.projectsUsed, 1, 'サインイン時のお試し用プロジェクトが1件目')
+  assert.equal(info.projectsUsed >= info.limits.maxProjects, false, '1件目は上限未満（まだ作成できる）')
 
-  await createProject({ name: 'P1', imageUrl: null, gameEngine: '', creatorEmail: email })
+  await createProject({ name: 'P2', imageUrl: null, gameEngine: '', creatorEmail: email })
 
   info = await getAccountPlanInfo(email)
-  assert.equal(info.projectsUsed, 1)
+  assert.equal(info.projectsUsed, 2)
   // 上限ちょうど: これ以上は作成不可という判定になるはず（ルート側はこの値で403にする）
   assert.equal(info.projectsUsed >= info.limits.maxProjects, true, '上限ちょうどに達したら以降は不可')
 })
 
-test('micro plan: exactly 3 projects are allowed, the 4th exceeds the limit', async () => {
-  const email = 'micro-projects@example.com'
-  await makeUser(email, 'micro')
+test('basic plan: exactly 5 projects total are allowed (including the sample project), the 6th exceeds the limit', async () => {
+  const email = 'basic-projects@example.com'
+  await makeUser(email, 'basic') // サインイン時のお試し用プロジェクトが1件目としてカウントされる
 
-  for (let i = 1; i <= 3; i++) {
+  let info = await getAccountPlanInfo(email)
+  assert.equal(info.projectsUsed, 1)
+
+  for (let i = 2; i <= 5; i++) {
     const before = await getAccountPlanInfo(email)
     assert.equal(before.projectsUsed >= before.limits.maxProjects, false, `${i}件目は作成できるはず`)
-    await createProject({ name: `Micro ${i}`, imageUrl: null, gameEngine: '', creatorEmail: email })
+    await createProject({ name: `Basic ${i}`, imageUrl: null, gameEngine: '', creatorEmail: email })
   }
 
   const after = await getAccountPlanInfo(email)
-  assert.equal(after.projectsUsed, 3)
-  assert.equal(after.projectsUsed >= after.limits.maxProjects, true, '4件目は上限超えで不可')
+  assert.equal(after.projectsUsed, 5)
+  assert.equal(after.projectsUsed >= after.limits.maxProjects, true, '6件目は上限超えで不可')
 })
 
 test('pro plan: project count has no limit', async () => {
   const email = 'pro-projects@example.com'
-  await makeUser(email, 'pro')
+  await makeUser(email, 'pro') // サインイン時のお試し用プロジェクトが1件
 
   for (let i = 1; i <= 5; i++) {
     await createProject({ name: `Pro ${i}`, imageUrl: null, gameEngine: '', creatorEmail: email })
   }
 
   const info = await getAccountPlanInfo(email)
-  assert.equal(info.projectsUsed, 5)
+  assert.equal(info.projectsUsed, 6) // お試し用の1件 + 作成した5件
   assert.equal(info.projectsMax, null) // 無制限はnullで表す
   assert.equal(info.limits.maxProjects, Infinity)
 })
@@ -100,11 +103,11 @@ test('free plan: member cap is 3 per project (owner counts as one), the 4th is r
 })
 
 test('member limit check does not double-count emails that are already members', async () => {
-  const ownerEmail = 'micro-members-owner@example.com'
-  await makeUser(ownerEmail, 'micro') // maxMembersPerProject: 10
+  const ownerEmail = 'basic-members-owner@example.com'
+  await makeUser(ownerEmail, 'basic') // maxMembersPerProject: 10
 
   const project = await createProject({
-    name: 'Micro Team',
+    name: 'Basic Team',
     imageUrl: null,
     gameEngine: '',
     creatorEmail: ownerEmail,

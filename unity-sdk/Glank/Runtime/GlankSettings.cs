@@ -21,13 +21,10 @@ namespace Glank
         public string baseUrl = "https://glank.onrender.com/api/v1";
 
         [Tooltip("POST /reports に付与する X-Glank-Key ヘッダー。プロジェクトごとに発行される値で、" +
-            "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる")]
+            "報告先のプロジェクトもこのキーだけで特定される（別途プロジェクトIDを指定する必要はない）。" +
+            "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる。空のままだと" +
+            "BugReportTriggerは送信を行わずエラーログを出す（配布用プレハブが参照するプレースホルダーの既定値もこれ）")]
         public string apiKey = "";
-
-        [Tooltip("報告先のGlankプロジェクトID。Web側のプロジェクト画面で確認できる。" +
-            "0は未設定を意味し、その状態ではBugReportTriggerは送信を行わずエラーログを出す " +
-            "（配布用プレハブが参照するプレースホルダーの既定値もこれ）")]
-        public int projectId;
 
         [Header("自動検知(任意)")]
         [Tooltip("CrashDetector/FreezeWatchdogによるクラッシュ・フリーズの自動検知/自動報告を有効にする。" +

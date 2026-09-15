@@ -9,11 +9,9 @@ extends Resource
 @export var base_url: String = "https://glank.onrender.com/api/v1"
 
 ## POST /reports に付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、
+## 報告先のプロジェクトもこのキーだけで特定される。
 ## Webアプリのプロジェクトカードの「APIキーを表示」から確認できる
 @export var api_key: String = ""
-
-## 報告先のGlankプロジェクトID。Web側のプロジェクト一覧画面でカードに表示されている番号
-@export var project_id: int = 0
 
 ## クラッシュ・フリーズの自動検知/自動報告を有効にする。既定false。
 ## 配布ビルドに含める場合、意図せず大量の自動報告が飛ぶのを防ぐため既定で無効にしている。

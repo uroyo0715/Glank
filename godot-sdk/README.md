@@ -15,10 +15,11 @@ Godotエディタで `プロジェクト > プロジェクト設定 > プラグ�
 
 ## 構成
 
-- `glank_config.gd` — APIサーバーのURL・APIキー・報告先プロジェクトID・自動検知の有効/無効を持つ
+- `glank_config.gd` — APIサーバーのURL・APIキー・自動検知の有効/無効を持つ
   `Resource`。FileSystemドックを右クリック `New Resource > GlankConfig` で作成し、`base_url` を
-  `http://localhost:8787/api/v1`（または本番URL）に設定する。`project_id` はWebアプリの
-  プロジェクト一覧画面でカードに表示されている番号を設定する。
+  `http://localhost:8787/api/v1`（または本番URL）に設定する。`api_key`はプロジェクトごとに
+  発行される値で、報告先のプロジェクトもこのキーだけで特定される（別途プロジェクトIDを
+  指定する必要はない）。Webアプリのプロジェクトカードの「APIキーを表示」から確認できる。
 - `glank_watched_key.gd` — `InputLogRecorder` が監視するキーと、Glank上での表示グリフ・ラベルを
   持つ小さな`Resource`。
 - `input_log_recorder.gd` — 直近`buffer_seconds`秒分の入力を常時リングバッファで保持し続ける

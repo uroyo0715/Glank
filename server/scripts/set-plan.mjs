@@ -2,7 +2,7 @@
 // 決済機能がまだ無いため、今のところ運営が手動でここを叩いて切り替える想定
 // （server/scripts/set-managed-allowed.mjsと同じ考え方）。
 //
-// 使い方: node server/scripts/set-plan.mjs <email> <free|micro|pro>
+// 使い方: node server/scripts/set-plan.mjs <email> <free|basic|pro>
 import { setUserPlan } from '../src/data.js'
 import { VALID_PLANS } from '../src/plans.js'
 

@@ -81,11 +81,11 @@ function UnityGuide() {
           プロジェクト一覧画面の「新規プロジェクト」から、タイトル・ティザー画像（任意）・
           使用ゲームエンジン（Unity）を指定して作成します。作成したプロジェクトを開き、
           右上の「管理」メニューから「SDK接続情報を表示」を選ぶと、Unity側の設定で使う
-          プロジェクトID・API Key・バックエンドURLがまとめて確認できます。
+          API Key・バックエンドURLがまとめて確認できます。
         </p>
         <img
           src="/help/SDKinfo_place.png"
-          alt="「管理」メニューの「SDK接続情報を表示」でProject ID等が確認できる画面のスクリーンショット"
+          alt="「管理」メニューの「SDK接続情報を表示」でAPI Key等が確認できる画面のスクリーンショット"
           className="help-screenshot"
         />
       </li>
@@ -109,11 +109,11 @@ function UnityGuide() {
           Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開きます。
         </p>
         <p>
-          API Key・プロジェクトIDを入力して「セットアップ」ボタンを押すだけです。
+          API Keyを入力して「セットアップ」ボタンを押すだけです。
         </p>
         <p>
-          この2つは、プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」から
-          まとめて確認できます。
+          API Keyは、プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」から
+          確認できます。
         </p>
         <p>
           バックエンドURLは既定値が本番URLなので、通常は入力不要です。
@@ -128,7 +128,7 @@ function UnityGuide() {
         </p>
         <img
           src="/help/SetupWizard_setting.png"
-          alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key / Project ID入力欄とセットアップボタン）"
+          alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key入力欄とセットアップボタン）"
           className="help-screenshot"
         />
       </li>
@@ -224,7 +224,7 @@ function UnityGuide() {
               <td>接続先のバックエンドURL。既定値は本番URLで、通常は変更不要</td>
             </tr>
             <tr>
-              <td className="mono">apiKey / projectId</td>
+              <td className="mono">apiKey</td>
               <td>プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」で確認できる</td>
             </tr>
             <tr>
@@ -410,7 +410,7 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
           <>
             <p className="help-lead">
               Glankは「Webアプリ側のプロジェクト」と「Unityで作っているゲーム」を
-              <strong>プロジェクトID</strong>で紐付けます。ゲーム内でホットキーを押すと、
+              <strong>APIキー</strong>で紐付けます。ゲーム内でホットキーを押すと、
               直近の録画動画と入力ログが自動でこのWebアプリに送信され、一覧に表示されます。
             </p>
 
