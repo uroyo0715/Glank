@@ -3131,6 +3131,20 @@ th.landing-pricing-highlight {
   color: var(--text-faint);
   margin: -4px 0 12px;
 }
+.admin-plan-switcher select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+}
+.admin-plan-switcher-status {
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
 
 .admin-bar-chart {
   display: flex;

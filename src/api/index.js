@@ -47,6 +47,8 @@ export const {
   backendUrl,
   fetchAdminStats,
   fetchAccountPlan,
+  fetchMyAdminPlan,
+  updateMyAdminPlan,
   fetchProjectPlan,
   fetchProjectNotificationStatus,
   updateProjectNotifications,

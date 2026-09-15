@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { getPlanLimits, isValidPlan, VALID_PLANS } from '../src/plans.js'
 
 test('getPlanLimits returns the configured limits for each plan', () => {
-  assert.equal(getPlanLimits('free').maxProjects, 2)
+  assert.equal(getPlanLimits('free').maxProjects, 1)
   assert.equal(getPlanLimits('free').maxMembersPerProject, 3)
   assert.equal(getPlanLimits('free').videoRetentionDays, 14)
   assert.equal(getPlanLimits('free').proFeatures, false)

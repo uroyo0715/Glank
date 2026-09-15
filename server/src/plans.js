@@ -6,7 +6,7 @@
 export const PLAN_LIMITS = {
   free: {
     label: 'Free',
-    maxProjects: 2,
+    maxProjects: 1,
     maxMembersPerProject: 3,
     videoRetentionDays: 14,
     proFeatures: false,

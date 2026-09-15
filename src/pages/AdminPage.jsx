@@ -1,6 +1,70 @@
 import React, { useEffect, useState } from 'react'
-import { fetchAdminStats } from '../api/index.js'
+import { fetchAdminStats, fetchMyAdminPlan, updateMyAdminPlan } from '../api/index.js'
 import { LineChart, BarChart } from '../components/AdminCharts.jsx'
+
+const PLAN_OPTIONS = ['free', 'micro', 'pro']
+
+function planLabel(key) {
+  if (key === 'free') return 'Free'
+  if (key === 'micro') return 'Micro'
+  if (key === 'pro') return 'Pro'
+  return key
+}
+
+// 動作確認用に、管理者は自分自身のアカウントのプランだけ自由に切り替えられる
+// （他人のプランはここから変更できない。決済はまだ無いため、通常はserver/scripts/set-plan.mjs運用）。
+function MyPlanSwitcher() {
+  const [state, setState] = useState('loading') // 'loading' | 'ready' | 'error'
+  const [plan, setPlan] = useState(null)
+  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetchMyAdminPlan()
+      .then((result) => {
+        setPlan(result)
+        setState('ready')
+      })
+      .catch((err) => {
+        setError(err.message ?? String(err))
+        setState('error')
+      })
+  }, [])
+
+  function handleChange(e) {
+    const next = e.target.value
+    setSaving(true)
+    setError(null)
+    updateMyAdminPlan(next)
+      .then(setPlan)
+      .catch((err) => setError(err.message ?? String(err)))
+      .finally(() => setSaving(false))
+  }
+
+  if (state === 'loading') return null
+  if (state === 'error' && !plan) {
+    return <div className="project-form-error">プランの取得に失敗しました: {error}</div>
+  }
+
+  return (
+    <section className="admin-section admin-plan-switcher">
+      <h2>自分のプラン（動作確認用）</h2>
+      <p className="admin-section-note">
+        ここで切り替えられるのは自分自身のアカウントのプランのみです。他のアカウントのプランは
+        <span className="mono"> server/scripts/set-plan.mjs</span> で切り替えてください。
+      </p>
+      <select value={plan.plan} onChange={handleChange} disabled={saving}>
+        {PLAN_OPTIONS.map((p) => (
+          <option key={p} value={p}>
+            {planLabel(p)}
+          </option>
+        ))}
+      </select>
+      {saving && <span className="admin-plan-switcher-status">切替中...</span>}
+      {error && <div className="project-form-error">{error}</div>}
+    </section>
+  )
+}
 
 function gameEngineLabel(key) {
   if (key === 'unity') return 'Unity'
@@ -77,6 +141,8 @@ export default function AdminPage() {
   return (
     <main className="admin-page">
       <h1>管理者ページ</h1>
+
+      <MyPlanSwitcher />
 
       <div className="admin-summary-row">
         <div className="admin-summary-card">

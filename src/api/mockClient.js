@@ -707,7 +707,7 @@ export async function fetchAdminStats() {
 
 // --- プラン（server/src/plans.jsのミラー。数値がずれたら両方直すこと） ---
 const MOCK_PLAN_LIMITS = {
-  free: { label: 'Free', maxProjects: 2, maxMembersPerProject: 3, videoRetentionDays: 14, proFeatures: false },
+  free: { label: 'Free', maxProjects: 1, maxMembersPerProject: 3, videoRetentionDays: 14, proFeatures: false },
   micro: { label: 'Micro', maxProjects: 3, maxMembersPerProject: 10, videoRetentionDays: 30, proFeatures: false },
   pro: {
     label: 'Pro',
@@ -731,6 +731,18 @@ export async function fetchAccountPlan() {
     projectsUsed: seedProjects.length,
     projectsMax: Number.isFinite(limits.maxProjects) ? limits.maxProjects : null,
   }
+}
+
+// モックモードでは管理者チェックが無いため、常に自分のプランを切り替えられる。
+export async function fetchMyAdminPlan() {
+  return fetchAccountPlan()
+}
+
+export async function updateMyAdminPlan(plan) {
+  await delay(150)
+  if (!MOCK_PLAN_LIMITS[plan]) throw new Error(`invalid plan: ${plan}`)
+  mockAccountPlan = plan
+  return fetchAccountPlan()
 }
 
 export async function fetchProjectPlan(projectId) {

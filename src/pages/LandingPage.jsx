@@ -5,7 +5,7 @@ const PLANS = [
   {
     key: 'free',
     label: 'Free',
-    maxProjects: '2',
+    maxProjects: '1',
     maxMembersPerProject: '3',
     videoRetentionDays: '14日',
     customFields: true,

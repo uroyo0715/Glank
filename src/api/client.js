@@ -518,6 +518,34 @@ export async function fetchAccountPlan() {
   return res.json()
 }
 
+// 管理者ページ用。管理者は動作確認のため、自分自身のアカウントのプランだけ自由に切り替えられる
+// （管理者以外は403）。
+
+/** @returns {Promise<{plan: string, limits: object, projectsUsed: number, projectsMax: number | null}>} */
+export async function fetchMyAdminPlan() {
+  const res = await fetch(`${BASE_URL}/admin/my-plan`, { credentials: 'include' })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `fetchMyAdminPlan failed: ${res.status}`)
+  }
+  return res.json()
+}
+
+/** @returns {Promise<{plan: string, limits: object, projectsUsed: number, projectsMax: number | null}>} */
+export async function updateMyAdminPlan(plan) {
+  const res = await fetch(`${BASE_URL}/admin/my-plan`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ plan }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `updateMyAdminPlan failed: ${res.status}`)
+  }
+  return res.json()
+}
+
 /** @returns {Promise<{plan: string, limits: object, membersUsed: number, membersMax: number | null,
  *   videoRetentionDays: number, proFeatures: boolean}>} */
 export async function fetchProjectPlan(projectId) {
