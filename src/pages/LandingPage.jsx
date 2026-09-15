@@ -1,5 +1,52 @@
 import React, { useState } from 'react'
 
+// server/src/plans.jsのミラー（表示用）。数値・機能が変わったら両方直すこと。
+const PLANS = [
+  {
+    key: 'free',
+    label: 'Free',
+    maxProjects: '2',
+    maxMembersPerProject: '3',
+    videoRetentionDays: '14日',
+    customFields: true,
+    notifications: false,
+    export: false,
+    managedStorage: false,
+  },
+  {
+    key: 'micro',
+    label: 'Micro',
+    maxProjects: '3',
+    maxMembersPerProject: '10',
+    videoRetentionDays: '30日',
+    customFields: true,
+    notifications: false,
+    export: false,
+    managedStorage: false,
+  },
+  {
+    key: 'pro',
+    label: 'Pro',
+    maxProjects: '無制限',
+    maxMembersPerProject: '無制限',
+    videoRetentionDays: '90日',
+    customFields: true,
+    notifications: true,
+    export: true,
+    managedStorage: true,
+  },
+]
+
+const PLAN_ROWS = [
+  { label: 'プロジェクト数', key: 'maxProjects' },
+  { label: 'メンバー数（1プロジェクトあたり）', key: 'maxMembersPerProject' },
+  { label: '動画の保存期間', key: 'videoRetentionDays' },
+  { label: '検索項目のカスタマイズ', key: 'customFields', boolean: true },
+  { label: 'Slack・Discord通知連携', key: 'notifications', boolean: true },
+  { label: 'CSV・PDFエクスポート', key: 'export', boolean: true },
+  { label: 'managedストレージ（Turso/R2の個別設定が不要）', key: 'managedStorage', boolean: true },
+]
+
 const FEATURES = [
   {
     title: 'ホットキー1つで報告',
@@ -72,6 +119,47 @@ export default function LandingPage({ onGoogleLogin }) {
             <p>{f.desc}</p>
           </div>
         ))}
+      </section>
+
+      <section className="landing-pricing">
+        <h2>料金プラン</h2>
+        <div className="landing-pricing-table-wrap">
+          <table className="landing-pricing-table">
+            <thead>
+              <tr>
+                <th></th>
+                {PLANS.map((p) => (
+                  <th key={p.key} className={p.key === 'pro' ? 'landing-pricing-highlight' : ''}>
+                    {p.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN_ROWS.map((row) => (
+                <tr key={row.key}>
+                  <td className="landing-pricing-row-label">{row.label}</td>
+                  {PLANS.map((p) => (
+                    <td key={p.key} className={p.key === 'pro' ? 'landing-pricing-highlight' : ''}>
+                      {row.boolean ? (
+                        p[row.key] ? (
+                          <span className="landing-pricing-check">○</span>
+                        ) : (
+                          <span className="landing-pricing-dash">—</span>
+                        )
+                      ) : (
+                        p[row.key]
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
+          {submitting ? '接続中...' : 'Googleではじめる'}
+        </button>
       </section>
     </div>
   )

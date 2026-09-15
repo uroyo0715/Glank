@@ -367,6 +367,56 @@ body {
   color: var(--text-dim);
   margin: 0;
 }
+.landing-pricing {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 24px 100px;
+  text-align: center;
+}
+.landing-pricing h2 {
+  font-size: 24px;
+  margin: 0 0 28px;
+}
+.landing-pricing-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 32px;
+}
+.landing-pricing-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.landing-pricing-table th,
+.landing-pricing-table td {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.landing-pricing-table th {
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--surface);
+}
+.landing-pricing-row-label {
+  text-align: left !important;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.landing-pricing-highlight {
+  background: var(--surface-2);
+  color: var(--accent-cyan);
+}
+th.landing-pricing-highlight {
+  color: var(--accent-cyan);
+}
+.landing-pricing-check {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+.landing-pricing-dash {
+  color: var(--text-faint);
+}
 /* ---- Projects page ---- */
 .projects-page {
   padding: 26px 34px;

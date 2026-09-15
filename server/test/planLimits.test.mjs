@@ -17,20 +17,24 @@ async function makeUser(email, plan) {
   if (plan) await setUserPlan(email, plan)
 }
 
-test('free plan: exactly 1 project is allowed, a 2nd would exceed the limit', async () => {
+test('free plan: exactly 2 projects are allowed, a 3rd would exceed the limit', async () => {
   const email = 'free-projects@example.com'
   await makeUser(email) // 既定でfree
 
   let info = await getAccountPlanInfo(email)
   assert.equal(info.plan, 'free')
-  assert.equal(info.projectsMax, 1)
+  assert.equal(info.projectsMax, 2)
   assert.equal(info.projectsUsed, 0)
   assert.equal(info.projectsUsed >= info.limits.maxProjects, false, '0件目は上限未満（作成できる）')
 
   await createProject({ name: 'P1', imageUrl: null, gameEngine: '', creatorEmail: email })
+  info = await getAccountPlanInfo(email)
+  assert.equal(info.projectsUsed >= info.limits.maxProjects, false, '1件目は上限未満（まだ作成できる）')
+
+  await createProject({ name: 'P2', imageUrl: null, gameEngine: '', creatorEmail: email })
 
   info = await getAccountPlanInfo(email)
-  assert.equal(info.projectsUsed, 1)
+  assert.equal(info.projectsUsed, 2)
   // 上限ちょうど: これ以上は作成不可という判定になるはず（ルート側はこの値で403にする）
   assert.equal(info.projectsUsed >= info.limits.maxProjects, true, '上限ちょうどに達したら以降は不可')
 })
