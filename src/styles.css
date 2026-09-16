@@ -297,6 +297,17 @@ body {
   padding: 90px 24px 70px;
   text-align: center;
 }
+/* 見出し前の小さなラベル。本文と同じフォントだけで組むと単調に見えるため、
+   コード寄りのJetBrains Monoをここだけに使い、タイポグラフィに変化を付ける。 */
+.landing-hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  margin: 0 0 18px;
+}
 .landing-hero h1 {
   font-size: 40px;
   line-height: 1.35;
@@ -306,11 +317,12 @@ body {
   font-size: 15px;
   line-height: 1.9;
   color: var(--text-dim);
-  margin: 0 auto 34px;
+  margin: 0 auto 30px;
   max-width: 560px;
 }
 .landing-hero-cta {
   display: inline-block;
+  margin: 0 0 14px;
   padding: 13px 34px;
   border: none;
   border-radius: 8px;
@@ -330,7 +342,7 @@ body {
   filter: none;
 }
 .landing-notice {
-  margin: 16px auto 0;
+  margin: 0 auto;
   max-width: 480px;
   font-size: 12px;
   line-height: 1.7;
@@ -359,7 +371,7 @@ body {
 .landing-feature h3 {
   font-size: 15px;
   margin: 0 0 10px;
-  color: var(--accent-cyan);
+  color: var(--accent-amber);
 }
 .landing-feature p {
   font-size: 13px;
@@ -427,7 +439,7 @@ body {
   white-space: nowrap;
 }
 .landing-pricing-check {
-  color: var(--accent-cyan);
+  color: var(--accent-amber);
   font-weight: 700;
 }
 .landing-pricing-dash {

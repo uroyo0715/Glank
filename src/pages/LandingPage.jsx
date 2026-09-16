@@ -95,6 +95,7 @@ export default function LandingPage({ onGoogleLogin }) {
       </header>
 
       <section className="landing-hero">
+        <div className="landing-hero-eyebrow">BUG REPORT SDK FOR UNITY / GODOT</div>
         <h1>
           ゲームのバグ報告を、
           <br />
