@@ -15,7 +15,6 @@ const PLANS = [
     customFields: true,
     notifications: false,
     export: false,
-    managedStorage: false,
   },
   {
     key: 'basic',
@@ -29,7 +28,6 @@ const PLANS = [
     customFields: true,
     notifications: false,
     export: false,
-    managedStorage: false,
   },
   {
     key: 'pro',
@@ -43,7 +41,6 @@ const PLANS = [
     customFields: true,
     notifications: true,
     export: true,
-    managedStorage: true,
   },
 ]
 
@@ -55,7 +52,6 @@ const PLAN_ROWS = [
   { key: 'videoRetentionDays', format: (v) => `動画保存${v}` },
   { key: 'notifications', boolean: true, label: 'Slack・Discord通知連携' },
   { key: 'export', boolean: true, label: 'CSV・PDFエクスポート' },
-  { key: 'managedStorage', boolean: true, label: 'managedストレージ対応' },
 ]
 
 function planFeatureLines(plan) {
