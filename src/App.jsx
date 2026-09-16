@@ -5,6 +5,8 @@ import BugListPage from './pages/BugListPage.jsx'
 import BugDetailPage from './pages/BugDetailPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import TermsPage from './pages/TermsPage.jsx'
+import PrivacyPage from './pages/PrivacyPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
 import AccountSettingsPage from './pages/AccountSettingsPage.jsx'
@@ -102,13 +104,17 @@ function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
   const navigate = useNavigate()
   const isRoot = location.pathname === '/'
   const isLogin = location.pathname === '/login'
+  // 利用規約・プライバシーポリシーは、ログイン前でも読めて当然の内容（footerからも未ログインで
+  // 到達する）なので、ログイン状態によるリダイレクトの対象から外す。ログイン済みでも
+  // そのまま見られてよい（他の認証必須ページのように/projectsへ強制的に寄せない）。
+  const isPublicLegal = location.pathname === '/terms' || location.pathname === '/privacy'
 
   useEffect(() => {
     setRobotsMeta(isRoot ? 'index, follow' : 'noindex, nofollow')
   }, [isRoot])
 
   useEffect(() => {
-    if (!authChecked) return
+    if (!authChecked || isPublicLegal) return
     if ((isRoot || isLogin) && user) {
       // ログイン済みユーザーが「/」または「/login」に来た場合は「/projects」へ寄せる
       // （未ログインユーザーは両方とも見られる状態を維持する）。
@@ -118,7 +124,11 @@ function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
       // 「/」へリダイレクトする。
       navigate('/', { replace: true })
     }
-  }, [authChecked, isRoot, isLogin, user, navigate])
+  }, [authChecked, isRoot, isLogin, isPublicLegal, user, navigate])
+
+  if (isPublicLegal) {
+    return location.pathname === '/terms' ? <TermsPage /> : <PrivacyPage />
+  }
 
   if (!authChecked) {
     return (

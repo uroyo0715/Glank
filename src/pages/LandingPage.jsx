@@ -426,15 +426,14 @@ export default function LandingPage() {
           <div className="landing-footer-links">
             <div className="landing-footer-link-col">
               <p className="landing-footer-link-col-label">Product</p>
-              <span>Features</span>
-              <span>How It Works</span>
-              <span>Pricing</span>
+              <a href="#features" onClick={scrollTo('features')}>Features</a>
+              <a href="#how-it-works" onClick={scrollTo('how-it-works')}>How It Works</a>
+              <a href="#pricing" onClick={scrollTo('pricing')}>Pricing</a>
             </div>
             <div className="landing-footer-link-col">
               <p className="landing-footer-link-col-label">Legal &amp; Support</p>
-              <span>Terms of Service</span>
-              <span>Privacy Policy</span>
-              <span>Contact Us</span>
+              <Link to="/terms">Terms of Service</Link>
+              <Link to="/privacy">Privacy Policy</Link>
             </div>
           </div>
         </div>

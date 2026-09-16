@@ -979,9 +979,14 @@ body {
   color: var(--landing-text-faint);
   margin: 0;
 }
-.landing-footer-link-col span {
+.landing-footer-link-col span,
+.landing-footer-link-col a {
   font-size: 13px;
   color: var(--landing-text-dim);
+  text-decoration: none;
+}
+.landing-footer-link-col a:hover {
+  color: var(--landing-text);
 }
 .landing-footer-divider {
   height: 1px;
@@ -1111,6 +1116,67 @@ body {
 }
 .login-back-link:hover {
   color: var(--text);
+}
+/* ---- Legal pages (Terms / Privacy) ---- */
+.legal-page {
+  min-height: 100vh;
+}
+.legal-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 34px;
+  border-bottom: 1px solid var(--border);
+}
+.legal-page-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+.legal-page-brand img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: block;
+}
+.legal-page-brand span {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+.legal-page-back {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.legal-page-back:hover {
+  color: var(--text);
+}
+.legal-page-body {
+  padding-top: 34px;
+}
+.legal-section h2 {
+  font-size: 16px;
+  margin: 28px 0 10px;
+  color: var(--text);
+}
+.legal-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+.legal-list li {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.legal-list li:last-child {
+  margin-bottom: 0;
 }
 /* ---- Projects page ---- */
 .projects-page {
