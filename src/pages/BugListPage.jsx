@@ -8,7 +8,11 @@ import FieldOptionsPanel from '../components/FieldOptionsPanel.jsx'
 import NotificationSettingsPanel from '../components/NotificationSettingsPanel.jsx'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
 import { formatCreatedAt } from '../utils/formatDate.js'
-import { backendUrl } from '../api/index.js'
+import { backendUrl, sampleProjectDownloadUrl } from '../api/index.js'
+
+// server/src/data.jsのSAMPLE_PROJECT_NAMEのミラー（表示用）。導入用プロジェクトにだけ
+// サンプルUnityプロジェクトのダウンロードリンクを出すための判定に使う。
+const SAMPLE_PROJECT_NAME = 'GlankSampleGame'
 
 function statusLabel(key) {
   return STATUS_COLUMNS.find((s) => s.key === key)?.label ?? key
@@ -377,6 +381,15 @@ export default function BugListPage({
         <div className="list-header-row">
           <h1>プロジェクト: {projectName}</h1>
           <div className="list-header-actions">
+            {projectName === SAMPLE_PROJECT_NAME && sampleProjectDownloadUrl() && (
+              <a
+                className="panel-toggle"
+                href={sampleProjectDownloadUrl()}
+                download
+              >
+                サンプルUnityプロジェクトをダウンロード
+              </a>
+            )}
             <button
               type="button"
               className={`panel-toggle ${showNewReport ? 'active' : ''}`}

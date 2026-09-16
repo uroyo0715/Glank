@@ -6,6 +6,12 @@ export function sdkDownloadUrl(engine) {
   return `${BASE_URL}/sdk/${engine}`
 }
 
+/** 「プロジェクト: GlankSampleGame」用のサンプルUnityプロジェクト(zip)のダウンロードURL。
+ * @returns {string} */
+export function sampleProjectDownloadUrl() {
+  return `${BASE_URL}/sample-project/download`
+}
+
 /**
  * Unity/Godot SDKのGlankSettings.baseUrlにそのまま設定すべき値。フロントエンド自身が
  * APIを呼ぶのに使っているのと同じ値なので、サーバーに問い合わせる必要がない

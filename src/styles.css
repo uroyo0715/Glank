@@ -2086,6 +2086,7 @@ body {
    segmented-toggleのactiveと似た「押されている」見た目にすることで、開閉のたびに
    「〜を閉じる」という文言に切り替える必要をなくしている。 */
 .panel-toggle {
+  display: inline-block;
   background: none;
   border: 1px solid transparent;
   color: var(--accent-amber);
@@ -2094,6 +2095,7 @@ body {
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 6px;
+  text-decoration: none;
   cursor: pointer;
 }
 .panel-toggle:hover {

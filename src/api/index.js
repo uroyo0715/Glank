@@ -44,6 +44,7 @@ export const {
   updateUserAvatar,
   removeUserAvatar,
   sdkDownloadUrl,
+  sampleProjectDownloadUrl,
   backendUrl,
   fetchAdminStats,
   fetchAccountPlan,

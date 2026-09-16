@@ -11,6 +11,11 @@ export function sdkDownloadUrl() {
   return null
 }
 
+// モックモードには実体のバックエンドが無いためダウンロードできない
+export function sampleProjectDownloadUrl() {
+  return null
+}
+
 /** モック環境には実際のバックエンドが無いため、参考値としてローカル開発用URLを返す。 */
 export function backendUrl() {
   return 'http://localhost:8787/api/v1'
