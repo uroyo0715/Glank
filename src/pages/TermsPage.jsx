@@ -87,11 +87,6 @@ export default function TermsPage() {
             本規約の解釈にあたっては日本法を準拠法とします。本サービスに関して紛争が生じた場合には、
             運営者の所在地を管轄する裁判所を専属的合意管轄とします。
           </p>
-
-          <h2>第10条（お問い合わせ）</h2>
-          <p className="help-lead">
-            本規約に関するお問い合わせは、本サービス上のお問い合わせ窓口までご連絡ください。
-          </p>
         </section>
       </div>
     </LegalPageLayout>
