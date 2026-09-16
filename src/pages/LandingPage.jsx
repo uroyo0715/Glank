@@ -44,7 +44,6 @@ const PLANS = [
     notifications: true,
     export: true,
     managedStorage: true,
-    highlighted: true,
   },
 ]
 
@@ -246,7 +245,6 @@ export default function LandingPage({ onGoogleLogin }) {
           <a href="#faq" onClick={scrollTo('faq')}>FAQ</a>
         </nav>
         <div className="landing-header-actions">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLogin() }}>ログイン</a>
           <button type="button" className="landing-header-cta" onClick={handleLogin} disabled={submitting}>
             {submitting ? '接続中...' : 'Get Started'}
           </button>
@@ -368,7 +366,7 @@ export default function LandingPage({ onGoogleLogin }) {
         </div>
         <div className="landing-pricing-grid">
           {PLANS.map((p) => (
-            <div className={`landing-pricing-card${p.highlighted ? ' is-highlighted' : ''}`} key={p.key}>
+            <div className="landing-pricing-card" key={p.key}>
               <div className="landing-pricing-card-header">
                 <h3>{p.label}</h3>
                 <p className="landing-pricing-card-price">{p.price}</p>

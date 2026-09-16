@@ -1,17 +1,18 @@
 :root {
-  /* 暖色寄りのチャコール。よくある「紺〜黒のダークSaaS」配色から離すために、
-     青みの強い--bg/--surfaceを廃止して中立〜暖色のグレーに寄せている。 */
-  --bg: #17140f;
-  --surface: #1e1a14;
-  --surface-2: #27221a;
-  --surface-3: #332c21;
-  --text: #ece6dc;
-  --text-dim: #a89a87;
-  --text-faint: #6d6152;
+  /* トップページ(landing-page)のオレンジ×ほぼ黒トーンに全画面を統一。
+     以前の暖色チャコール寄り配色から、Figmaデザイン準拠のニュートラルダーク+オレンジへ移行。 */
+  --bg: #09090b;
+  --surface: #18181b;
+  --surface-2: #27272a;
+  --surface-3: #3f3f46;
+  --text: #fafafa;
+  --text-dim: #a1a1aa;
+  --text-faint: #71717a;
   /* UI全体で使う操作系アクセント（ボタン・リンク・再生バー等）。種類（tag）の配色にも使うが、
      「対応状況（status）」は意味の異なる軸なので、こちらとは別の--status-*トークンを使う
      （同じ3色をtag/status/chipすべてに使い回さない）。 */
-  --accent-amber: #d99a4f;
+  --accent-amber: #f97316;
+  --accent-amber-ink: #09090b;
   --accent-cyan: #5ba39a;
   --accent-red: #c1615a;
   /* 対応状況（status）専用のアクセント。tagの配色と重複させない。 */
@@ -19,7 +20,7 @@
   --status-progress: #6d93c9;
   --status-review: #c97b3f;
   --status-done: #7fae7a;
-  --border: #362d21;
+  --border: #27272a;
   --radius: 10px;
 }
 
@@ -190,7 +191,7 @@ body {
   justify-content: center;
   border-radius: 50%;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   font-size: 12px;
   font-weight: 700;
 }
@@ -769,9 +770,6 @@ body {
   background: var(--landing-surface);
   text-align: left;
 }
-.landing-pricing-card.is-highlighted {
-  border-color: var(--landing-accent);
-}
 .landing-pricing-card-header {
   text-align: center;
 }
@@ -823,16 +821,8 @@ body {
   text-transform: uppercase;
   cursor: pointer;
 }
-.landing-pricing-card.is-highlighted .landing-pricing-card-cta {
-  background: var(--landing-accent);
-  border-color: var(--landing-accent);
-  color: var(--landing-accent-ink);
-}
 .landing-pricing-card-cta:hover {
   border-color: var(--landing-text-faint);
-}
-.landing-pricing-card.is-highlighted .landing-pricing-card-cta:hover {
-  filter: brightness(1.08);
 }
 .landing-pricing-card-cta:disabled {
   opacity: 0.6;
@@ -1255,7 +1245,7 @@ body {
 }
 .project-form-actions button[type='submit'] {
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   font-weight: 700;
 }
 .project-form-actions button[type='submit']:disabled {
@@ -1673,7 +1663,7 @@ body {
   justify-content: center;
   font-size: 30px;
   font-weight: 700;
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   background: var(--accent-amber);
 }
 .account-avatar-edit-badge {
@@ -1747,7 +1737,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   cursor: pointer;
 }
 .account-name-form button:disabled {
@@ -2239,7 +2229,7 @@ body {
   font-size: 12.5px;
   font-weight: 700;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   cursor: pointer;
 }
 .storage-saved-config-apply-button:disabled {
@@ -2298,7 +2288,7 @@ body {
   font-size: 12.5px;
   font-weight: 700;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   cursor: pointer;
 }
 .storage-save-as-row button:disabled {
@@ -2367,7 +2357,7 @@ body {
   font-size: 12.5px;
   font-weight: 700;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   cursor: pointer;
 }
 .storage-config-form button:disabled {
@@ -2652,7 +2642,7 @@ body {
 }
 .new-report-actions button[type='submit'] {
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   font-weight: 700;
 }
 .new-report-actions button[type='submit']:disabled {
@@ -2685,7 +2675,7 @@ body {
   border: none;
   border-radius: 4px;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   font-weight: 700;
   font-family: inherit;
   font-size: 13px;
@@ -3089,7 +3079,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   background: var(--accent-amber);
-  color: #1a1300;
+  color: var(--accent-amber-ink);
   cursor: pointer;
 }
 .comment-form-actions button:disabled {
@@ -3422,7 +3412,7 @@ body {
 .log-sync-notice {
   font-size: 12px;
   color: var(--accent-amber);
-  background: rgba(217, 154, 79, 0.1);
+  background: rgba(249, 115, 22, 0.1);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 10px;
@@ -3499,7 +3489,7 @@ body {
   color: var(--text);
 }
 .input-glyph.hit {
-  background: rgba(217, 154, 79, 0.18);
+  background: rgba(249, 115, 22, 0.18);
   border-color: var(--accent-amber);
   color: var(--accent-amber);
   transform: translate(-50%, -50%) scale(1.15);
@@ -3573,7 +3563,7 @@ body {
   background: var(--surface-2);
 }
 .log-text-row.hit {
-  background: rgba(217, 154, 79, 0.12);
+  background: rgba(249, 115, 22, 0.12);
   color: var(--text);
 }
 .log-text-row.no-seek {
