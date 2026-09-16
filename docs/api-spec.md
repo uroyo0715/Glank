@@ -12,7 +12,7 @@
 - 録画1本＝1つの「セッション」。fpsはセッション単位で固定値を記録する（可変フレームレート環境でも録画時に固定fpsへ正規化してSDK側で送る想定。可変対応は将来課題）。
 - 認証: Unity/Godot SDKからの送信は、プロジェクトごとに発行されるAPIキー（`X-Glank-Key`ヘッダー）を`projects.apiKeyHash`（SHA-256、検索用の不可逆ハッシュ）と照合し、一致したプロジェクトへ報告する方式で確定（実装済み）。以前は環境変数`GLANK_API_KEY`によるサーバー全体共通の単一キーで、送信元の`projectId`と組み合わせて認可していたが、`projectId`を書き換えるだけで別プロジェクトに送信できてしまう問題があったため、プロジェクトごとにキーを分離した。さらにその後、APIキー自体がプロジェクトを一意に特定できるため`projectId`をmetadataに含める必要自体が無いことに気付き、`POST /reports`のリクエストからは`projectId`を廃止した（詳細は3.4節）。Web側の閲覧・操作は個人ログイン（セッションCookie）を必須とする方式で確定（実装済み、`server/src/auth.js`）。ユーザーはプロトタイプ用の固定シードのみで、本番導入時はユーザー管理の仕組みを別途設計する。
 - 動画・画像の保存先: `server/src/storage.js`に保存処理を分離しており、プロジェクトごとの`storageMode`
-  （`self_hosted`固定。`managed`は将来提供予定でUI上は選択不可）に応じてCloudflare R2
+  （`self_hosted`固定。共有ストレージ方式の`managed`は実データ消失を招いたため廃止し、切り替えUI・APIは無い）に応じてCloudflare R2
   （S3互換API、`@aws-sdk/client-s3`経由）に保存する（実装済み）。R2の接続情報未設定時のみ
   ローカルディスク（開発用フォールバック）を使う。アップロードは引き続きUnity/Godot SDK→APIサーバーへの
   multipart POST（サーバー経由）で、署名付きURLでのクラウド直接アップロードは採用していない
@@ -160,16 +160,23 @@ Webアプリのプロジェクト一覧画面（`src/pages/ProjectsPage.jsx`）�
   呼び出しは`404`。**そのプロジェクトの最後の1人は削除できない**（`400`。削除すると誰もアクセス
   できなくなり、UIからは復旧不能になるため）。
 
-#### 3.0.6 ストレージ設定（self_hosted / managed）
+#### 3.0.6 ストレージ設定（self_hosted固定）
 
-各プロジェクトは、バグデータの保存先（DB）と動画・画像の保存先（ストレージ）を
-チーム自前のもの（`self_hosted`、プロジェクトごとにTurso/R2の設定が必要）か、
-Glankが用意する共有のもの（`managed`、プロジェクトごとの設定不要。プロジェクト単位500MB・
-全体8GBの上限あり）かを選べる。`isManagedAllowed`が立っているプロジェクトのみmanagedを選択可
-（新規プロジェクトは既定でtrue。他チームへの提供等でmanaged利用を制限したい場合のゲートとして
-残している）。新規プロジェクトは`storageMode: self_hosted`・未設定から始まり、`managed`へ切り替える
-かTurso接続情報を設定するまで`/reports*`系のエンドポイントは`409 { error, code: 'turso_not_configured' }`
-を返す。
+各プロジェクトは、バグデータの保存先（DB）と動画・画像の保存先（ストレージ）に、
+チーム自前のTurso/R2接続情報（`self_hosted`）を使う。以前存在した`managed`
+（Glank共有ストレージへの切り替え）は、Renderのディスクが再デプロイのたびに消えることに
+起因する実データ消失が起きたため廃止し、`storageMode`を切り替えるAPI・UIは無くなっている
+（`server/src/projectDataAccess.js`の解決ロジック自体は、過去に`managed`のまま残っている
+プロジェクトを引き続き読めるよう残してある）。新規プロジェクトは`storageMode: self_hosted`・
+未設定から始まり、Turso接続情報を設定するまで`/reports*`系のエンドポイントは
+`409 { error, code: 'turso_not_configured' }`を返す。
+
+唯一の例外が、全ユーザーに自動作成される導入用プロジェクト「GlankSampleGame」で、
+運営（`satoren20020530@gmail.com`）が`test`という名前で保存済み設定として持っている
+Turso/R2接続情報を、作成時にそのままプロジェクト行へ複製した状態で渡される（初めから
+報告機能が使える）。この複製は`savedStorageConfigs`テーブルには書き込まないため、
+他ユーザーの「保存済みの設定から呼び出す」一覧には出てこない。ユーザーは自分のTurso/R2
+接続情報を入力すれば、いつでもこの既定値を上書きできる。
 
 self_hosted接続情報（Tursoの`url`/`authToken`、R2の各値）はAES-256-GCMで暗号化して
 DBに保存し（`server/src/crypto.js`）、一度保存した値はAPI経由で平文では読み出せない
@@ -177,16 +184,16 @@ DBに保存し（`server/src/crypto.js`）、一度保存した値はAPI経由�
 
 - `GET /projects/:id/storage` — `{ storageMode, isManagedAllowed, tursoConfigured, r2Configured, configuredByName, configuredFromSavedConfig }`
   を返す。非メンバーは`404`。`configuredByName`はTurso/R2を最後に設定した人の表示名
-  （誰も設定していなければ`null`）。`configuredFromSavedConfig`は、直近の設定が
-  `POST /projects/:id/storage/apply-saved`による適用だった場合に`true`（Web UIはこの間、
-  「名前を付けて保存」フォームを隠す。既に名前が付いている設定を同じ内容のまま
-  もう一度保存する意味がないため）。`PATCH /projects/:id/storage`で手入力すると`false`に戻る。
-- `PATCH /projects/:id/storage` — body: `{ storageMode?, turso?: { url, authToken }, r2?: {...} }`。
-  渡したフィールドだけ更新する部分更新。`storageMode: 'managed'`は`isManagedAllowed`が
-  falseだと`403`。レスポンス形は`GET`と同じ（更新後の状態、秘密は含まない）。`turso`/`r2`を
-  渡すと、その接続情報を入力した本人（ログインユーザー）が`configuredByName`として記録される
-  （このAPI単体では下記の「名前を付けて保存」は行わない。呼び出せるようにしたい場合は
-  別途`POST /projects/:id/storage/saved-configs`を呼ぶ）。
+  （GlankSampleGameの既定値のままなら`"Glank（デフォルト設定）"`、誰も設定していなければ`null`）。
+  `configuredFromSavedConfig`は、直近の設定が`POST /projects/:id/storage/apply-saved`による
+  適用、またはGlankSampleGameの既定値だった場合に`true`（Web UIはこの間、「名前を付けて保存」
+  フォームを隠す）。`PATCH /projects/:id/storage`で手入力すると`false`に戻る。
+- `PATCH /projects/:id/storage` — body: `{ turso?: { url, authToken }, r2?: {...} }`。
+  渡したフィールドだけ更新する部分更新（`storageMode`は受け付けない）。レスポンス形は`GET`と
+  同じ（更新後の状態、秘密は含まない）。`turso`/`r2`を渡すと、その接続情報を入力した本人
+  （ログインユーザー）が`configuredByName`として記録される（このAPI単体では下記の
+  「名前を付けて保存」は行わない。呼び出せるようにしたい場合は別途
+  `POST /projects/:id/storage/saved-configs`を呼ぶ）。
 
 ##### 名前を付けて保存した設定の呼び出し（呼び出せるのは保存した本人のみ）
 

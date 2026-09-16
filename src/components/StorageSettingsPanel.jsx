@@ -15,9 +15,6 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
 
-  const [modeSaving, setModeSaving] = useState(false)
-  const [modeError, setModeError] = useState(null)
-
   const [tursoFields, setTursoFields] = useState(EMPTY_TURSO)
   const [tursoSaving, setTursoSaving] = useState(false)
   const [tursoError, setTursoError] = useState(null)
@@ -96,15 +93,6 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
       .finally(() => setSaveAsSaving(false))
   }
 
-  function handleModeChange(nextMode) {
-    setModeSaving(true)
-    setModeError(null)
-    onUpdateStorage(projectId, { storageMode: nextMode })
-      .then((result) => setStatus(result))
-      .catch((err) => setModeError(err.message ?? String(err)))
-      .finally(() => setModeSaving(false))
-  }
-
   function handleTursoSubmit(e) {
     e.preventDefault()
     setTursoSaving(true)
@@ -146,14 +134,11 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
     )
   }
 
-  const isSelfHosted = status.storageMode === 'self_hosted'
-  const isManaged = status.storageMode === 'managed'
-
   return (
     <div className="storage-panel">
       <div className="members-panel-label">ストレージ設定</div>
       <p className="storage-panel-hint">
-        報告のデータベースと動画の保存先を選べます。
+        報告のデータベースと動画の保存先を、自分のTurso・Cloudflare R2アカウントで設定します。
         {' '}
         <Link to="/storage-setup" target="_blank" className="help-link">
           設定方法はこちら（Turso・Cloudflare R2）
@@ -163,42 +148,13 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         <p className="storage-configured-by">設定者: {status.configuredByName}</p>
       )}
 
-      <div className="storage-mode-toggle">
-        <label className={`storage-mode-option ${isSelfHosted ? 'active' : ''}`}>
-          <input
-            type="radio"
-            name="storageMode"
-            checked={isSelfHosted}
-            disabled={modeSaving}
-            onChange={() => handleModeChange('self_hosted')}
-          />
-          self_hosted（自前）
-        </label>
-        <label
-          className={`storage-mode-option ${isManaged ? 'active' : ''} ${
-            status.isManagedAllowed ? '' : 'disabled'
-          }`}
-          title={status.isManagedAllowed ? undefined : 'Proプラン限定の機能です'}
-        >
-          <input
-            type="radio"
-            name="storageMode"
-            checked={isManaged}
-            disabled={modeSaving || !status.isManagedAllowed}
-            onChange={() => handleModeChange('managed')}
-          />
-          managed（Glank共有{status.isManagedAllowed ? '' : '・Proプラン限定'}）
-        </label>
-      </div>
-      {modeError && <div className="project-form-error">{modeError}</div>}
-
-      {isSelfHosted && !status.tursoConfigured && (
+      {!status.tursoConfigured && (
         <div className="storage-blocking-hint">
           データベースが未設定のため、このプロジェクトの報告機能はまだ使えません。下のフォームから設定してください。
         </div>
       )}
 
-      {isSelfHosted && savedConfigs.length > 0 && (
+      {savedConfigs.length > 0 && (
         <div className="storage-saved-configs">
           <div className="members-panel-label">保存済みの設定から呼び出す</div>
           <p className="storage-panel-hint">
@@ -234,7 +190,7 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         </div>
       )}
 
-      {isSelfHosted && (status.tursoConfigured || status.r2Configured) && !status.configuredFromSavedConfig && (
+      {(status.tursoConfigured || status.r2Configured) && !status.configuredFromSavedConfig && (
         <form className="storage-save-as-form" onSubmit={handleSaveAsSubmit}>
           <span className="members-panel-label">現在の設定を名前を付けて保存</span>
           <div className="storage-save-as-row">
@@ -252,87 +208,85 @@ export default function StorageSettingsPanel({ projectId, onFetchStatus, onUpdat
         </form>
       )}
 
-      {isSelfHosted && (
-        <div className="storage-config-forms">
-          <form className="storage-config-form" onSubmit={handleTursoSubmit}>
-            <div className="storage-config-form-head">
-              <span>Turso（データベース）</span>
-              <span className={`storage-status-badge ${status.tursoConfigured ? 'ok' : ''}`}>
-                {status.tursoConfigured ? '設定済み' : '未設定'}
-              </span>
-            </div>
-            <input
-              type="text"
-              placeholder="Database URL（例: libsql://xxx.turso.io）"
-              value={tursoFields.url}
-              onChange={(e) => setTursoFields((f) => ({ ...f, url: e.target.value }))}
-            />
-            <input
-              type="password"
-              placeholder="Auth Token"
-              value={tursoFields.authToken}
-              onChange={(e) => setTursoFields((f) => ({ ...f, authToken: e.target.value }))}
-            />
-            {tursoError && <div className="project-form-error">{tursoError}</div>}
-            <button type="submit" disabled={tursoSaving || !tursoFields.url || !tursoFields.authToken}>
-              {tursoSaving ? '保存中...' : 'データベースの接続情報を保存'}
-            </button>
-          </form>
+      <div className="storage-config-forms">
+        <form className="storage-config-form" onSubmit={handleTursoSubmit}>
+          <div className="storage-config-form-head">
+            <span>Turso（データベース）</span>
+            <span className={`storage-status-badge ${status.tursoConfigured ? 'ok' : ''}`}>
+              {status.tursoConfigured ? '設定済み' : '未設定'}
+            </span>
+          </div>
+          <input
+            type="text"
+            placeholder="Database URL（例: libsql://xxx.turso.io）"
+            value={tursoFields.url}
+            onChange={(e) => setTursoFields((f) => ({ ...f, url: e.target.value }))}
+          />
+          <input
+            type="password"
+            placeholder="Auth Token"
+            value={tursoFields.authToken}
+            onChange={(e) => setTursoFields((f) => ({ ...f, authToken: e.target.value }))}
+          />
+          {tursoError && <div className="project-form-error">{tursoError}</div>}
+          <button type="submit" disabled={tursoSaving || !tursoFields.url || !tursoFields.authToken}>
+            {tursoSaving ? '保存中...' : 'データベースの接続情報を保存'}
+          </button>
+        </form>
 
-          <form className="storage-config-form" onSubmit={handleR2Submit}>
-            <div className="storage-config-form-head">
-              <span>Cloudflare R2（動画・画像ストレージ）</span>
-              <span className={`storage-status-badge ${status.r2Configured ? 'ok' : ''}`}>
-                {status.r2Configured ? '設定済み' : '未設定'}
-              </span>
-            </div>
-            <input
-              type="text"
-              placeholder="エンドポイントURL（R2の場合: https://<Account ID>.r2.cloudflarestorage.com）"
-              value={r2Fields.endpoint}
-              onChange={(e) => setR2Fields((f) => ({ ...f, endpoint: e.target.value }))}
-            />
-            <input
-              type="text"
-              placeholder="Access Key ID"
-              value={r2Fields.accessKeyId}
-              onChange={(e) => setR2Fields((f) => ({ ...f, accessKeyId: e.target.value }))}
-            />
-            <input
-              type="password"
-              placeholder="Secret Access Key"
-              value={r2Fields.secretAccessKey}
-              onChange={(e) => setR2Fields((f) => ({ ...f, secretAccessKey: e.target.value }))}
-            />
-            <input
-              type="text"
-              placeholder="Bucket名"
-              value={r2Fields.bucket}
-              onChange={(e) => setR2Fields((f) => ({ ...f, bucket: e.target.value }))}
-            />
-            <input
-              type="text"
-              placeholder="公開URL（例: https://pub-xxx.r2.dev）"
-              value={r2Fields.publicUrl}
-              onChange={(e) => setR2Fields((f) => ({ ...f, publicUrl: e.target.value }))}
-            />
-            {r2Error && <div className="project-form-error">{r2Error}</div>}
-            <button
-              type="submit"
-              disabled={
-                r2Saving ||
-                !r2Fields.endpoint ||
-                !r2Fields.accessKeyId ||
-                !r2Fields.secretAccessKey ||
-                !r2Fields.bucket ||
-                !r2Fields.publicUrl
-              }
-            >
-              {r2Saving ? '保存中...' : 'R2の接続情報を保存'}
-            </button>
-          </form>
-        </div>
-      )}
+        <form className="storage-config-form" onSubmit={handleR2Submit}>
+          <div className="storage-config-form-head">
+            <span>Cloudflare R2（動画・画像ストレージ）</span>
+            <span className={`storage-status-badge ${status.r2Configured ? 'ok' : ''}`}>
+              {status.r2Configured ? '設定済み' : '未設定'}
+            </span>
+          </div>
+          <input
+            type="text"
+            placeholder="エンドポイントURL（R2の場合: https://<Account ID>.r2.cloudflarestorage.com）"
+            value={r2Fields.endpoint}
+            onChange={(e) => setR2Fields((f) => ({ ...f, endpoint: e.target.value }))}
+          />
+          <input
+            type="text"
+            placeholder="Access Key ID"
+            value={r2Fields.accessKeyId}
+            onChange={(e) => setR2Fields((f) => ({ ...f, accessKeyId: e.target.value }))}
+          />
+          <input
+            type="password"
+            placeholder="Secret Access Key"
+            value={r2Fields.secretAccessKey}
+            onChange={(e) => setR2Fields((f) => ({ ...f, secretAccessKey: e.target.value }))}
+          />
+          <input
+            type="text"
+            placeholder="Bucket名"
+            value={r2Fields.bucket}
+            onChange={(e) => setR2Fields((f) => ({ ...f, bucket: e.target.value }))}
+          />
+          <input
+            type="text"
+            placeholder="公開URL（例: https://pub-xxx.r2.dev）"
+            value={r2Fields.publicUrl}
+            onChange={(e) => setR2Fields((f) => ({ ...f, publicUrl: e.target.value }))}
+          />
+          {r2Error && <div className="project-form-error">{r2Error}</div>}
+          <button
+            type="submit"
+            disabled={
+              r2Saving ||
+              !r2Fields.endpoint ||
+              !r2Fields.accessKeyId ||
+              !r2Fields.secretAccessKey ||
+              !r2Fields.bucket ||
+              !r2Fields.publicUrl
+            }
+          >
+            {r2Saving ? '保存中...' : 'R2の接続情報を保存'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

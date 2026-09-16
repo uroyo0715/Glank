@@ -12,10 +12,10 @@ export default function StorageSetupGuidePage() {
       <div className="help-body">
         <section className="help-storage-section">
           <p className="help-lead">
-            プロジェクトごとの報告データベースと動画・画像の保存先には、自分のアカウントを使う
-            （<span className="mono">self_hosted</span>）方式を使います。プロジェクトのバグ一覧画面の
-            「ストレージ設定」から設定してください（Glank共有の<span className="mono">managed</span>方式は
-            今後提供予定で、現時点では選択できません）。
+            プロジェクトごとの報告データベースと動画・画像の保存先には、自分のアカウントを使います。
+            プロジェクトのバグ一覧画面の「ストレージ設定」から設定してください。
+            （お試し用プロジェクト「GlankSampleGame」のみ、最初からGlank側で用意した接続情報が
+            設定済みです。自分の接続情報に差し替えることもできます。）
           </p>
           <p className="help-lead">
             データベースはlibsql互換のサーバーであれば、動画・画像ストレージはS3互換のAPIを持つ

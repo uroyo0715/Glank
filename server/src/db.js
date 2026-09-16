@@ -658,10 +658,21 @@ await migrateAddSampleProjectProvisionedIfNeeded()
 // ため、ここから逆にdata.jsの関数を呼ぶと循環importになる。生SQLで完結させる
 // （createProjectの中身を直接展開している）。
 const SAMPLE_PROJECT_NAME = 'GlankSampleGame'
+// data.js側のapplyDefaultSampleProjectStorage()と同じ既定値。ここでも運営の「test」保存済み設定を
+// 複製する（circular importを避けるため生SQLで完結させており、定数もdata.jsとは別に持つ）。
+const SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL = 'satoren20020530@gmail.com'
+const SAMPLE_PROJECT_DEFAULT_STORAGE_CONFIG_NAME = 'test'
+const SAMPLE_PROJECT_DEFAULT_STORAGE_LABEL = 'Glank（デフォルト設定）'
 async function migrateBackfillSampleProjectForExistingUsers() {
   const { rows: users } = await db.execute(
     'SELECT email FROM users WHERE sampleProjectProvisioned = 0'
   )
+  const { rows: storageSourceRows } = await db.execute({
+    sql: 'SELECT tursoConfigEnc, r2ConfigEnc FROM savedStorageConfigs WHERE ownerEmail = ? AND name = ?',
+    args: [SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL, SAMPLE_PROJECT_DEFAULT_STORAGE_CONFIG_NAME],
+  })
+  const storageSource = storageSourceRows[0] ?? null
+
   for (const user of users) {
     const email = user.email
     let apiKeyEnc = null
@@ -681,10 +692,24 @@ async function migrateBackfillSampleProjectForExistingUsers() {
             VALUES (?, NULL, 'unity', 1, ?, ?, ?)`,
       args: [SAMPLE_PROJECT_NAME, apiKeyEnc, apiKeyHash, email],
     })
+    const projectId = result.lastInsertRowid
     await db.execute({
       sql: 'INSERT OR IGNORE INTO projectMembers (projectId, email, addedAt) VALUES (?, ?, ?)',
-      args: [result.lastInsertRowid, email, new Date().toISOString()],
+      args: [projectId, email, new Date().toISOString()],
     })
+    if (storageSource && (storageSource.tursoConfigEnc || storageSource.r2ConfigEnc)) {
+      await db.execute({
+        sql: `UPDATE projects SET tursoConfigEnc = ?, r2ConfigEnc = ?, storageConfiguredByEmail = ?,
+                storageConfiguredByName = ?, storageConfiguredFromSavedConfig = 1 WHERE id = ?`,
+        args: [
+          storageSource.tursoConfigEnc,
+          storageSource.r2ConfigEnc,
+          SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL,
+          SAMPLE_PROJECT_DEFAULT_STORAGE_LABEL,
+          projectId,
+        ],
+      })
+    }
     await db.execute({
       sql: 'UPDATE users SET sampleProjectProvisioned = 1 WHERE email = ?',
       args: [email],

@@ -704,6 +704,20 @@ export async function getSavedStorageConfigForOwner(id, ownerEmail) {
 }
 
 /**
+ * 運営（ownerEmail）が名前を付けて保存した接続情報を、名前で1件取得する。
+ * GlankSampleGameの既定ストレージをそこから複製するためだけに使う内部用ヘルパーで、
+ * 一般ユーザー向けAPI（GET /storage/saved-configs等）はこれまで通りownerEmail=本人でしか
+ * 引けないため、この関数の存在によって他ユーザーから呼び出せるようになることはない。
+ */
+async function getSavedStorageConfigByOwnerAndName(ownerEmail, name) {
+  const { rows } = await db.execute({
+    sql: 'SELECT * FROM savedStorageConfigs WHERE ownerEmail = ? AND name = ?',
+    args: [normalizeEmail(ownerEmail), name],
+  })
+  return rows[0] ?? null
+}
+
+/**
  * 現在の接続情報（tursoConfigEnc/r2ConfigEnc、どちらも渡された値をそのまま使う。片方がnullなら
  * 未設定として保存する）に、ユーザーが選んだ名前を付けて保存する。同じ名前で保存し直すと上書きする。
  */
@@ -1017,6 +1031,38 @@ export async function createProject({ name, imageUrl, gameEngine, creatorEmail }
 // 見られるようにするための導入用プロジェクト（Unity側のサンプルはあとで別途配置する）。
 export const SAMPLE_PROJECT_NAME = 'GlankSampleGame'
 
+// GlankSampleGameは「まず動くところを見せる」導入用プロジェクトなので、self_hostedの
+// 接続情報を一切入力しなくても最初から報告機能が使える必要がある。運営（satoren20020530@gmail.com）
+// が「test」という名前で保存しているTurso/R2接続情報を、新規プロジェクト作成時にそのまま
+// 複製して初期値にする（savedStorageConfigsへは書き込まないため、他ユーザーの
+// 「保存済みの設定から呼び出す」一覧には出てこない。あくまでプロジェクト行への直接コピー）。
+const SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL = 'satoren20020530@gmail.com'
+const SAMPLE_PROJECT_DEFAULT_STORAGE_CONFIG_NAME = 'test'
+const SAMPLE_PROJECT_DEFAULT_STORAGE_LABEL = 'Glank（デフォルト設定）'
+
+/**
+ * GlankSampleGameの接続情報を、運営の「test」保存済み設定からコピーして初期値にする。
+ * 運営側にその名前の保存済み設定が存在しない場合（ローカル開発環境など）は何もしない
+ * （未設定のself_hostedのまま、これまで通りユーザーが自分で設定する）。
+ */
+async function applyDefaultSampleProjectStorage(projectId) {
+  const source = await getSavedStorageConfigByOwnerAndName(
+    SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL,
+    SAMPLE_PROJECT_DEFAULT_STORAGE_CONFIG_NAME
+  )
+  if (!source || (!source.tursoConfigEnc && !source.r2ConfigEnc)) return
+
+  await updateProjectStorageConfig(projectId, {
+    tursoConfigEnc: source.tursoConfigEnc,
+    r2ConfigEnc: source.r2ConfigEnc,
+    storageConfiguredByEmail: SAMPLE_PROJECT_DEFAULT_STORAGE_OWNER_EMAIL,
+    storageConfiguredByName: SAMPLE_PROJECT_DEFAULT_STORAGE_LABEL,
+    // 「保存済み設定から適用した直後」と同じ扱いにして、フロント側の「名前を付けて保存」フォームを
+    // 隠す（この複製をユーザーが即座にもう一度保存する意味がないため）。
+    storageConfiguredFromSavedConfig: true,
+  })
+}
+
 /**
  * 一度渡したら二度と作らない（べき等）。「持っているかどうか」を毎回プロジェクト名で
  * 判定すると、ユーザーが試した後に削除しても次回また作られてしまうため、渡したこと自体を
@@ -1031,12 +1077,13 @@ export async function ensureSampleProjectForUser(email) {
   })
   if (rows[0]?.sampleProjectProvisioned) return
 
-  await createProject({
+  const project = await createProject({
     name: SAMPLE_PROJECT_NAME,
     imageUrl: null,
     gameEngine: 'unity',
     creatorEmail: normalized,
   })
+  await applyDefaultSampleProjectStorage(project.id)
   await db.execute({
     sql: 'UPDATE users SET sampleProjectProvisioned = 1 WHERE email = ?',
     args: [normalized],

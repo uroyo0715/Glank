@@ -354,20 +354,10 @@ router.patch(
     if (!(await isProjectMember(projectId, req.user.email))) {
       return res.status(404).json({ error: 'not found' })
     }
-    const project = await getProjectRaw(projectId)
-
-    const { storageMode, turso, r2 } = req.body ?? {}
+    // managed（Glank共有）は実運用に耐えず廃止したため、ストレージ方式は常にself_hosted固定。
+    // storageModeの切り替えはAPIとしても受け付けない。
+    const { turso, r2 } = req.body ?? {}
     const update = {}
-
-    if (storageMode != null) {
-      if (storageMode !== 'self_hosted' && storageMode !== 'managed') {
-        return res.status(400).json({ error: `unknown storageMode: ${storageMode}` })
-      }
-      if (storageMode === 'managed' && !project.isManagedAllowed) {
-        return res.status(403).json({ error: 'managed plan is not enabled for this project' })
-      }
-      update.storageMode = storageMode
-    }
 
     if (turso != null) {
       if (!turso.url || !turso.authToken) {
