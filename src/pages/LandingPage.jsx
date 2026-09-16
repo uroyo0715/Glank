@@ -50,22 +50,104 @@ const PLAN_ROWS = [
   { label: 'managedストレージ（Turso/R2の個別設定が不要）', key: 'managedStorage', boolean: true },
 ]
 
+function IconBolt(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+    </svg>
+  )
+}
+function IconFilm(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M9 5v14M15 5v14" />
+    </svg>
+  )
+}
+function IconLayers(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="m12 3 9 5-9 5-9-5 9-5Z" />
+      <path d="m3 13 9 5 9-5" />
+    </svg>
+  )
+}
+function IconGrid(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
+  )
+}
+function IconSpark(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />
+    </svg>
+  )
+}
+
 const FEATURES = [
   {
+    icon: IconBolt,
     title: 'ホットキー1つで報告',
     desc: 'ゲーム内でホットキー（既定 F12）を押すだけで、直近のプレイ映像と入力ログがそのまま送信されます。バグ報告フォームを開いて記入する手間がありません。',
   },
   {
+    icon: IconFilm,
     title: '動画と入力ログを同時に記録',
     desc: '「何を押したときに何が起きたか」がタイムラインで一目で分かるため、再現手順を文章で書き起こす必要がありません。',
   },
   {
+    icon: IconLayers,
     title: 'Unity・Godot両対応',
     desc: 'どちらのゲームエンジンでも、同じ考え方のSDKでバグ報告機能を導入できます。',
   },
   {
+    icon: IconGrid,
     title: 'チームで管理できるダッシュボード',
     desc: 'ステータス管理・担当者アサイン・コメントでのやり取りまで、Web上でチームメンバーと完結できます。',
+  },
+]
+
+const STEPS = [
+  {
+    number: '01',
+    title: 'Googleでログイン',
+    desc: '面倒な登録手続きは不要。ワンクリックですぐにあなた専用のプロジェクトが作成されます。',
+  },
+  {
+    number: '02',
+    title: 'ゲームにSDKを導入',
+    desc: 'Unity・GodotどちらでもOK。SDKを取り込み、発行されたAPIキーを設定するだけで準備完了です。',
+  },
+  {
+    number: '03',
+    title: 'ホットキーで報告するだけ',
+    desc: 'プレイ中にバグへ気づいたらホットキーを押すだけ。動画と入力ログ付きの報告がチームのダッシュボードに届きます。',
+  },
+]
+
+const FAQS = [
+  {
+    q: '無料で使えますか？',
+    a: 'はい。Freeプランなら、プロジェクト数や動画保存期間などに一定の制限はありますが無料でご利用いただけます。チーム規模や必要な機能に応じて、Basic・Proプランへのアップグレードも可能です。',
+  },
+  {
+    q: 'Unity以外のゲームエンジンにも対応していますか？',
+    a: 'はい。UnityとGodot、両方に対応したSDKを提供しています。どちらも同じ考え方（ホットキー1つで動画と入力ログを送信）で導入できます。',
+  },
+  {
+    q: '報告された動画・入力ログはどこに保存されますか？',
+    a: '既定では、チーム自身のデータベース・ストレージに保存する構成です。Proプランでは、個別の接続設定が不要な共有ストレージも選べます。',
+  },
+  {
+    q: '入力ログを見れば、バグの再現手順を書き起こさなくていいのですか？',
+    a: 'はい。「何を押したときに何が起きたか」が動画と同じタイムライン上で確認できるため、多くの場合、文章での再現手順の記述が不要になります。',
   },
 ]
 
@@ -82,6 +164,11 @@ export default function LandingPage({ onGoogleLogin }) {
     })
   }
 
+  function scrollToFeatures(e) {
+    e.preventDefault()
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="landing-page">
       <header className="landing-header">
@@ -95,20 +182,28 @@ export default function LandingPage({ onGoogleLogin }) {
       </header>
 
       <section className="landing-hero">
-        <div className="landing-hero-eyebrow">BUG REPORT SDK FOR UNITY / GODOT</div>
+        <div className="landing-hero-eyebrow">
+          <IconSpark />
+          BUG REPORT SDK FOR UNITY / GODOT
+        </div>
         <h1>
           ゲームのバグ報告を、
           <br />
-          プレイしたその瞬間に。
+          <span className="landing-hero-highlight">プレイしたその瞬間に</span>。
         </h1>
         <p>
           Glankは、Unity・Godotで作ったゲームにホットキーひとつで導入できるバグ報告SDKと、
           チームで確認・管理できるWebダッシュボードです。プレイ中に気づいたバグを、
           動画と入力ログ付きでそのまま送信できます。
         </p>
-        <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
-          {submitting ? '接続中...' : 'Googleではじめる'}
-        </button>
+        <div className="landing-hero-actions">
+          <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
+            {submitting ? '接続中...' : 'Googleではじめる'}
+          </button>
+          <a href="#features" className="landing-hero-cta-secondary" onClick={scrollToFeatures}>
+            機能を見る
+          </a>
+        </div>
         <p className="landing-notice">
           サーバーの都合上、しばらく使われていないと起動に時間がかかることがあります
           （初回アクセス時は数十秒ほどお待ちください）。
@@ -116,17 +211,48 @@ export default function LandingPage({ onGoogleLogin }) {
         {error && <div className="landing-error">{error}</div>}
       </section>
 
-      <section className="landing-features">
-        {FEATURES.map((f) => (
-          <div className="landing-feature" key={f.title}>
-            <h3>{f.title}</h3>
-            <p>{f.desc}</p>
-          </div>
-        ))}
+      <section className="landing-features" id="features">
+        <div className="landing-section-header">
+          <div className="landing-section-eyebrow">FEATURES</div>
+          <h2>ゲームのバグ報告に、ちょうどいい形を。</h2>
+          <p>押して、送るだけ。チームで確認できるところまでを1つにまとめました。</p>
+        </div>
+        <div className="landing-features-grid">
+          {FEATURES.map((f) => (
+            <div className="landing-feature" key={f.title}>
+              <div className="landing-feature-icon">
+                <f.icon />
+              </div>
+              <h3>{f.title}</h3>
+              <p>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-steps">
+        <div className="landing-section-header">
+          <div className="landing-section-eyebrow">HOW IT WORKS</div>
+          <h2>かんたん3ステップ</h2>
+          <p>導入から報告までを、迷わず進められます。</p>
+        </div>
+        <div className="landing-steps-grid">
+          {STEPS.map((s) => (
+            <div className="landing-step" key={s.number}>
+              <div className="landing-step-number">{s.number}</div>
+              <h3>{s.title}</h3>
+              <p>{s.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="landing-pricing">
-        <h2>料金プラン</h2>
+        <div className="landing-section-header">
+          <div className="landing-section-eyebrow">PRICING</div>
+          <h2>料金プラン</h2>
+          <p>チーム規模に合わせて選べます。</p>
+        </div>
         <div className="landing-pricing-table-wrap">
           <table className="landing-pricing-table">
             <thead>
@@ -168,6 +294,31 @@ export default function LandingPage({ onGoogleLogin }) {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className="landing-faq">
+        <div className="landing-section-header">
+          <div className="landing-section-eyebrow">FAQ</div>
+          <h2>よくある質問</h2>
+        </div>
+        <div className="landing-faq-list">
+          {FAQS.map((f) => (
+            <details className="landing-faq-item" key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-final-cta">
+        <div className="landing-final-cta-panel">
+          <h2>今日から、バグ報告をもっとスムーズに。</h2>
+          <p>プレイして気づいた瞬間を、そのままチームに届けましょう。</p>
+          <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
+            {submitting ? '接続中...' : 'Googleではじめる'}
+          </button>
         </div>
       </section>
     </div>

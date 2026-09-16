@@ -298,20 +298,39 @@ body {
   text-align: center;
 }
 /* 見出し前の小さなラベル。本文と同じフォントだけで組むと単調に見えるため、
-   コード寄りのJetBrains Monoをここだけに使い、タイポグラフィに変化を付ける。 */
+   コード寄りのJetBrains Monoをここだけに使い、タイポグラフィに変化を付ける。
+   バッジ（ピル）状にして、単なる小見出しではなく「タグ」らしい存在感を持たせる。 */
 .landing-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent-amber);
-  margin: 0 0 18px;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  margin: 0 0 24px;
+}
+.landing-hero-eyebrow svg {
+  width: 13px;
+  height: 13px;
 }
 .landing-hero h1 {
   font-size: 40px;
   line-height: 1.35;
   margin: 0 0 22px;
+}
+/* 見出し中の要点だけをマーカーで軽く強調する（下線の波線など固有の装飾は避け、
+   ハイライト背景というシンプルな手法にとどめる）。 */
+.landing-hero-highlight {
+  background: rgba(217, 154, 79, 0.16);
+  border-radius: 6px;
+  padding: 0 6px;
 }
 .landing-hero p {
   font-size: 15px;
@@ -320,9 +339,16 @@ body {
   margin: 0 auto 30px;
   max-width: 560px;
 }
+.landing-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 14px;
+}
 .landing-hero-cta {
   display: inline-block;
-  margin: 0 0 14px;
   padding: 13px 34px;
   border: none;
   border-radius: 8px;
@@ -341,6 +367,22 @@ body {
   cursor: default;
   filter: none;
 }
+.landing-hero-cta-secondary {
+  display: inline-block;
+  padding: 13px 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.landing-hero-cta-secondary:hover {
+  border-color: var(--text-faint);
+}
 .landing-notice {
   margin: 0 auto;
   max-width: 480px;
@@ -354,10 +396,39 @@ body {
   color: var(--error, #d9534f);
   font-size: 13px;
 }
+/* features/steps/pricing/faq共通の「バッジ + 見出し + 補足文」の導入部。
+   セクションごとにばらばらな見出しの組み方をしないよう、ここに集約する。 */
+.landing-section-header {
+  max-width: 620px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+.landing-section-eyebrow {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  margin: 0 0 12px;
+}
+.landing-section-header h2 {
+  font-size: 26px;
+  margin: 0 0 10px;
+}
+.landing-section-header p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  margin: 0;
+}
 .landing-features {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px 24px 90px;
+}
+.landing-features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
@@ -367,6 +438,22 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+}
+.landing-feature-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--accent-amber);
+  margin-bottom: 14px;
+}
+.landing-feature-icon svg {
+  width: 19px;
+  height: 19px;
 }
 .landing-feature h3 {
   font-size: 15px;
@@ -379,15 +466,45 @@ body {
   color: var(--text-dim);
   margin: 0;
 }
+.landing-steps {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 24px 90px;
+}
+.landing-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+.landing-step {
+  padding: 24px 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.landing-step-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-amber);
+  margin: 0 0 10px;
+}
+.landing-step h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+.landing-step p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin: 0;
+}
 .landing-pricing {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px 24px 100px;
   text-align: center;
-}
-.landing-pricing h2 {
-  font-size: 24px;
-  margin: 0 0 28px;
 }
 .landing-pricing-table-wrap {
   overflow-x: auto;
@@ -444,6 +561,73 @@ body {
 }
 .landing-pricing-dash {
   color: var(--text-faint);
+}
+.landing-faq {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 24px 100px;
+}
+.landing-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.landing-faq-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 0 20px;
+}
+.landing-faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.landing-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.landing-faq-item summary::after {
+  content: '+';
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+.landing-faq-item[open] summary::after {
+  content: '−';
+}
+.landing-faq-item p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+.landing-final-cta {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 110px;
+}
+.landing-final-cta-panel {
+  padding: 56px 32px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+}
+.landing-final-cta-panel h2 {
+  font-size: 26px;
+  margin: 0 0 12px;
+}
+.landing-final-cta-panel p {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin: 0 0 26px;
 }
 /* ---- Projects page ---- */
 .projects-page {
