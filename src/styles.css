@@ -338,6 +338,7 @@ body {
   color: var(--landing-text);
 }
 .landing-header-cta {
+  display: inline-block;
   padding: 9px 18px;
   border: 1px solid var(--landing-accent);
   border-radius: 4px;
@@ -346,14 +347,11 @@ body {
   font-family: var(--landing-font-mono);
   font-size: 13px;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
 }
 .landing-header-cta:hover {
   filter: brightness(1.15);
-}
-.landing-header-cta:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 .landing-hero {
   max-width: 1000px;
@@ -424,15 +422,11 @@ body {
   font-family: var(--landing-font-mono);
   font-size: 14px;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
 }
 .landing-hero-cta:hover {
   filter: brightness(1.08);
-}
-.landing-hero-cta:disabled {
-  opacity: 0.6;
-  cursor: default;
-  filter: none;
 }
 .landing-hero-cta-secondary {
   display: inline-block;
@@ -456,12 +450,6 @@ body {
   font-size: 12px;
   line-height: 1.7;
   color: var(--landing-text-faint);
-}
-.landing-error {
-  margin: 10px auto 0;
-  max-width: 480px;
-  color: #ef4444;
-  font-size: 13px;
 }
 /* ---- ダッシュボードモックアップ（ヒーロー内のプロダクトプレビュー） ---- */
 .landing-mockup {
@@ -810,6 +798,7 @@ body {
   color: var(--landing-accent);
 }
 .landing-pricing-card-cta {
+  display: block;
   padding: 14px 20px;
   border: 1px solid var(--landing-border);
   border-radius: 8px;
@@ -818,15 +807,13 @@ body {
   font-family: var(--landing-font-mono);
   font-size: 14px;
   font-weight: 700;
+  text-align: center;
   text-transform: uppercase;
+  text-decoration: none;
   cursor: pointer;
 }
 .landing-pricing-card-cta:hover {
   border-color: var(--landing-text-faint);
-}
-.landing-pricing-card-cta:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 .landing-faq {
   max-width: 800px;
@@ -1030,6 +1017,100 @@ body {
     flex-direction: column;
     gap: 32px;
   }
+}
+/* ---- Login page ---- */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: center;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text);
+}
+.login-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: block;
+}
+.login-brand span {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.login-card h1 {
+  font-size: 20px;
+  margin: 0;
+  color: var(--text);
+}
+.login-hint {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+  margin: 0;
+}
+.login-google-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: #1f1f1f;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-google-button:hover {
+  filter: brightness(0.97);
+}
+.login-google-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.login-error {
+  width: 100%;
+  color: #ef4444;
+  font-size: 13px;
+}
+.login-notice {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-faint);
+  margin: 0;
+}
+.login-back-link {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.login-back-link:hover {
+  color: var(--text);
 }
 /* ---- Projects page ---- */
 .projects-page {

@@ -37,6 +37,11 @@ router.get('/auth/google', (req, res) => {
   const url = googleClient.generateAuthUrl({
     scope: ['openid', 'email', 'profile'],
     state,
+    // 複数Googleアカウントを使い分けているユーザーが、ブラウザに残っている別アカウントの
+    // セッションでサイレントに（アカウント選択画面を出さずに）ログインしてしまい、意図しない
+    // アカウントに入ってしまう問題があった。prompt=select_accountを付けることで、Google側の
+    // ログイン状態に関わらず、毎回どのGoogleアカウントを使うか選ばせる。
+    prompt: 'select_account',
   })
   res.redirect(url)
 })

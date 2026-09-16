@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import ImagePlaceholder from '../components/ImagePlaceholder'
 
 // server/src/plans.jsのミラー（表示用）。数値・機能が変わったら両方直すこと。
@@ -207,19 +208,7 @@ const FAQS = [
   },
 ]
 
-export default function LandingPage({ onGoogleLogin }) {
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-
-  function handleLogin() {
-    setSubmitting(true)
-    setError(null)
-    onGoogleLogin().catch((err) => {
-      setError(err.message ?? String(err))
-      setSubmitting(false)
-    })
-  }
-
+export default function LandingPage() {
   function scrollTo(id) {
     return (e) => {
       e.preventDefault()
@@ -241,9 +230,9 @@ export default function LandingPage({ onGoogleLogin }) {
           <a href="#faq" onClick={scrollTo('faq')}>FAQ</a>
         </nav>
         <div className="landing-header-actions">
-          <button type="button" className="landing-header-cta" onClick={handleLogin} disabled={submitting}>
-            {submitting ? '接続中...' : 'Get Started'}
-          </button>
+          <Link to="/login" className="landing-header-cta">
+            Get Started
+          </Link>
         </div>
       </header>
 
@@ -262,15 +251,14 @@ export default function LandingPage({ onGoogleLogin }) {
           面倒なバグ報告フォームや再現手順の手書きは、もう不要です。
         </p>
         <div className="landing-hero-actions">
-          <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
-            {submitting ? '接続中...' : 'Googleアカウントで始める'}
-          </button>
+          <Link to="/login" className="landing-hero-cta">
+            Googleアカウントで始める
+          </Link>
         </div>
         <p className="landing-notice">
           サーバーの都合上、しばらく使われていないと起動に時間がかかることがあります
           （初回アクセス時は数十秒ほどお待ちください）。
         </p>
-        {error && <div className="landing-error">{error}</div>}
 
         <div className="landing-mockup">
           <div className="landing-mockup-header">
@@ -376,14 +364,9 @@ export default function LandingPage({ onGoogleLogin }) {
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                className="landing-pricing-card-cta"
-                onClick={handleLogin}
-                disabled={submitting}
-              >
-                {submitting ? '接続中...' : p.cta}
-              </button>
+              <Link to="/login" className="landing-pricing-card-cta">
+                {p.cta}
+              </Link>
             </div>
           ))}
         </div>
@@ -414,9 +397,9 @@ export default function LandingPage({ onGoogleLogin }) {
             <p>Glankの軽量SDKで、デベロッパーとテスター間のギャップを完全に解消。今すぐチームのデバッグサイクルを革新させましょう。</p>
           </div>
           <div>
-            <button type="button" className="landing-hero-cta" onClick={handleLogin} disabled={submitting}>
-              {submitting ? '接続中...' : 'Googleアカウントで始める →'}
-            </button>
+            <Link to="/login" className="landing-hero-cta">
+              Googleアカウントで始める →
+            </Link>
             <p className="landing-notice" style={{ marginTop: 12 }}>
               ※ クレジットカード登録不要。いつでもフリープランに切り替え可能です。
             </p>

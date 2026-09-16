@@ -4,6 +4,7 @@ import ProjectsPage from './pages/ProjectsPage.jsx'
 import BugListPage from './pages/BugListPage.jsx'
 import BugDetailPage from './pages/BugDetailPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 import HelpPage from './pages/HelpPage.jsx'
 import SetupGuidePage from './pages/SetupGuidePage.jsx'
 import AccountSettingsPage from './pages/AccountSettingsPage.jsx'
@@ -100,6 +101,7 @@ function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
   const location = useLocation()
   const navigate = useNavigate()
   const isRoot = location.pathname === '/'
+  const isLogin = location.pathname === '/login'
 
   useEffect(() => {
     setRobotsMeta(isRoot ? 'index, follow' : 'noindex, nofollow')
@@ -107,16 +109,16 @@ function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
 
   useEffect(() => {
     if (!authChecked) return
-    if (isRoot && user) {
-      // ログイン済みユーザーが「/」に来た場合のみ「/projects」へ寄せる
-      // （未ログインユーザーは「/」でLandingPageを見られる状態を維持する）。
+    if ((isRoot || isLogin) && user) {
+      // ログイン済みユーザーが「/」または「/login」に来た場合は「/projects」へ寄せる
+      // （未ログインユーザーは両方とも見られる状態を維持する）。
       navigate('/projects', { replace: true })
-    } else if (!isRoot && !user) {
+    } else if (!isRoot && !isLogin && !user) {
       // 認証必須ページに未ログインでアクセスした場合はLandingPageの中身をそのまま出さず、
       // 「/」へリダイレクトする。
       navigate('/', { replace: true })
     }
-  }, [authChecked, isRoot, user, navigate])
+  }, [authChecked, isRoot, isLogin, user, navigate])
 
   if (!authChecked) {
     return (
@@ -126,11 +128,11 @@ function RootRouter({ user, setUser, authChecked, onGoogleLogin }) {
     )
   }
 
-  if (isRoot) {
+  if (isRoot || isLogin) {
     // ログイン済みの場合は上のuseEffectで/projectsへリダイレクトされる途中なので、
-    // 遷移が終わるまでLandingPageを一瞬でも出さないようにする。
+    // 遷移が終わるまで元の中身を一瞬でも出さないようにする。
     if (user) return null
-    return <LandingPage onGoogleLogin={onGoogleLogin} />
+    return isLogin ? <LoginPage onGoogleLogin={onGoogleLogin} /> : <LandingPage />
   }
 
   if (!user) return null // 「/」へのリダイレクト待ち
