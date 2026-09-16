@@ -1,6 +1,12 @@
 name = "glank"
 compatibility_date = "2026-08-01"
 
+# 独自ドメイン(glank-app.com)を本番として使うようになったため、デフォルトで有効になる
+# <name>.<subdomain>.workers.dev への公開アクセスを止める。これが生きていると、Googleログイン後の
+# 遷移先が固定のFRONTEND_URL(本番はglank-app.com)と一致せず、開発中にアクセスしていたworkers.dev側の
+# セッションに紛れ込んで別ドメインへ飛ばされる原因になっていた。
+workers_dev = false
+
 [assets]
 directory = "./dist"
 not_found_handling = "single-page-application"
