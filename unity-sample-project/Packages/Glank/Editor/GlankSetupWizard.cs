@@ -1,0 +1,106 @@
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+
+namespace Glank.Editor
+{
+    /// <summary>
+    /// Tools &gt; Glank &gt; Setup Wizard。APIキーを入力して「セットアップ」を押すと、
+    /// GlankSettingsアセットの生成と、配線済みの"GlankManager"のシーンへの配置を自動で行う。
+    /// 新Input Systemを使っているかどうかの判定は、GlankSetupUtility側の
+    /// <c>#if ENABLE_INPUT_SYSTEM</c>（プロジェクト全体に自動設定されるスクリプティング定義）で行う。
+    /// </summary>
+    public class GlankSetupWizard : EditorWindow
+    {
+        private string _baseUrl = "https://glank.onrender.com/api/v1";
+        private string _apiKey = "";
+        private bool _showAdvanced;
+
+        [MenuItem("Tools/Glank/Setup Wizard")]
+        private static void Open()
+        {
+            var window = GetWindow<GlankSetupWizard>(true, "Glank Setup Wizard");
+            window.minSize = new Vector2(440, 260);
+
+            var existing = GlankSetupUtility.FindExistingSettings();
+            if (existing != null)
+            {
+                window._baseUrl = existing.baseUrl;
+                window._apiKey = existing.apiKey;
+            }
+        }
+
+        private void OnGUI()
+        {
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Glank セットアップ", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "APIキーを入力して「セットアップ」を押すと、GlankSettingsアセットの生成と、" +
+                "必要なコンポーネント一式が配線されたGlankManagerのシーンへの配置を自動で行います。" +
+                "既にGlankSettingsが存在する場合は、それを更新します。",
+                MessageType.Info);
+
+            EditorGUILayout.Space(12);
+            _apiKey = EditorGUILayout.TextField(
+                new GUIContent("API Key", "POST /reportsに付与するX-Glank-Keyヘッダー。プロジェクトごとに発行される値で、" +
+                    "報告先のプロジェクトもこのキーだけで特定される。" +
+                    "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる"),
+                _apiKey);
+
+            EditorGUILayout.Space(4);
+            _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "詳細設定");
+            if (_showAdvanced)
+            {
+                EditorGUI.indentLevel++;
+                _baseUrl = EditorGUILayout.TextField(
+                    new GUIContent("バックエンドURL", "Glank APIサーバーのURL（末尾に/reportsは付けない）。既定値は本番バックエンドの" +
+                        "URLなので、自前で別環境（ステージング・自前デプロイ等）を使う場合以外は変更不要"),
+                    _baseUrl);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.Space(8);
+#if ENABLE_INPUT_SYSTEM
+            EditorGUILayout.HelpBox(
+                "新Input System（com.unity.inputsystem）を検出しました。InputLogRecorderNewInputSystemを使用します。",
+                MessageType.None);
+#else
+            EditorGUILayout.HelpBox("レガシーInputを使用します（InputLogRecorder）。", MessageType.None);
+#endif
+#if GLANK_INSTANT_REPLAY
+            EditorGUILayout.HelpBox(
+                "GLANK_INSTANT_REPLAYを検出しました。InstantReplayVideoRecorderも合わせて配線します。",
+                MessageType.None);
+#endif
+
+            EditorGUILayout.Space(12);
+            if (string.IsNullOrEmpty(_apiKey))
+            {
+                EditorGUILayout.HelpBox("API Keyを入力してください。", MessageType.Warning);
+            }
+
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(_apiKey)))
+            {
+                if (GUILayout.Button("セットアップ", GUILayout.Height(32)))
+                {
+                    RunSetup();
+                }
+            }
+        }
+
+        private void RunSetup()
+        {
+            var settings = GlankSetupUtility.CreateOrUpdateSettings(_baseUrl, _apiKey);
+            var manager = GlankSetupUtility.CreateGlankManager(settings);
+            EditorSceneManager.MarkSceneDirty(manager.scene);
+            Selection.activeGameObject = manager;
+
+            EditorUtility.DisplayDialog(
+                "Glank",
+                "セットアップが完了しました。GlankManagerをシーンに追加しました。\n" +
+                "シーンを保存するのを忘れないでください。",
+                "OK");
+            Close();
+        }
+    }
+}

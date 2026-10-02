@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9197165672411699098
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8286261909978448471}
+  - component: {fileID: 1512199964085224472}
+  - component: {fileID: 9181432950094576159}
+  - component: {fileID: 1779269928311190488}
+  - component: {fileID: 273998500808033931}
+  - component: {fileID: 6657435159814718822}
+  - component: {fileID: 4564270403218919808}
+  m_Layer: 0
+  m_Name: GlankManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8286261909978448471
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1512199964085224472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 822256491791c514a98561ec59d62879, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.BugReportTrigger
+  config: {fileID: 11400000, guid: e17d7b8c63032d24eac02d37c26c13fc, type: 2}
+  inputLogRecorder: {fileID: 0}
+  reportHotkey: 293
+  replayWatcher:
+    watchFolders:
+    - '%USERPROFILE%\Videos\Captures'
+    extensions:
+    - .mp4
+    - .mkv
+    - .avi
+    - .webm
+    - .mov
+    maxAgeSeconds: 300
+  offlineQueue: {fileID: 4564270403218919808}
+  promptUI: {fileID: 0}
+--- !u!114 &9181432950094576159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2316af99188b35d41bada451c3a0fbc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.InputLogRecorderNewInputSystem
+  watchedKeys: []
+  fps: 60
+  bufferSeconds: 10
+--- !u!114 &1779269928311190488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 173dbd700c80e4d4388e70eb2983cc07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.GlankNewInputSystemBridge
+  inputLogRecorder: {fileID: 9181432950094576159}
+--- !u!114 &273998500808033931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d4a5747bb023d5499d08ed88ff78b61, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.CrashDetector
+  config: {fileID: 11400000, guid: e17d7b8c63032d24eac02d37c26c13fc, type: 2}
+  trigger: {fileID: 1512199964085224472}
+  treatAllErrorsAsFatal: 0
+  cooldownSeconds: 30
+--- !u!114 &6657435159814718822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83152aa32834d9e459d4fbe1e7e9a5c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.FreezeWatchdog
+  config: {fileID: 11400000, guid: e17d7b8c63032d24eac02d37c26c13fc, type: 2}
+  trigger: {fileID: 1512199964085224472}
+  freezeThresholdSeconds: 10
+  pollIntervalSeconds: 1
+  cooldownSeconds: 60
+--- !u!114 &4564270403218919808
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9197165672411699098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b6e55a0912f9424a9242f7f19b944da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Glank.Runtime::Glank.GlankOfflineQueue
+  retryIntervalSeconds: 60
+  config: {fileID: 11400000, guid: e17d7b8c63032d24eac02d37c26c13fc, type: 2}
