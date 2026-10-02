@@ -38,7 +38,7 @@ function toExportJson(bug) {
 
 export default function InputLogStrip({ bug, elapsed, onSelectFrame, videoSynced = true }) {
   const [open, setOpen] = useState(true)
-  const [view, setView] = useState('timeline') // 'timeline' | 'text'
+  const [view, setView] = useState('text') // 'timeline' | 'text'
   // 動画がOS側の録画機能（ReplayFolderWatcher）由来で入力ログと対応していない場合、
   // タイムライン表示（動画位置との対応を前提にしている）とクリックでのシークは
   // 誤った位置に誘導してしまうため無効化し、テキスト一覧だけを出す。
