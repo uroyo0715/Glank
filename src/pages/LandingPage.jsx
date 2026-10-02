@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import ImagePlaceholder from '../components/ImagePlaceholder'
 
 // server/src/plans.jsのミラー（表示用）。数値・機能が変わったら両方直すこと。
 const PLANS = [
@@ -125,13 +124,6 @@ function IconArrowRight(props) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
-    </svg>
-  )
-}
-function IconPlay(props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <polygon points="7 4 20 12 7 20 7 4" />
     </svg>
   )
 }
@@ -279,10 +271,7 @@ export default function LandingPage() {
                 <span>Format: WebM / 1080p</span>
               </div>
               <div className="landing-mockup-video-thumb">
-                <ImagePlaceholder caption="ゲームプレイのキャプチャ動画サムネイル" />
-                <div className="landing-mockup-play">
-                  <IconPlay />
-                </div>
+                <img src="/landing-video-thumbnail.png" alt="ゲームプレイのキャプチャ動画サムネイル" />
               </div>
             </div>
             <div className="landing-mockup-log-panel">

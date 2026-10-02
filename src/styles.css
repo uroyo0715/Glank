@@ -542,29 +542,12 @@ body {
   border-radius: 8px;
   overflow: hidden;
 }
-.landing-mockup-video-thumb .image-placeholder {
+.landing-mockup-video-thumb img {
+  width: 100%;
   height: 100%;
-  margin: 0;
+  object-fit: cover;
+  display: block;
   border-radius: 8px;
-}
-.landing-mockup-play {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid var(--landing-accent);
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--landing-accent);
-}
-.landing-mockup-play svg {
-  width: 18px;
-  height: 18px;
 }
 .landing-mockup-log-panel {
   flex: 0 0 380px;
