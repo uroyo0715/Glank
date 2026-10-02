@@ -128,9 +128,7 @@ function UnityGuide() {
             <p style={{ marginTop: 10, fontSize: 12 }}>
               これだけで準備完了です。次の手順4でSetup Wizardを実行すると、
               このシンボルを検出して<span className="mono">InstantReplayVideoRecorder</span>の
-              配置・配線まで自動で行われます（手動でGameObjectを置く必要はありません）。
-              Unity 2022.3以降が必要です。Linuxに配布する場合のみ、システムにffmpegが
-              別途必要になります。
+              配置・配線まで自動で行われます。
             </p>
           </div>
         </details>
