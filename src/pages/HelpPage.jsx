@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import SegmentedToggle from '../components/SegmentedToggle.jsx'
-import ImagePlaceholder from '../components/ImagePlaceholder.jsx'
 import { sdkDownloadUrl } from '../api/index.js'
 
 function SdkDownloadButton({ engine, label }) {
@@ -106,7 +105,7 @@ function UnityGuide() {
         <p>
           Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開き、
           手順1で確認したAPI Keyを入力して「セットアップ」を押すだけです。
-          バックエンドURLは既定で本番用になっているので、通常は変更不要です。
+          バックエンドURLは既定ですので、通常は変更不要です。
         </p>
         <p>
           これだけで、接続設定の作成・必要なコンポーネントのシーンへの配置・
@@ -125,17 +124,18 @@ function UnityGuide() {
       <li id="unity-step-4">
         <h2>4. 動画の記録方法</h2>
         <p>
-          動画は特に設定をしなくても自動で記録されます。既定ではWindowsの録画機能
-          （Xbox Game Bar・NVIDIA ShadowPlay・AMD ReLiveなど）を使うので、プレイヤー側で
-          その機能をオンにしておいてください。
+          <strong><span className="mono">InstantReplayVideoRecorder</span>の導入を推奨します。</strong>
+          ゲーム自身が直近のプレイを保持しておき、ホットキーを押したタイミングでmp4として
+          書き出すため、プレイヤー側の事前設定なしで必ず動画が残ります
+          （外部パッケージの導入とSetup Wizardの再実行が必要です）。
         </p>
         <p>
-          OS側の設定に頼らず動画を残したい場合は、<span className="mono">InstantReplayVideoRecorder</span>
-          を追加してください（外部パッケージの導入とSetup Wizardの再実行が必要です）。
-          ゲーム自身が直近のプレイを保持し、バグ報告のタイミングでmp4として書き出します。
+          導入しない場合は、Windowsの録画機能（Xbox Game Bar・NVIDIA ShadowPlay・AMD ReLiveなど）
+          を使う<span className="mono">ReplayFolderWatcher</span>が既定で動作しますが、
+          プレイヤー側でその機能を事前にオンにしておく必要があります。
         </p>
         <p>
-          どちらも導入している場合は<span className="mono">InstantReplayVideoRecorder</span>が
+          両方を導入している場合は<span className="mono">InstantReplayVideoRecorder</span>が
           優先され、送信が重複することはありません。
         </p>
       </li>
@@ -155,7 +155,6 @@ function UnityGuide() {
           使うと、即送信の代わりに簡易フォームを開けます。送信に失敗した場合も
           <span className="mono">GlankOfflineQueue</span>が自動で再送します。
         </p>
-        <ImagePlaceholder caption="ホットキーを押した後、Webアプリのバグ一覧に報告が表示された状態のスクリーンショット" />
       </li>
 
       <li id="unity-step-6">
