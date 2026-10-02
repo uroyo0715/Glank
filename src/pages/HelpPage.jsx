@@ -129,6 +129,37 @@ function UnityGuide() {
           書き出すため、プレイヤー側の事前設定なしで必ず動画が残ります
           （外部パッケージの導入とSetup Wizardの再実行が必要です）。
         </p>
+        <details className="help-details">
+          <summary>InstantReplayVideoRecorderの導入手順</summary>
+          <div className="help-details-body">
+            <ol>
+              <li>
+                Unity Package Managerで、下のgit URLから
+                <span className="mono">InstantReplay</span>本体を追加します
+                （<span className="mono">Window &gt; Package Manager &gt; + &gt; Add package from git URL...</span>）。
+                <div className="help-code">
+                  https://github.com/CyberAgentGameEntertainment/InstantReplay.git?path=Packages/jp.co.cyberagent.instant-replay#release
+                </div>
+              </li>
+              <li>
+                <span className="mono">Project Settings &gt; Player &gt; Scripting Define Symbols</span>に
+                <span className="mono">GLANK_INSTANT_REPLAY</span>を追加します。
+              </li>
+              <li>
+                シーンに<span className="mono">InstantReplayVideoRecorder</span>をアタッチした
+                GameObjectを1つ置きます。
+              </li>
+              <li>
+                Setup Wizardを再実行すると、<span className="mono">BugReportTrigger</span>との
+                配線まで自動で行われます。
+              </li>
+            </ol>
+            <p style={{ marginTop: 10, fontSize: 12 }}>
+              Unity 2022.3以降が必要です。Linuxに配布する場合のみ、システムにffmpegが
+              別途必要になります。
+            </p>
+          </div>
+        </details>
         <p>
           導入しない場合は、Windowsの録画機能（Xbox Game Bar・NVIDIA ShadowPlay・AMD ReLiveなど）
           を使う<span className="mono">ReplayFolderWatcher</span>が既定で動作しますが、

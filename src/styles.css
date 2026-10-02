@@ -1680,6 +1680,48 @@ body {
   font-size: 12px;
   overflow-x: auto;
 }
+.help-details {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0 16px;
+}
+.help-details summary {
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+.help-details summary::-webkit-details-marker {
+  display: none;
+}
+.help-details summary::before {
+  content: '▶ ';
+  display: inline-block;
+  color: var(--accent-amber);
+  transition: transform 0.15s ease;
+}
+.help-details[open] summary::before {
+  transform: rotate(90deg);
+}
+.help-details-body {
+  padding-bottom: 16px;
+}
+.help-details-body ol {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.help-details-body li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
 .image-placeholder {
   margin-top: 12px;
   padding: 28px 16px;
