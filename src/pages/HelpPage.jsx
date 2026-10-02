@@ -78,10 +78,9 @@ function UnityGuide() {
       <li id="unity-step-1">
         <h2>1. Glankでプロジェクトを作成する</h2>
         <p>
-          プロジェクト一覧画面の「新規プロジェクト」から、タイトル・ティザー画像（任意）・
-          使用ゲームエンジン（Unity）を指定して作成します。作成したプロジェクトを開き、
-          右上の「管理」メニューから「SDK接続情報を表示」を選ぶと、Unity側の設定で使う
-          API Key・バックエンドURLがまとめて確認できます。
+          プロジェクト一覧の「新規プロジェクト」からプロジェクトを作成します。作成後、
+          プロジェクトを開いて右上の「管理」→「SDK接続情報を表示」を選ぶと、
+          Unity側で使うAPI KeyとバックエンドURLが確認できます。
         </p>
         <img
           src="/help/SDKinfo_place.png"
@@ -93,12 +92,11 @@ function UnityGuide() {
       <li id="unity-step-2">
         <h2>2. Unity側にGlank SDKを導入する</h2>
         <p>
-          下のボタンからSDK一式をダウンロードし、展開してできる<span className="mono">Glank</span>
-          フォルダごと、対象UnityプロジェクトのAssetsフォルダ内の
-          <span className="mono">Packages/</span> フォルダの下に置きます。または、Unityの
-          Package Managerで「Add package from disk...」を選び、フォルダ内の
-          <span className="mono">package.json</span> を指定しても導入できます。外部パッケージへの
-          依存はないため、これだけで組み込み完了です。
+          下のボタンからSDKをダウンロードし、展開してできる<span className="mono">Glank</span>
+          フォルダを、Unityプロジェクトの<span className="mono">Assets/Packages/</span>の下に
+          置くだけです（Package Managerの「Add package from disk...」から
+          <span className="mono">package.json</span>を指定しても導入できます）。
+          他のパッケージへの依存はありません。
         </p>
         <SdkDownloadButton engine="unity" label="Unity SDK" />
       </li>
@@ -106,25 +104,13 @@ function UnityGuide() {
       <li id="unity-step-3">
         <h2>3. バグ報告機能をセットアップする</h2>
         <p>
-          Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開きます。
+          Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開き、
+          手順1で確認したAPI Keyを入力して「セットアップ」を押すだけです。
+          バックエンドURLは既定で本番用になっているので、通常は変更不要です。
         </p>
         <p>
-          API Keyを入力して「セットアップ」ボタンを押すだけです。
-        </p>
-        <p>
-          API Keyは、プロジェクトを開いた画面の「管理」メニューの「SDK接続情報を表示」から
-          確認できます。
-        </p>
-        <p>
-          バックエンドURLは既定値が本番URLなので、通常は入力不要です。
-          自前で別環境を使う場合のみ「詳細設定」を開いて変更します。
-        </p>
-        <p>
-          接続設定（<span className="mono">GlankSettings</span>アセット）の生成、
-          必要なコンポーネント一式が配線された<span className="mono">GlankManager</span>という
-          GameObjectのシーンへの配置、新Input System
-          （<span className="mono">com.unity.inputsystem</span>）を使っているかどうかの自動判定まで、
-          まとめて行われます。
+          これだけで、接続設定の作成・必要なコンポーネントのシーンへの配置・
+          Input Systemの種類の判定までまとめて行われます。
         </p>
         <img
           src="/help/SetupWizard_setting.png"
@@ -139,54 +125,35 @@ function UnityGuide() {
       <li id="unity-step-4">
         <h2>4. 動画の記録方法</h2>
         <p>
-          追加の設定をしなくても、Windowsの<strong>Xbox Game Bar</strong>（背景録画）や
-          <strong>NVIDIA ShadowPlay</strong>、<strong>AMD ReLive</strong>
-          といったOS標準のインスタントリプレイ機能を利用する
-          <span className="mono">ReplayFolderWatcher</span>が既定で組み込まれています。
+          動画は特に設定をしなくても自動で記録されます。既定ではWindowsの録画機能
+          （Xbox Game Bar・NVIDIA ShadowPlay・AMD ReLiveなど）を使うので、プレイヤー側で
+          その機能をオンにしておいてください。
         </p>
         <p>
-          ただしこの場合、プレイヤー側で事前にOSの録画機能を有効にしておく必要があります。
+          OS側の設定に頼らず動画を残したい場合は、<span className="mono">InstantReplayVideoRecorder</span>
+          を追加してください（外部パッケージの導入とSetup Wizardの再実行が必要です）。
+          ゲーム自身が直近のプレイを保持し、バグ報告のタイミングでmp4として書き出します。
         </p>
         <p>
-          <strong>任意:</strong> <span className="mono">InstantReplayVideoRecorder</span>を追加すると、
-          ゲーム自身が直近n秒のプレイをリングバッファで保持しておき、バグ報告のタイミングで
-          プラットフォームネイティブのハードウェアエンコーダーでmp4として書き出します。
-          プレイヤーがOSの録画機能を事前に有効化していなくても動画が残るのが利点です。
-        </p>
-        <p>
-          外部パッケージ（CyberAgentのInstantReplay）を導入していない間は、
-          <span className="mono">InstantReplayVideoRecorder</span>自体が使えません
-          （コンポーネントのチェックが外れているのではなく、パッケージ未導入の間は
-          コンポーネントとして存在しない状態です）。パッケージを導入してSetup Wizardを実行すると、
-          チェックが付いた状態で自動的に追加されます。
-        </p>
-        <p>
-          両方をシーンに置いても問題ありません。<span className="mono">InstantReplayVideoRecorder</span>
-          があればそちらが優先して使われ、無い場合だけ<span className="mono">ReplayFolderWatcher</span>
-          にフォールバックする仕組みのため、報告が重複して2件送信されることはありません
-          （ホットキー1回につき送信は必ず1回です）。
+          どちらも導入している場合は<span className="mono">InstantReplayVideoRecorder</span>が
+          優先され、送信が重複することはありません。
         </p>
       </li>
 
       <li id="unity-step-5">
         <h2>5. バグ報告の手順</h2>
         <p>
-          <span className="mono">BugReportTrigger</span>のホットキー（既定は
-          <span className="mono">F12</span>）を押すと、直近の入力ログと動画がまとめて自動送信され、
-          このWebアプリのプロジェクト内バグ一覧に「未対応」として表示されます。
+          既定のホットキー<span className="mono">F12</span>を押すと、直近の入力ログと動画が
+          まとめて自動送信され、Webアプリのバグ一覧に「未対応」として表示されます。
         </p>
         <p>
-          <span className="mono">ReplayFolderWatcher</span>のみを使っている場合は、ホットキーを押す前に
-          <span className="mono">Win + Alt + G</span>を押してOS側に直近の録画を保存しておいてください。
+          OS標準の録画機能だけを使っている場合は、ホットキーを押す前に
+          <span className="mono">Win + Alt + G</span>で直近の録画を保存しておいてください。
         </p>
         <p>
-          タイトルやタグをQA担当者に入力させてから送信したい場合は、
-          <span className="mono">GlankReportPromptUI</span>を使うと、ホットキー即送信の代わりに
-          簡易フォームを開けます。
-        </p>
-        <p>
-          Setup Wizardで導入した場合、送信に失敗しても<span className="mono">GlankOfflineQueue</span>
-          が自動で退避・再送してくれます（最初から組み込み済みです）。
+          送信前にタイトルなどを入力させたい場合は<span className="mono">GlankReportPromptUI</span>を
+          使うと、即送信の代わりに簡易フォームを開けます。送信に失敗した場合も
+          <span className="mono">GlankOfflineQueue</span>が自動で再送します。
         </p>
         <ImagePlaceholder caption="ホットキーを押した後、Webアプリのバグ一覧に報告が表示された状態のスクリーンショット" />
       </li>
@@ -194,24 +161,20 @@ function UnityGuide() {
       <li id="unity-step-6">
         <h2>6. 報告者名・プラットフォームの設定</h2>
         <p>
-          <span className="mono">GlankManager</span>には<span className="mono">GlankReporterNamePrompt</span>
-          が最初から付いており、報告者名が未設定の間はゲーム起動時に自動で入力欄（名前・プレイ中の
-          プラットフォーム）が表示されます。一度設定すると、以後の報告の「誰が」「プラットフォーム」欄に
-          その内容が使われます。
+          報告者名が未設定の間は、ゲーム起動時に自動で名前とプレイ中のプラットフォームを
+          入力する画面が表示されます。一度設定すれば、以後の報告にその内容が使われます。
         </p>
         <p>
-          <strong>この入力欄は既定で<span className="mono">F9</span>キーを押せばいつでも開き直せます</strong>
-          。キーは<span className="mono">GlankReporterNamePrompt</span>の
-          <span className="mono">reopenHotkey</span>で変更できます。
+          入力欄は既定で<span className="mono">F9</span>キーからいつでも開き直せます。
         </p>
       </li>
 
       <li id="unity-step-7">
         <h2>7. 各コンポーネントの役割と設定項目</h2>
         <p>
-          Setup Wizardが配置する<span className="mono">GlankManager</span>には、
-          役割の異なるコンポーネントがまとめてアタッチされています。動作を変更したい場合は、
-          対応するコンポーネントのInspectorで下記の項目を編集してください。
+          <span className="mono">GlankManager</span>には役割の異なるコンポーネントが
+          まとめてアタッチされています。動作を変更したい場合は、対応するコンポーネントの
+          Inspectorで下記の項目を編集してください。
         </p>
 
         <h3 className="help-substep-title">
@@ -409,9 +372,8 @@ export default function HelpPage({ defaultEngine = 'unity' }) {
         ) : (
           <>
             <p className="help-lead">
-              Glankは「Webアプリ側のプロジェクト」と「Unityで作っているゲーム」を
-              <strong>APIキー</strong>で紐付けます。ゲーム内でホットキーを押すと、
-              直近の録画動画と入力ログが自動でこのWebアプリに送信され、一覧に表示されます。
+              GlankはAPIキーで、Webアプリのプロジェクトとゲームをつなぎます。
+              ゲーム内でホットキーを押すだけで、直近の録画と入力ログが自動でこのWebアプリに届きます。
             </p>
 
             <UnityToc />
