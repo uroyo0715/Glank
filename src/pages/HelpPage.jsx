@@ -19,13 +19,13 @@ const UNITY_TOC_GROUPS = [
     items: [
       { id: 'unity-step-1', label: 'Glankでプロジェクトを作成する' },
       { id: 'unity-step-2', label: 'Unity側にGlank SDKを導入する' },
-      { id: 'unity-step-3', label: 'バグ報告機能をセットアップする' },
+      { id: 'unity-step-3', label: '動画の記録方法を決める' },
+      { id: 'unity-step-4', label: 'バグ報告機能をセットアップする' },
     ],
   },
   {
     title: '使い方・カスタマイズ',
     items: [
-      { id: 'unity-step-4', label: '動画の記録方法' },
       { id: 'unity-step-5', label: 'バグ報告の手順' },
       { id: 'unity-step-6', label: '報告者名・プラットフォームの設定' },
       { id: 'unity-step-7', label: '各コンポーネントの役割と設定項目' },
@@ -101,33 +101,12 @@ function UnityGuide() {
       </li>
 
       <li id="unity-step-3">
-        <h2>3. バグ報告機能をセットアップする</h2>
-        <p>
-          Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開き、
-          手順1で確認したAPI Keyを入力して「セットアップ」を押すだけです。
-          バックエンドURLは既定ですので、通常は変更不要です。
-        </p>
-        <p>
-          これだけで、接続設定の作成・必要なコンポーネントのシーンへの配置・
-          Input Systemの種類の判定までまとめて行われます。
-        </p>
-        <img
-          src="/help/SetupWizard_setting.png"
-          alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key入力欄とセットアップボタン）"
-          className="help-screenshot"
-        />
-      </li>
-      </ol>
-
-      <h2 className="help-group-title">使い方・カスタマイズ</h2>
-      <ol className="help-steps">
-      <li id="unity-step-4">
-        <h2>4. 動画の記録方法</h2>
+        <h2>3. 動画の記録方法を決める</h2>
         <p>
           <strong><span className="mono">InstantReplayVideoRecorder</span>の導入を推奨します。</strong>
           ゲーム自身が直近のプレイを保持しておき、ホットキーを押したタイミングでmp4として
-          書き出すため、プレイヤー側の事前設定なしで必ず動画が残ります
-          （外部パッケージの導入とSetup Wizardの再実行が必要です）。
+          書き出すため、プレイヤー側の事前設定なしで必ず動画が残ります。導入する場合は、
+          次の手順4（Setup Wizard）より先に、下記の手順を済ませてください。
         </p>
         <details className="help-details">
           <summary>InstantReplayVideoRecorderの導入手順</summary>
@@ -145,13 +124,11 @@ function UnityGuide() {
                 <span className="mono">Project Settings &gt; Player &gt; Scripting Define Symbols</span>に
                 <span className="mono">GLANK_INSTANT_REPLAY</span>を追加します。
               </li>
-              <li>
-                Setup Wizardを再実行します。このシンボルを検出すると、
-                <span className="mono">InstantReplayVideoRecorder</span>の配置・配線まで
-                自動で行われます（手動でGameObjectを置く必要はありません）。
-              </li>
             </ol>
             <p style={{ marginTop: 10, fontSize: 12 }}>
+              これだけで準備完了です。次の手順4でSetup Wizardを実行すると、
+              このシンボルを検出して<span className="mono">InstantReplayVideoRecorder</span>の
+              配置・配線まで自動で行われます（手動でGameObjectを置く必要はありません）。
               Unity 2022.3以降が必要です。Linuxに配布する場合のみ、システムにffmpegが
               別途必要になります。
             </p>
@@ -160,13 +137,33 @@ function UnityGuide() {
         <p>
           導入しない場合は、Windowsの録画機能（Xbox Game Bar・NVIDIA ShadowPlay・AMD ReLiveなど）
           を使う<span className="mono">ReplayFolderWatcher</span>が既定で動作しますが、
-          プレイヤー側でその機能を事前にオンにしておく必要があります。
-        </p>
-        <p>
-          両方を導入している場合は<span className="mono">InstantReplayVideoRecorder</span>が
-          優先され、送信が重複することはありません。
+          プレイヤー側でその機能を事前にオンにしておく必要があります。何もせず次の手順に
+          進んでも問題ありません（後からいつでも導入できます）。
         </p>
       </li>
+
+      <li id="unity-step-4">
+        <h2>4. バグ報告機能をセットアップする</h2>
+        <p>
+          Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開き、
+          手順1で確認したAPI Keyを入力して「セットアップ」を押すだけです。
+          バックエンドURLは既定ですので、通常は変更不要です。
+        </p>
+        <p>
+          これだけで、接続設定の作成・必要なコンポーネントのシーンへの配置・
+          Input Systemの種類の判定までまとめて行われます（手順3を済ませていれば、
+          <span className="mono">InstantReplayVideoRecorder</span>の配線もここで一緒に行われます）。
+        </p>
+        <img
+          src="/help/SetupWizard_setting.png"
+          alt="Setup Wizardのウィンドウ（Tools &gt; Glank &gt; Setup Wizard、API Key入力欄とセットアップボタン）"
+          className="help-screenshot"
+        />
+      </li>
+      </ol>
+
+      <h2 className="help-group-title">使い方・カスタマイズ</h2>
+      <ol className="help-steps">
 
       <li id="unity-step-5">
         <h2>5. バグ報告の手順</h2>
