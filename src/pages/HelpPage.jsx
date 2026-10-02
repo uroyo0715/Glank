@@ -19,7 +19,7 @@ const UNITY_TOC_GROUPS = [
     items: [
       { id: 'unity-step-1', label: 'Glankでプロジェクトを作成する' },
       { id: 'unity-step-2', label: 'Unity側にGlank SDKを導入する' },
-      { id: 'unity-step-3', label: '動画の記録方法を決める' },
+      { id: 'unity-step-3', label: '動画の記録方法を設定する' },
       { id: 'unity-step-4', label: 'バグ報告機能をセットアップする' },
     ],
   },
@@ -79,8 +79,10 @@ function UnityGuide() {
       <li id="unity-step-1">
         <h2>1. Glankでプロジェクトを作成する</h2>
         <p>
-          プロジェクト一覧の「新規プロジェクト」からプロジェクトを作成します。作成後、
-          プロジェクトを開いて右上の「管理」→「SDK接続情報を表示」を選ぶと、
+          プロジェクト一覧の「新規プロジェクト」からプロジェクトを作成します。
+        </p>
+        <p>
+          作成後、プロジェクトを開いて右上の「管理」→「SDK接続情報を表示」を選ぶと、
           Unity側で使うAPI KeyとバックエンドURLが確認できます。
         </p>
         <img
@@ -95,20 +97,18 @@ function UnityGuide() {
         <p>
           下のボタンからSDKをダウンロードし、展開してできる<span className="mono">Glank</span>
           フォルダを、Unityプロジェクトの<span className="mono">Assets/Packages/</span>の下に
-          置くだけです（Package Managerの「Add package from disk...」から
-          <span className="mono">package.json</span>を指定しても導入できます）。
-          他のパッケージへの依存はありません。
+          配置してください。
         </p>
         <SdkDownloadButton engine="unity" label="Unity SDK" />
       </li>
 
       <li id="unity-step-3">
-        <h2>3. 動画の記録方法を決める</h2>
+        <h2>3. 動画の記録方法を設定する</h2>
         <p>
           <strong><span className="mono">InstantReplayVideoRecorder</span>の導入を推奨します。</strong>
           ゲーム自身が直近のプレイを保持しておき、ホットキーを押したタイミングでmp4として
-          書き出すため、プレイヤー側の事前設定なしで必ず動画が残ります。導入する場合は、
-          次の手順4（Setup Wizard）より先に、下記の手順を済ませてください。
+          書き出すため、プレイヤー側の事前設定なしで動画が残ります。導入する場合は、
+          次の手順4より先に、下記の手順を済ませてください。
         </p>
         <details className="help-details">
           <summary>InstantReplayVideoRecorderの導入手順</summary>
@@ -116,8 +116,9 @@ function UnityGuide() {
             <ol>
               <li>
                 Unity Package Managerで、下のgit URLから
-                <span className="mono">InstantReplay</span>本体を追加します
-                （<span className="mono">Window &gt; Package Manager &gt; + &gt; Add package from git URL...</span>）。
+                <span className="mono">InstantReplay</span>を追加します。
+                <br />
+                （<span className="mono">Window &gt; Package Manager &gt; + &gt; Add package from git URL...</span>）
                 <div className="help-code">
                   https://github.com/CyberAgentGameEntertainment/InstantReplay.git?path=Packages/jp.co.cyberagent.instant-replay#release
                 </div>
@@ -128,7 +129,7 @@ function UnityGuide() {
               </li>
             </ol>
             <p style={{ marginTop: 10, fontSize: 12 }}>
-              これだけで準備完了です。次の手順4でSetup Wizardを実行すると、
+              これで準備完了です。次の手順4でSetup Wizardを実行すると、
               このシンボルを検出して<span className="mono">InstantReplayVideoRecorder</span>の
               配置・配線まで自動で行われます。
             </p>
@@ -146,13 +147,18 @@ function UnityGuide() {
         <h2>4. バグ報告機能をセットアップする</h2>
         <p>
           Unityメニューの<span className="mono">Tools &gt; Glank &gt; Setup Wizard</span>を開き、
-          手順1で確認したAPI Keyを入力して「セットアップ」を押すだけです。
+          手順1で確認したAPI Keyを入力して「セットアップ」を押してください。
+        </p>
+        <p>
           バックエンドURLは既定ですので、通常は変更不要です。
         </p>
         <p>
           これだけで、接続設定の作成・必要なコンポーネントのシーンへの配置・
-          Input Systemの種類の判定までまとめて行われます（手順3を済ませていれば、
-          <span className="mono">InstantReplayVideoRecorder</span>の配線もここで一緒に行われます）。
+          Input Systemの種類の判定までまとめて行われます。
+        </p>
+        <p>
+          （手順3を済ませていれば、<span className="mono">InstantReplayVideoRecorder</span>の
+          配線もここで一緒に行われます）
         </p>
         <img
           src="/help/SetupWizard_setting.png"
