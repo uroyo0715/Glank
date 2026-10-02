@@ -48,23 +48,25 @@ function UnityToc() {
   return (
     <nav className="help-toc" aria-label="目次">
       <div className="help-toc-title">目次</div>
-      {UNITY_TOC_GROUPS.map((group) => (
-        <div className="help-toc-group" key={group.title}>
-          <div className="help-toc-group-title">{group.title}</div>
-          <ol>
-            {group.items.map((item) => {
-              counter += 1
-              return (
-                <li key={item.id}>
-                  <a href={`#${item.id}`} onClick={(e) => handleTocClick(e, item.id)}>
-                    {counter}. {item.label}
-                  </a>
-                </li>
-              )
-            })}
-          </ol>
-        </div>
-      ))}
+      <div className="help-toc-groups">
+        {UNITY_TOC_GROUPS.map((group) => (
+          <div className="help-toc-group" key={group.title}>
+            <div className="help-toc-group-title">{group.title}</div>
+            <ol>
+              {group.items.map((item) => {
+                counter += 1
+                return (
+                  <li key={item.id}>
+                    <a href={`#${item.id}`} onClick={(e) => handleTocClick(e, item.id)}>
+                      {counter}. {item.label}
+                    </a>
+                  </li>
+                )
+              })}
+            </ol>
+          </div>
+        ))}
+      </div>
     </nav>
   )
 }

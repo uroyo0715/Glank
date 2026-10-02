@@ -1557,8 +1557,14 @@ body {
   color: var(--text-faint);
   margin-bottom: 8px;
 }
-.help-toc-group + .help-toc-group {
-  margin-top: 14px;
+.help-toc-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.help-toc-group {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 .help-toc-group-title {
   font-size: 11px;
@@ -1570,8 +1576,6 @@ body {
   margin: 0;
   padding: 0;
   list-style: none;
-  columns: 2;
-  column-gap: 24px;
 }
 .help-toc li {
   break-inside: avoid;
