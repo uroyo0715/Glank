@@ -146,12 +146,9 @@ function UnityGuide() {
                 <span className="mono">GLANK_INSTANT_REPLAY</span>を追加します。
               </li>
               <li>
-                シーンに<span className="mono">InstantReplayVideoRecorder</span>をアタッチした
-                GameObjectを1つ置きます。
-              </li>
-              <li>
-                Setup Wizardを再実行すると、<span className="mono">BugReportTrigger</span>との
-                配線まで自動で行われます。
+                Setup Wizardを再実行します。このシンボルを検出すると、
+                <span className="mono">InstantReplayVideoRecorder</span>の配置・配線まで
+                自動で行われます（手動でGameObjectを置く必要はありません）。
               </li>
             </ol>
             <p style={{ marginTop: 10, fontSize: 12 }}>
