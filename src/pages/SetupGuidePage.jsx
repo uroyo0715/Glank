@@ -297,7 +297,9 @@ GlankReporterIdentity.SetReporterName("田中QA");`}</pre>
                   <tr>
                     <td className="mono">TagDropdown</td>
                     <td>
-                      Dropdown（選択肢: crash / visual / softlock の順）。
+                      Dropdown（選択肢: クラッシュ / 見た目 / 進行不能 の順。サーバーに送る値は
+                      それぞれ<span className="mono">crash</span> / <span className="mono">visual</span> /
+                      <span className="mono">softlock</span>）。
                       <span className="mono">tagDropdown</span>に割り当てる
                     </td>
                   </tr>

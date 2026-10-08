@@ -57,7 +57,8 @@ Glankへ入力ログ付きバグ報告を送信するための最小SDK。
   ディスクに退避し、一定間隔で自動的に再送するMonoBehaviour。詳細は下記
   「送信失敗時のリトライ（GlankOfflineQueue）」を参照。
 - `GlankReportPromptUI.cs` — ホットキーで仮タイトルのまま即送信するのではなく、QA担当が
-  タイトル・種類・詳細・発生頻度を入力してから送信できるようにする簡易フォームのロジック。
+  タイトル・種類・詳細・発生頻度を入力してから送信できるようにする簡易フォーム。Setup Wizardの
+  チェックボックスで導入でき、UIは起動時に自動生成される。
   詳細は下記「QA向け入力フォーム（GlankReportPromptUI）」を参照。
 - `GlankReplayer.cs` — Webアプリのバグ詳細画面「JSONをダウンロード」で書き出した入力ログを
   読み込み、記録時と同じタイミングで再生するMonoBehaviour。バグの再現に使う。詳細は下記
@@ -264,19 +265,49 @@ public class BugReportSetup : MonoBehaviour
 ## QA向け入力フォーム（GlankReportPromptUI）
 
 既定の`BugReportTrigger`はホットキーを押した瞬間に仮タイトル（`"(quick report)"`）で
-即送信する。QA担当がタイトル・種類・詳細・発生頻度を入力してから送信したい場合は、
+即送信する。QA担当がタイトル・タグ・詳細・優先度・報告者名を入力してから送信したい場合は、
 `GlankReportPromptUI`を使う。
 
-**このスクリプトが提供するのはロジックのみ**（Canvas上のUI部品の配置はUnity Editor側の作業のため、
-テキストファイルであるこのSDKには含められない）。以下の構成でHierarchyを組み、
-それぞれのUI部品を`GlankReportPromptUI`のInspectorにアサインする（レガシーUI = `UnityEngine.UI`
-のみを使用、TextMeshPro等の追加パッケージ不要）:
+### 自動生成（推奨）
+
+**Setup Wizardの「報告フォーム（GlankReportPromptUI）を使う」にチェックを入れる**（既定でON）と、
+`GlankManager`に`GlankReportPromptUI`が付き、`BugReportTrigger.promptUI`まで配線される。
+Canvas・EventSystem・入力欄一式は**ゲーム起動時にコードから自動生成される**ため、Hierarchyを
+手動で組む必要はない（`GlankReporterNamePrompt`と同じ方式。タグ・優先度はDropdownではなく
+横並びのボタンで選ぶ）。
+
+- **タグは複数選べる**（ボタンをもう一度押すと外れる。ただし最後の1つは外せない。サーバーは
+  タグが0件の報告を拒否するため）。フォームの表示は日本語（クラッシュ / 見た目 / 進行不能）。
+  優先度も「高 / 中 / 低」と表示するが、サーバーに送る値は従来どおり`high` / `medium` / `low`。
+- **タグの選択肢は自由に追加できる。** `GlankReportPromptUI`のInspectorの`Tag Options`リストに
+  要素を追加し、`value`（サーバーに送る文字列）と`label`（フォームの表示名）を入力する。
+  サーバーはタグを自由な文字列として受け付けるので、追加したタグはWebアプリの絞り込みや
+  集計にもそのまま現れる。`value`を日本語にすればWeb上でも日本語で表示される。
+  ただし`CrashDetector`は`crash`、`FreezeWatchdog`は`softlock`という`value`で自動報告するため、
+  自動検知の報告と同じ項目として集計したい場合は、この2つの`value`は変えないこと。
+
+- 開いている間は`Time.timeScale = 0`でゲームを一時停止する（入力欄に打った文字でゲーム側の操作が
+  反応するのを防ぐため）。ゲーム側で独自に一時停止を管理している場合は、`GlankReportPromptUI`の
+  `pauseGameWhileOpen`をOFFにする。
+- UI用のEventSystemがシーンに無ければ自動で作る（新Input System単体のプロジェクトでは
+  `InputSystemUIInputModule`付き）。
+- 後から使うのをやめる場合は、`BugReportTrigger`の`Prompt UI`欄を空（None）にする。
+  ホットキーを押すと、仮タイトル即送信に戻る。
+- 配布用プレハブ（`GlankManager.prefab`）にはフォームは含まない。使いたい場合はプレハブの
+  `GlankManager`に`GlankReportPromptUI`を追加し、`trigger`と`BugReportTrigger.promptUI`を設定する。
+
+### 手動でHierarchyを組む（見た目を自分で作り込みたい場合）
+
+`panelRoot`にオブジェクトをアサインすると、自動生成は行われず、そちらが使われる。
+以下の構成でHierarchyを組み、それぞれのUI部品を`GlankReportPromptUI`のInspectorにアサインする
+（レガシーUI = `UnityEngine.UI`のみを使用、TextMeshPro等の追加パッケージ不要）:
 
 ```
 Canvas
 └─ ReportPromptPanel（Image等。GlankReportPromptUIの panelRoot にアサイン）
    ├─ TitleInputField（InputField）      → titleField
-   ├─ TagDropdown（Dropdown。選択肢: crash / visual / softlock の順） → tagDropdown
+   ├─ TagDropdown（Dropdown。選択肢: クラッシュ / 見た目 / 進行不能 の順。
+   │  サーバーに送る値はそれぞれcrash / visual / softlock） → tagDropdown
    ├─ DescInputField（InputField, Multi Line） → descField
    ├─ PriorityDropdown（Dropdown。選択肢: high / medium / low の順） → priorityDropdown
    ├─ ReporterNameInputField（InputField, 任意） → reporterNameField
@@ -287,8 +318,7 @@ Canvas
 `GlankReportPromptUI`自体は`ReportPromptPanel`と同じGameObject、または任意の場所に
 アタッチしてよい。`trigger`に`BugReportTrigger`をアサインし、`BugReportTrigger`側の
 `promptUI`にこの`GlankReportPromptUI`をアサインすると、ホットキーで即送信する代わりに
-このフォームが開くようになる。ゲームを一時停止したい場合は、`Show()`が呼ばれるタイミングを
-フックして`Time.timeScale = 0`にする等、呼び出し側で行う（SDK側では強制しない）。
+このフォームが開くようになる。一時停止は手動モードでも`pauseGameWhileOpen`（既定ON）で行われる。
 
 ## 報告者名（GlankReporterIdentity / GlankReporterNamePrompt）
 
@@ -457,8 +487,9 @@ crashDetector.IsFatalError = (condition, stackTrace) => condition.Contains("FATA
   自動連携（`ReplayFolderWatcher`使用時のみの制約。現状は2つのキーを別々に押す必要がある。
   プラットフォームごとのホットキーシミュレーションは壊れやすいため見送っている。詳細は上記
   「macOS / Linux について」）
-- `GlankReportPromptUI`はロジックのみ提供。実際のCanvas/UI部品の配置はUnity Editor側で
-  手動で組む必要がある（テキストファイルのSDKにUnityプレハブ資産を含められないため）
+- `GlankReportPromptUI`のUIは、`panelRoot`未設定のとき起動時にコードから自動生成する
+  （実機ビルドでの日本語入力・見た目は`GlankReporterNamePrompt`と同じ実装のため、同程度に動く想定だが
+  フォーム固有の確認はまだ。複数行の詳細欄のIMEなど）。見た目の作り込みは手動Hierarchyで行う
 - `GlankReplayer` はキー入力の再現のみ対応（乱数シードやゲーム内状態までは復元しないため、
   完全に同一の結果を保証するものではない）
 - macOS/Linuxでの`ReplayFolderWatcher`の既定値は実機での動作確認がまだ済んでいない

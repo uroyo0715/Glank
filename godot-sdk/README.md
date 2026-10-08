@@ -129,7 +129,8 @@ func _ready() -> void:
 ```
 PanelRoot (Control等。panel_root にアサイン)
 ├─ TitleField (LineEdit)         → title_field
-├─ TagOption (OptionButton。選択肢: crash / visual / softlock の順) → tag_option
+├─ TagOption (OptionButton。選択肢: クラッシュ / 見た目 / 進行不能 の順。
+│  サーバーに送る値はそれぞれcrash / visual / softlock) → tag_option
 ├─ DescField (TextEdit)          → desc_field
 ├─ PriorityOption (OptionButton。選択肢: high / medium / low の順) → priority_option
 ├─ SubmitButton (Button)         → submit_button
