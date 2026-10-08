@@ -18,6 +18,7 @@ import {
   deleteBugComment,
   getProjectPlanInfo,
   getProjectByApiKey,
+  ensureProjectCustomTags,
 } from '../data.js'
 import { requireAuth } from '../auth.js'
 import { saveVideo, deleteFile } from '../storage.js'
@@ -428,6 +429,13 @@ router.post(
       inputLogVideoSynced: metadata.inputLogVideoSynced !== false,
       inputs: Array.isArray(metadata.inputs) ? metadata.inputs : [],
     })
+    // SDK側で新しく足したタグがWebアプリの選択肢に無い場合は、ここで用意する。
+    // 報告自体はもう作成済みなので、失敗してもログに残すだけで報告の受付結果には影響させない。
+    try {
+      await ensureProjectCustomTags(project.id, metadata.tags)
+    } catch (err) {
+      console.error('failed to register custom tags from report', err)
+    }
     res.status(201).json(bug)
     // Slack/Discord通知（Pro限定）はレスポンスを遅らせたくないので、応答後にfire-and-forget。
     // 送信失敗はnotify.js内でログするだけで、報告の作成自体には影響させない。

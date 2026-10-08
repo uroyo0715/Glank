@@ -15,6 +15,7 @@ namespace Glank.Editor
         private string _baseUrl = "https://glank.onrender.com/api/v1";
         private string _apiKey = "";
         private bool _showAdvanced;
+        private bool _addReportPromptUI = true;
 
         [MenuItem("Tools/Glank/Setup Wizard")]
         private static void Open()
@@ -46,6 +47,16 @@ namespace Glank.Editor
                     "報告先のプロジェクトもこのキーだけで特定される。" +
                     "Webアプリのプロジェクトカードの「APIキーを表示」から確認できる"),
                 _apiKey);
+
+            EditorGUILayout.Space(8);
+            _addReportPromptUI = EditorGUILayout.ToggleLeft(
+                new GUIContent("報告フォーム（GlankReportPromptUI）を使う",
+                    "ホットキー（既定F12）を押したとき、仮タイトルで即送信する代わりに、タイトル・種類・詳細・" +
+                    "優先度・報告者名を入力するフォームを開く。UIは起動時に自動生成されるので、" +
+                    "Canvas等を手動で組む必要はない。開いている間はゲームを一時停止する" +
+                    "（GlankReportPromptUIのpauseGameWhileOpenで変更可）。OFFなら即送信。" +
+                    "後から変更する場合はBugReportTriggerのPrompt UI欄を空にする"),
+                _addReportPromptUI);
 
             EditorGUILayout.Space(4);
             _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "詳細設定");
@@ -91,7 +102,7 @@ namespace Glank.Editor
         private void RunSetup()
         {
             var settings = GlankSetupUtility.CreateOrUpdateSettings(_baseUrl, _apiKey);
-            var manager = GlankSetupUtility.CreateGlankManager(settings);
+            var manager = GlankSetupUtility.CreateGlankManager(settings, _addReportPromptUI);
             EditorSceneManager.MarkSceneDirty(manager.scene);
             Selection.activeGameObject = manager;
 

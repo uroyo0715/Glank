@@ -54,8 +54,11 @@ namespace Glank.Editor
         /// "GlankManager" GameObjectを生成する。
         /// <paramref name="settings"/>にnullを渡すと配線先のGlankSettingsは未設定のまま作る
         /// （配布用プレハブ生成時など、あとから利用者側でアサインしてもらう場合に使う）。
+        /// <paramref name="includeReportPromptUI"/>がtrueなら、ホットキーで仮タイトル即送信する代わりに
+        /// 入力フォームを開く<see cref="GlankReportPromptUI"/>も付けて配線する（UIは実行時に自動生成される）。
+        /// 配布用プレハブ生成は既定のfalseのまま（フォームの有無は導入側が選べるようにするため）。
         /// </summary>
-        public static GameObject CreateGlankManager(GlankSettings settings)
+        public static GameObject CreateGlankManager(GlankSettings settings, bool includeReportPromptUI = false)
         {
             var go = new GameObject("GlankManager");
             Undo.RegisterCreatedObjectUndo(go, "Create GlankManager");
@@ -99,6 +102,14 @@ namespace Glank.Editor
             // 他コンポーネントとのフィールド参照が無いため配線は不要。付けるだけで、
             // 報告者名が未設定の間はゲーム起動時に自動で入力欄を出すようになる。
             Undo.AddComponent<GlankReporterNamePrompt>(go);
+
+            if (includeReportPromptUI)
+            {
+                // panelRoot等は空のままにしておく。未設定のとき、起動時にUI一式が自動生成される。
+                var promptUI = Undo.AddComponent<GlankReportPromptUI>(go);
+                SetField(promptUI, "trigger", trigger);
+                SetField(trigger, "promptUI", promptUI);
+            }
 
             return go;
         }

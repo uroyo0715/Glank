@@ -794,6 +794,69 @@ export async function removeProjectCustomOption(id, field, value) {
   return getProjectById(id)
 }
 
+// SDKからの報告で自動登録するタグの上限。APIキーはゲームのビルドに含まれて配られるため、
+// キーを知っている誰かが大量・長大な文字列のタグを送り付けても、Webアプリの選択肢が
+// 埋まってしまわないようにする（上限を超えた分は登録しないだけで、報告自体は受け付ける）。
+export const MAX_AUTO_REGISTERED_TAG_LENGTH = 50
+export const MAX_CUSTOM_TAGS_PER_PROJECT = 100
+
+/**
+ * 報告に付いていたタグのうち、そのプロジェクトのWebアプリ側の選択肢（独自項目 customFieldOptions.tag）
+ * にまだ無いものを追加する。SDKのフォームで新しいタグを足したのにWeb側に項目が無い、という
+ * 食い違いを無くすためのもの。
+ *
+ * 比較は報告のタグと完全一致（絞り込み・集計が完全一致で行われるため、trim等はしない）。
+ * customFieldOptionsは1列のJSONで「読んでから書く」ため、同時に複数の報告が来ると片方の追加が
+ * 上書きで消え得る。サーバーは単一プロセスで動く前提なので、プロジェクト単位でこの処理を
+ * 順番に実行して防ぐ（DBの書き込みトランザクションは、ローカルDBだと同時実行時にSQLITE_BUSYに
+ * なるため使わない）。
+ * @param {number} projectId
+ * @param {string[]} tags
+ * @returns {Promise<string[]>} 新しく追加したタグ（何も追加しなかったら空配列）
+ */
+export function ensureProjectCustomTags(projectId, tags) {
+  const previous = customTagLocks.get(projectId) ?? Promise.resolve()
+  const run = previous.catch(() => {}).then(() => registerMissingCustomTags(projectId, tags))
+  customTagLocks.set(projectId, run)
+  run
+    .catch(() => {})
+    .finally(() => {
+      if (customTagLocks.get(projectId) === run) customTagLocks.delete(projectId)
+    })
+  return run
+}
+
+const customTagLocks = new Map()
+
+async function registerMissingCustomTags(projectId, tags) {
+  const { rows } = await db.execute({
+    sql: 'SELECT customFieldOptions FROM projects WHERE id = ?',
+    args: [projectId],
+  })
+  if (!rows[0]) return []
+
+  const current = parseCustomFieldOptions(rows[0].customFieldOptions)
+  const known = new Set(current.tag)
+  const additions = []
+  for (const tag of tags ?? []) {
+    if (typeof tag !== 'string' || !tag.trim()) continue
+    if (tag.length > MAX_AUTO_REGISTERED_TAG_LENGTH) continue
+    if (known.has(tag)) continue
+    known.add(tag)
+    additions.push(tag)
+  }
+
+  const room = Math.max(0, MAX_CUSTOM_TAGS_PER_PROJECT - current.tag.length)
+  const toAdd = additions.slice(0, room)
+  if (toAdd.length === 0) return []
+
+  await db.execute({
+    sql: 'UPDATE projects SET customFieldOptions = ? WHERE id = ?',
+    args: [JSON.stringify({ ...current, tag: [...current.tag, ...toAdd] }), projectId],
+  })
+  return toAdd
+}
+
 /** managed利用を個別に制限したい場合の手動フラグ（新規プロジェクトは既定でtrue）。
  * 決済機能はまだ無いため手動で切り替える（server/scripts/set-managed-allowed.mjs）。 */
 export async function setProjectManagedAllowed(id, allowed) {
